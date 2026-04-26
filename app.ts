@@ -1,6 +1,6 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import router from './src/routes/index.js';
+import router from './src/infrastructure/web/routes/index.js';
 
 const app = express();
 
@@ -12,7 +12,7 @@ app.use(express.json());
 app.use('/api', router);
 
 // Error Handling (Basic)
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.error(err.stack);
     res.status(500).json({
         success: false,
