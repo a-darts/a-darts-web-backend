@@ -95,7 +95,7 @@ export class User {
       throw new Error('Cannot update password of a deleted user');
     }
 
-    if (!newPassword || newPassword.length < 10) {
+    if (!newPassword || newPassword.trim() === '') {
       throw new Error('Password cannot be empty');
     }
 
