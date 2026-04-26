@@ -165,7 +165,27 @@ export class User {
     return this.registratedAt;
   }
 
+  public getDeletedAt(): Date | null | undefined {
+    return this.deletedAt;
+  }
+
   public getStatus(): UserStatus {
     return this.status;
+  }
+
+  // --------------------------------------------------------------------
+  // REHYDRATE METHOD
+  // --------------------------------------------------------------------
+  static rehydrate(data: any): User {
+    return new User(
+      data.id,
+      data.email,
+      data.password,
+      data.alias,
+      data.role,
+      data.status,
+      data.registratedAt,
+      data.deletedAt
+    );
   }
 }
