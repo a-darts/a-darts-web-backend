@@ -34,8 +34,9 @@ A clean, modular, and professional Node.js backend starter project using Express
 ## 📂 Project Structure
 
 ```text
-├── controllers/      # Route controllers (logic)
-├── routes/           # API route definitions
+├── src/ 
+  ├── controllers/      # Route controllers (logic)
+  ├── routes/           # API route definitions
 ├── .env              # Environment variables
 ├── app.js            # Express app configuration
 ├── index.js          # Entry point
