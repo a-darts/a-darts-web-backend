@@ -3,6 +3,9 @@ import jwt from 'jsonwebtoken';
 import { RegisterUser } from '../../../application/services/user/RegisterUser.js';
 import { LoginUser } from '../../../application/services/user/LoginUser.js';
 import { GetUserData } from '../../../application/services/user/GetUserData.js';
+import { UpdateUserAlias } from '../../../application/services/user/UpdateUserAlias.js';
+import { UpdateUserEmail } from '../../../application/services/user/UpdateUserEmail.js';
+import { UpdateUserPassword } from '../../../application/services/user/UpdateUserPassword.js';
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 import { BcryptPasswordHasher } from '../../security/BcryptPasswordHasher.js';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
@@ -16,6 +19,9 @@ const passwordHasher = new BcryptPasswordHasher();
 const registerUser = new RegisterUser(userRepository, passwordHasher);
 const loginUser = new LoginUser(userRepository, passwordHasher);
 const getUserData = new GetUserData(userRepository);
+const updateUserAlias = new UpdateUserAlias(userRepository);
+const updateUserEmail = new UpdateUserEmail(userRepository);
+const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher);
 
 /**
  * @swagger
@@ -78,6 +84,34 @@ const getUserData = new GetUserData(userRepository);
  *         password:
  *           type: string
  *           example: 123456
+ *     UpdateEmailRequest:
+ *       type: object
+ *       required:
+ *         - newEmail
+ *       properties:
+ *         newEmail:
+ *           type: string
+ *           example: nuevo@gmail.com
+ *     UpdatePasswordRequest:
+ *       type: object
+ *       required:
+ *         - oldPassword
+ *         - newPassword
+ *       properties:
+ *         oldPassword:
+ *           type: string
+ *           example: actual_password_123
+ *         newPassword:
+ *           type: string
+ *           example: nueva_password_123
+ *     UpdateAliasRequest:
+ *       type: object
+ *       required:
+ *         - newAlias
+ *       properties:
+ *         newAlias:
+ *           type: string
+ *           example: nuevo_alias
  */
 
 export class UserController {
@@ -173,6 +207,19 @@ export class UserController {
    *                       example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6InBydWViYUBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MTI1MTYzMzcsImV4cCI6MTcxMjYwMjczN30.A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2
    *                     user:
    *                       $ref: '#/components/schemas/User'
+   *       400:
+   *         description: Bad request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Invalid credentials
    */
   async login(req: Request, res: Response) {
     try {
@@ -191,7 +238,7 @@ export class UserController {
         )
       );
     } catch (error: any) {
-      res.status(401).json(
+      res.status(400).json(
         ApiResponseBuilder.error(error.message)
       );
     }
@@ -313,19 +360,238 @@ export class UserController {
   async getMe(req: AuthRequest, res: Response) {
     try {
       if (!req.user) {
-        throw new Error('User not authenticated');
+        return res.status(400).json(
+          ApiResponseBuilder.error('User not authenticated')
+        );
       }
       const userDto = await getUserData.execute(req.user.id);
       res.status(200).json(
         ApiResponseBuilder.success(
           userDto,
-          'User data retrieved',
+          'User data retrieved successfully',
         )
       );
     } catch (error: any) {
       res.status(401).json(
         ApiResponseBuilder.error(error.message)
       );
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/users/email:
+   *   put:
+   *     summary: Update user email
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateEmailRequest'
+   *     responses:
+   *       200:
+   *         description: Email updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Email updated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Email already in use
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   */
+  async updateEmail(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(400).json(
+          ApiResponseBuilder.error('User not authenticated')
+        );
+      }
+
+      await updateUserEmail.execute({
+        id: req.user.id,
+        newEmail: req.body.newEmail
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(null, 'Email updated successfully')
+      );
+    } catch (error: any) {
+      res.status(400).json(ApiResponseBuilder.error(error.message));
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/users/password:
+   *   put:
+   *     summary: Update user password
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdatePasswordRequest'
+   *     responses:
+   *       200:
+   *         description: Password updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Password updated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Incorrect old password
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   */
+  async updatePassword(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) throw new Error('User not authenticated');
+      await updateUserPassword.execute({
+        id: req.user.id,
+        oldPassword: req.body.oldPassword,
+        newPassword: req.body.newPassword
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(null, 'Password updated successfully')
+      );
+    } catch (error: any) {
+      res.status(400).json(ApiResponseBuilder.error(error.message));
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/users/alias:
+   *   put:
+   *     summary: Update user alias
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateAliasRequest'
+   *     responses:
+   *       200:
+   *         description: Alias updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Alias updated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   */
+  async updateAlias(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(400).json(
+          ApiResponseBuilder.error('User not authenticated')
+        );
+      }
+
+      await updateUserAlias.execute({
+        id: req.user.id,
+        newAlias: req.body.newAlias
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(null, 'Alias updated successfully')
+      );
+    } catch (error: any) {
+      res.status(400).json(ApiResponseBuilder.error(error.message));
     }
   }
 }

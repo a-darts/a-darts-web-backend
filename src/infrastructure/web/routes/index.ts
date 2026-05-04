@@ -14,5 +14,8 @@ router.post('/users/register', userController.register);
 router.post('/users/login', userController.login);
 router.post('/users/logout', authMiddleware as any, userController.logout);
 router.get('/users/me', authMiddleware as any, userController.getMe);
+router.put('/users/email', authMiddleware as any, userController.updateEmail);
+router.put('/users/password', authMiddleware as any, userController.updatePassword);
+router.put('/users/alias', authMiddleware as any, userController.updateAlias);
 
 export default router;

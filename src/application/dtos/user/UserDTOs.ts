@@ -33,5 +33,6 @@ export interface UpdateUserEmailRequestDto {
 
 export interface UpdateUserPasswordRequestDto {
     id: string;
+    oldPassword: string;
     newPassword: string;
 }

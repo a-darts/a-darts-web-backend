@@ -15,13 +15,28 @@ export class UpdateUserPassword {
       throw new Error('User not found');
     }
 
-    // 2. Hash the new password
+    // 2. Verify the old password
+    const currentHashedPassword = user.getPassword();
+    if (!currentHashedPassword) {
+      throw new Error('User has no password set');
+    }
+
+    const isPasswordCorrect = await this.passwordHasher.compare(
+      request.oldPassword,
+      currentHashedPassword
+    );
+
+    if (!isPasswordCorrect) {
+      throw new Error('Incorrect old password');
+    }
+
+    // 3. Hash the new password
     const hashedPassword = await this.passwordHasher.hash(request.newPassword);
 
-    // 3. Update the password in the user object
+    // 4. Update the password in the user object
     user.updatePassword(hashedPassword);
 
-    // 4. Persist the changes in the DB
+    // 5. Persist the changes in the DB
     await this.userRepository.update(user);
   }
 }
