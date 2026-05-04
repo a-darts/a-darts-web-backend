@@ -1,13 +1,8 @@
 import { User, UserRole } from '../../../domain/entities/User.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
-
-export interface RegisterUserRequest {
-  email: string;
-  password: string;
-  alias: string;
-  role: UserRole;
-}
+import { RegisterUserRequestDto, UserResponseDto } from '../../dtos/user/UserDTOs.js';
+import { UserMapper } from '../../dtos/user/UserMapper.js';
 
 export class RegisterUser {
   constructor(
@@ -15,7 +10,7 @@ export class RegisterUser {
     private readonly passwordHasher: PasswordHasher
   ) { }
 
-  public async execute(request: RegisterUserRequest): Promise<void> {
+  public async execute(request: RegisterUserRequestDto): Promise<UserResponseDto> {
     // 1. Rehydrate the user from the DB
     const existingUser = await this.userRepository.findByEmail(request.email);
     if (existingUser) {
@@ -35,5 +30,8 @@ export class RegisterUser {
 
     // 4. Persist the user in the DB
     await this.userRepository.create(user);
+
+    // 5. Return the user data
+    return UserMapper.toResponse(user);
   }
 }

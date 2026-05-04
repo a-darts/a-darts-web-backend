@@ -1,19 +1,7 @@
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
-
-// CAMBIAR (DTO)
-export interface LoginUserRequest {
-  email: string;
-  password: string;
-}
-
-// CAMBIAR (DTO)
-export interface LoginUserResponse {
-  id: string;
-  email: string;
-  alias: string;
-  role: string;
-}
+import { LoginUserRequestDto, UserResponseDto } from '../../dtos/user/UserDTOs.js';
+import { UserMapper } from '../../dtos/user/UserMapper.js';
 
 export class LoginUser {
   constructor(
@@ -21,7 +9,7 @@ export class LoginUser {
     private readonly passwordHasher: PasswordHasher
   ) { }
 
-  public async execute(request: LoginUserRequest): Promise<LoginUserResponse> {
+  public async execute(request: LoginUserRequestDto): Promise<UserResponseDto> {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findByEmail(request.email);
     if (!user) {
@@ -48,13 +36,7 @@ export class LoginUser {
       throw new Error('User is blocked');
     }
 
-    // CAMBIAR (DTO)
-    // 3. Return the user data
-    return {
-      id: user.getId(),
-      email: user.getEmail(),
-      alias: user.getAlias(),
-      role: user.getRole(),
-    };
+    // 4. Return the user data
+    return UserMapper.toResponse(user);
   }
 }
