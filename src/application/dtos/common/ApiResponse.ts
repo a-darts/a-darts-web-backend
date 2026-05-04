@@ -25,7 +25,7 @@ export class ApiResponseBuilder {
      * Fail: Returns JSON data with status: fail
      *       (for validation or client logic errors)
      */
-    public static fail<T>(data: any, message: string = 'Validation failed'): ApiResponse<T> {
+    public static fail<T>(data: T, message?: string): ApiResponse<T> {
         return {
             status: 'fail',
             message,
@@ -37,7 +37,7 @@ export class ApiResponseBuilder {
      * Error: Returns JSON data with status: error
      *        (for server logic errors)
      */
-    public static error(message: string, code?: number): ApiResponse<null> {
+    public static error<T>(message: string, code?: number, data?: T): ApiResponse<T> {
         return {
             status: 'error',
             message,

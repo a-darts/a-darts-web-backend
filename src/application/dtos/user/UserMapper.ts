@@ -9,7 +9,7 @@ export class UserMapper {
             alias: user.getAlias(),
             role: user.getRole(),
             status: user.getStatus(),
-            registratedAt: user.getRegistratedAt().toISOString(),
+            registratedAt: user.getRegistratedAt(),
         };
     }
 }

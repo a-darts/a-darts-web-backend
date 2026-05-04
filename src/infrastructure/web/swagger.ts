@@ -4,9 +4,9 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Scoreo Web API',
+      title: 'A-Darts Web API',
       version: '1.0.0',
-      description: 'API for Scoreo Darts App',
+      description: 'API for A-Darts App',
     },
     servers: [
       {

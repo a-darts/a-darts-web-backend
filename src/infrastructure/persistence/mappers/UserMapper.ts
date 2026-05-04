@@ -10,9 +10,9 @@ export class UserMapper {
             password: user.getPassword(),
             alias: user.getAlias(),
             role: user.getRole(),
-            status: user.getStatus(),
             registratedAt: user.getRegistratedAt(),
             deletedAt: user.getDeletedAt(),
+            status: user.getStatus(),
         };
     }
 
@@ -24,9 +24,9 @@ export class UserMapper {
             password: prismaUser.password,
             alias: prismaUser.alias,
             role: prismaUser.role,
-            status: prismaUser.status,
             registratedAt: prismaUser.registratedAt,
             deletedAt: prismaUser.deletedAt,
+            status: prismaUser.status,
         });
     }
 }

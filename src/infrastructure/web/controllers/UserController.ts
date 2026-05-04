@@ -158,15 +158,20 @@ export class UserController {
    *             schema:
    *               type: object
    *               properties:
-   *                 success:
-   *                   type: boolean
-   *                 token:
+   *                 status:
    *                   type: string
-   *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlkOTNjOGNkLWRkMWQtNGU0NS05YmYzLTljMTU2NDljYmVmOCIsImVtYWlsIjoicHJ1ZWJhQGdtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzkwMDU5NywiZXhwIjoxNzc3OTg2OTk3fQ.QzDfv8xYEfZ8hVgxzjqv4n6qljI6jniBondyWDBqDKQ
-   *                 user:
-   *                   $ref: '#/components/schemas/User'
-   *       401:
-   *         description: Unauthorized
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Login successful
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     token:
+   *                       type: string
+   *                       example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6InBydWViYUBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MTI1MTYzMzcsImV4cCI6MTcxMjYwMjczN30.A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2
+   *                     user:
+   *                       $ref: '#/components/schemas/User'
    */
   async login(req: Request, res: Response) {
     try {
@@ -199,7 +204,21 @@ export class UserController {
    *     tags: [Users]
    *     responses:
    *       200:
-   *         description: Logout successful
+   *         description: Logout successfull
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Logout successfull
+   *                 data:
+   *                   type: string
+   *                   example: null
    */
   async logout(req: Request, res: Response) {
     // In JWT, logout is usually handled by the client by deleting the token.

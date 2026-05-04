@@ -187,9 +187,9 @@ export class User {
       data.password,
       data.alias,
       data.role,
-      data.status,
       data.registratedAt,
-      data.deletedAt
+      data.deletedAt,
+      data.status,
     );
   }
 }
