@@ -1,4 +1,5 @@
 import { User, UserRole } from '../../../domain/entities/User.js';
+import { EmailAlreadyInUseException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
 import { RegisterUserRequestDto, UserResponseDto } from '../../dtos/user/UserDTOs.js';
@@ -14,7 +15,7 @@ export class RegisterUser {
     // 1. Rehydrate the user from the DB
     const existingUser = await this.userRepository.findByEmail(request.email);
     if (existingUser) {
-      throw new Error('User already exists');
+      throw new EmailAlreadyInUseException();
     }
 
     // 2. Hash the password

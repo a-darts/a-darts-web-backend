@@ -1,3 +1,4 @@
+import { EmailAlreadyInUseException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { UpdateUserEmailRequestDto } from '../../dtos/user/UserDTOs.js';
 
@@ -8,7 +9,7 @@ export class UpdateUserEmail {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findById(request.id);
     if (!user) {
-      throw new Error('User not found');
+      throw new UserNotFoundException();
     }
 
     // 2. Check if the newEmail is the same as the current email
@@ -19,7 +20,7 @@ export class UpdateUserEmail {
     // 3. Check if the new email is already taken by someone else
     const existingUser = await this.userRepository.findByEmail(request.newEmail);
     if (existingUser) {
-      throw new Error('Email already in use');
+      throw new EmailAlreadyInUseException();
     }
 
     // 4. Update the email in the user object

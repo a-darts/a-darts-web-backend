@@ -1,3 +1,4 @@
+import { InvalidCredentialsException, UserBlockedException, UserDeletedException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
 import { LoginUserRequestDto, UserResponseDto } from '../../dtos/user/UserDTOs.js';
@@ -13,27 +14,29 @@ export class LoginUser {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findByEmail(request.email);
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new InvalidCredentialsException();
     }
 
     // 2. Compare the password
     const password = user.getPassword();
     if (!password) {
-      throw new Error('User has no password');
+      // This shouldn't happen ever (user always has password) -> INTERNAL DATA INCONSISTENCY
+      console.error('[ERROR] User has no password');
+      throw new InvalidCredentialsException();
     }
 
     const isPasswordValid = await this.passwordHasher.compare(request.password, password);
     if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
+      throw new InvalidCredentialsException();
     }
 
     // 3. Check the status of the user (active or inactive)
     if (user.getStatus() === 'deleted') {
-      throw new Error('User is deleted');
+      throw new UserDeletedException();
     }
 
     if (user.getStatus() === 'blocked') {
-      throw new Error('User is blocked');
+      throw new UserBlockedException();
     }
 
     // 4. Return the user data

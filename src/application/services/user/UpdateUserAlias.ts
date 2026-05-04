@@ -1,3 +1,4 @@
+import { UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { UpdateUserAliasRequestDto } from '../../dtos/user/UserDTOs.js';
 
@@ -8,7 +9,7 @@ export class UpdateUserAlias {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findById(request.id);
     if (!user) {
-      throw new Error('User not found');
+      throw new UserNotFoundException();
     }
 
     // 2. Update the alias in the user object

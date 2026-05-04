@@ -12,6 +12,8 @@ import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { redis } from '../../redis/redisClient.js';
+import { EmailAlreadyInUseException, InvalidCredentialsException, InvalidPasswordException, InvalidUserFieldException, UserBlockedException, UserDeletedException, UserNotActiveException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
+import { User } from '../../../domain/entities/User.js';
 
 const userRepository = new PrismaUserRepository(prisma);
 const passwordHasher = new BcryptPasswordHasher();
@@ -144,6 +146,19 @@ export class UserController {
    *                 data:
    *                   $ref: '#/components/schemas/User'
    *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Email, password, alias and role are required
+   *       409:
    *         description: Bad request
    *         content:
    *           application/json:
@@ -155,7 +170,20 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User already exists
+   *                   example: Email already in use
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
    */
   async register(req: Request, res: Response) {
     try {
@@ -167,8 +195,19 @@ export class UserController {
         )
       );
     } catch (error: any) {
-      res.status(400).json(
-        ApiResponseBuilder.error(error.message)
+      if (error instanceof InvalidUserFieldException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof EmailAlreadyInUseException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
       );
     }
   }
@@ -208,7 +247,20 @@ export class UserController {
    *                     user:
    *                       $ref: '#/components/schemas/User'
    *       400:
-   *         description: Bad request
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Email and password are required
+   *       401:
+   *         description: Unauthorized
    *         content:
    *           application/json:
    *             schema:
@@ -220,14 +272,45 @@ export class UserController {
    *                 message:
    *                   type: string
    *                   example: Invalid credentials
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User deleted
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
    */
   async login(req: Request, res: Response) {
     try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        throw new InvalidUserFieldException('Email and password are required');
+      }
+
       const userDto = await loginUser.execute(req.body);
 
       const token = jwt.sign(
         { id: userDto.id, email: userDto.email, role: userDto.role },
-        process.env.JWT_SECRET || 'fallback_secret',
+        process.env.JWT_SECRET as string,
         { expiresIn: '24h' }
       );
 
@@ -238,8 +321,27 @@ export class UserController {
         )
       );
     } catch (error: any) {
-      res.status(400).json(
-        ApiResponseBuilder.error(error.message)
+      if (error instanceof InvalidUserFieldException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof InvalidCredentialsException) {
+        return res.status(401).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof UserDeletedException ||
+        error instanceof UserBlockedException
+      ) {
+        return res.status(403).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
       );
     }
   }
@@ -282,6 +384,19 @@ export class UserController {
    *                 message:
    *                   type: string
    *                   example: No token provided
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
    */
   async logout(req: AuthRequest, res: Response) {
     try {
@@ -313,6 +428,7 @@ export class UserController {
         )
       );
     } catch (error: any) {
+      console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Error during logout')
       );
@@ -356,11 +472,37 @@ export class UserController {
    *                 message:
    *                   type: string
    *                   example: No token provided
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
    */
   async getMe(req: AuthRequest, res: Response) {
     try {
       if (!req.user) {
-        return res.status(400).json(
+        return res.status(401).json(
           ApiResponseBuilder.error('User not authenticated')
         );
       }
@@ -372,8 +514,14 @@ export class UserController {
         )
       );
     } catch (error: any) {
-      res.status(401).json(
-        ApiResponseBuilder.error(error.message)
+      if (error instanceof UserNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
       );
     }
   }
@@ -410,7 +558,7 @@ export class UserController {
    *                   type: string
    *                   example: null
    *       400:
-   *         description: Bad request
+   *         description: Bad Request
    *         content:
    *           application/json:
    *             schema:
@@ -421,7 +569,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Email already in use
+   *                   example: New email is required
    *       401:
    *         description: Unauthorized
    *         content:
@@ -435,24 +583,104 @@ export class UserController {
    *                 message:
    *                   type: string
    *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User deleted
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Email already in use
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
    */
   async updateEmail(req: AuthRequest, res: Response) {
     try {
+      const { newEmail } = req.body;
+      if (!newEmail) {
+        throw new InvalidUserFieldException('New email is required');
+      }
+
       if (!req.user) {
-        return res.status(400).json(
+        return res.status(401).json(
           ApiResponseBuilder.error('User not authenticated')
         );
       }
 
       await updateUserEmail.execute({
         id: req.user.id,
-        newEmail: req.body.newEmail
+        newEmail: newEmail,
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Email updated successfully')
       );
     } catch (error: any) {
-      res.status(400).json(ApiResponseBuilder.error(error.message));
+      if (error instanceof InvalidUserFieldException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserDeletedException) {
+        return res.status(403).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof EmailAlreadyInUseException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
     }
   }
 
@@ -488,7 +716,7 @@ export class UserController {
    *                   type: string
    *                   example: null
    *       400:
-   *         description: Bad request
+   *         description: Bad Request
    *         content:
    *           application/json:
    *             schema:
@@ -499,7 +727,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Incorrect old password
+   *                   example: Old password and new password are required
    *       401:
    *         description: Unauthorized
    *         content:
@@ -513,20 +741,91 @@ export class UserController {
    *                 message:
    *                   type: string
    *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User deleted
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
    */
   async updatePassword(req: AuthRequest, res: Response) {
     try {
-      if (!req.user) throw new Error('User not authenticated');
+      const { oldPassword, newPassword } = req.body;
+      if (!oldPassword || !newPassword) {
+        throw new InvalidUserFieldException('Old password and new password are required');
+      }
+
+      if (!req.user) {
+        return res.status(401).json(
+          ApiResponseBuilder.error('User not authenticated')
+        );
+      }
       await updateUserPassword.execute({
         id: req.user.id,
-        oldPassword: req.body.oldPassword,
-        newPassword: req.body.newPassword
+        oldPassword: oldPassword,
+        newPassword: newPassword,
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Password updated successfully')
       );
     } catch (error: any) {
-      res.status(400).json(ApiResponseBuilder.error(error.message));
+      if (error instanceof InvalidUserFieldException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof InvalidPasswordException) {
+        return res.status(401).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserDeletedException) {
+        return res.status(403).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
     }
   }
 
@@ -561,6 +860,19 @@ export class UserController {
    *                 data:
    *                   type: string
    *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: New alias is required
    *       401:
    *         description: Unauthorized
    *         content:
@@ -574,24 +886,86 @@ export class UserController {
    *                 message:
    *                   type: string
    *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User deleted
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
    */
   async updateAlias(req: AuthRequest, res: Response) {
     try {
+      const { newAlias } = req.body;
+      if (!newAlias) {
+        throw new InvalidUserFieldException('New alias is required');
+      }
+
       if (!req.user) {
-        return res.status(400).json(
+        return res.status(401).json(
           ApiResponseBuilder.error('User not authenticated')
         );
       }
 
       await updateUserAlias.execute({
         id: req.user.id,
-        newAlias: req.body.newAlias
+        newAlias: newAlias,
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Alias updated successfully')
       );
     } catch (error: any) {
-      res.status(400).json(ApiResponseBuilder.error(error.message));
+      if (error instanceof InvalidUserFieldException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserDeletedException) {
+        return res.status(403).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
     }
   }
 }
