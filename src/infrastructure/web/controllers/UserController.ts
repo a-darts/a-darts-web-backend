@@ -8,6 +8,7 @@ import { BcryptPasswordHasher } from '../../security/BcryptPasswordHasher.js';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
+import { redis } from '../../redis/redisClient.js';
 
 const userRepository = new PrismaUserRepository(prisma);
 const passwordHasher = new BcryptPasswordHasher();
@@ -202,6 +203,8 @@ export class UserController {
    *   post:
    *     summary: Logout user (clears token on client side)
    *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
    *     responses:
    *       200:
    *         description: Logout successfull
@@ -219,16 +222,54 @@ export class UserController {
    *                 data:
    *                   type: string
    *                   example: null
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
    */
-  async logout(req: Request, res: Response) {
-    // In JWT, logout is usually handled by the client by deleting the token.
-    // Here we just return success.
-    res.status(200).json(
-      ApiResponseBuilder.success(
-        null,
-        'Logout successful',
-      )
-    );
+  async logout(req: AuthRequest, res: Response) {
+    try {
+      const token = req.token;
+
+      if (!token) {
+        return res.status(401).json(
+          ApiResponseBuilder.error('No token provided')
+        );
+      }
+
+      // Decode token to get expiration
+      const decoded = jwt.decode(token) as { exp: number };
+
+      if (decoded && decoded.exp) {
+        const now = Math.floor(Date.now() / 1000);
+        const ttl = decoded.exp - now;
+
+        if (ttl > 0) {
+          // Store token in Redis with TTL
+          await redis.set(`blacklist:${token}`, 'true', 'EX', ttl);
+        }
+      }
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Logout successful',
+        )
+      );
+    } catch (error: any) {
+      res.status(500).json(
+        ApiResponseBuilder.error('Error during logout')
+      );
+    }
   }
 
   /**
@@ -241,13 +282,33 @@ export class UserController {
    *       - bearerAuth: []
    *     responses:
    *       200:
-   *         description: User data retrieved
+   *         description: User data retrieved successfully
    *         content:
    *           application/json:
    *             schema:
-   *               $ref: '#/components/schemas/User'
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: User data retrieved successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/User'
    *       401:
    *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
    */
   async getMe(req: AuthRequest, res: Response) {
     try {
