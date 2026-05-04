@@ -2,7 +2,7 @@ import { User as PrismaUser } from '@prisma/client';
 import { User } from '../../../domain/entities/User.js';
 
 export class UserMapper {
-    // De Entidad de Dominio a Objeto de Prisma (Persistencia)
+    // From Domain Entity to Prisma Object
     static toPersistence(user: User) {
         return {
             id: user.getId(),
@@ -16,7 +16,7 @@ export class UserMapper {
         };
     }
 
-    // De Objeto de Prisma a Entidad de Dominio
+    // From Prisma Object to Domain Entity
     static toDomain(prismaUser: PrismaUser): User {
         return User.rehydrate({
             id: prismaUser.id,

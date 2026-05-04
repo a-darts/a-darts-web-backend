@@ -33,6 +33,7 @@ export class User {
     this.status = status;
   }
 
+
   // --------------------------------------------------------------------
   // FACTORY METHOD
   // --------------------------------------------------------------------
@@ -65,6 +66,7 @@ export class User {
     );
   }
 
+
   // --------------------------------------------------------------------
   // UPDATE METHODS
   // --------------------------------------------------------------------
@@ -79,17 +81,6 @@ export class User {
     this.email = newEmail;
   }
 
-  public updateAlias(newAlias: string): void {
-    if (this.status === 'deleted') {
-      throw new Error('Cannot update alias of a deleted user');
-    }
-
-    if (!newAlias || newAlias.trim() === '') {
-      throw new Error('Alias cannot be empty');
-    }
-    this.alias = newAlias;
-  }
-
   public updatePassword(newPassword: string): void {
     if (this.status === 'deleted') {
       throw new Error('Cannot update password of a deleted user');
@@ -101,6 +92,18 @@ export class User {
 
     this.password = newPassword;
   }
+
+  public updateAlias(newAlias: string): void {
+    if (this.status === 'deleted') {
+      throw new Error('Cannot update alias of a deleted user');
+    }
+
+    if (!newAlias || newAlias.trim() === '') {
+      throw new Error('Alias cannot be empty');
+    }
+    this.alias = newAlias;
+  }
+
 
   // --------------------------------------------------------------------
   // STATUS MANAGEMENT
@@ -137,6 +140,7 @@ export class User {
     }
     this.status = 'blocked';
   }
+
 
   // --------------------------------------------------------------------
   // GETTERS
