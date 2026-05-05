@@ -1,3 +1,5 @@
+import { InvalidSeasonException, InvalidYearException } from "../exceptions/PlayerExceptions.js";
+
 export class Season {
     private readonly startYear: number;
     private readonly endYear: number;
@@ -13,10 +15,10 @@ export class Season {
             this.startYear < 1900 || this.startYear > 2200 ||
             this.endYear < 1900 || this.endYear > 2200
         ) {
-            throw new Error('Invalid year');
+            throw new InvalidYearException();
         }
         if (this.startYear + 1 !== this.endYear) {
-            throw new Error('Invalid season: startYear must be 1 year before endYear');
+            throw new InvalidSeasonException();
         }
     }
 
@@ -86,5 +88,18 @@ export class Player {
 
     public getSeason(): Season {
         return this.season;
+    }
+
+
+    // --------------------------------------------------------------------
+    // REHYDRATE METHOD
+    // --------------------------------------------------------------------
+    static rehydrate(data: any): Player {
+        return new Player(
+            data.userId,
+            data.registrationNumber,
+            data.federation,
+            new Season(data.seasonStartYear, data.seasonEndYear),
+        );
     }
 }

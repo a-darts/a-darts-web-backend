@@ -34,5 +34,21 @@ model User {
   deletedAt     DateTime?
   status        UserStatus
 
+  playerProfile Player?
+
   @@map("users")
+}
+
+model Player {
+  userId             String @id @db.Uuid
+  registrationNumber String
+  federation         String
+  // Value object Season fields
+  seasonStartYear    Int
+  seasonEndYear      Int
+  //
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("players")
 }
