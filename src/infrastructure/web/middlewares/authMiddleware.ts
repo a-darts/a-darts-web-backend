@@ -29,7 +29,7 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
     const isBlacklisted = await redis.get(`blacklist:${token}`);
     if (isBlacklisted) {
       res.status(401).json(
-        ApiResponseBuilder.error('Token has been invalidated')
+        ApiResponseBuilder.error('Invalid token')
       );
       return;
     }

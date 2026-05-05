@@ -135,7 +135,7 @@ export class AuthController {
    *             $ref: '#/components/schemas/LoginRequest'
    *     responses:
    *       200:
-   *         description: Login successful
+   *         description: User logged in successfully
    *         content:
    *           application/json:
    *             schema:
@@ -146,7 +146,7 @@ export class AuthController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Login successful
+   *                   example: User logged in successfully
    *                 data:
    *                   type: object
    *                   properties:
@@ -226,7 +226,7 @@ export class AuthController {
       res.status(200).json(
         ApiResponseBuilder.success(
           { token, user: userDto },
-          'Login successful'
+          'User logged in successfully'
         )
       );
     } catch (error: any) {
@@ -337,7 +337,7 @@ export class AuthController {
     } catch (error: any) {
       console.error('[ERROR]:', error);
       res.status(500).json(
-        ApiResponseBuilder.error('Error during logout')
+        ApiResponseBuilder.error('Internal server error')
       );
     }
   }
