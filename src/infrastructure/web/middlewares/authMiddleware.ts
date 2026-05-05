@@ -17,7 +17,7 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json(
-      ApiResponseBuilder.error('No token provided')
+      ApiResponseBuilder.error('Token no proporcionado')
     );
     return;
   }

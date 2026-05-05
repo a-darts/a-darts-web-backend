@@ -1,34 +1,34 @@
 export class UserNotFoundException extends Error {
     constructor() {
-        super('User not found');
+        super('Usuario no encontrado');
         this.name = 'UserNotFoundException';
     }
 }
 
 export class UserDeletedException extends Error {
     constructor() {
-        super('User deleted');
+        super('Usuario eliminado');
         this.name = 'UserDeletedException';
     }
 }
 
 export class UserBlockedException extends Error {
     constructor() {
-        super('User blocked');
+        super('Usuario bloqueado');
         this.name = 'UserBlockedException';
     }
 }
 
 export class UserNotActiveException extends Error {
     constructor() {
-        super('User not active');
+        super('Usuario no activo');
         this.name = 'UserNotActiveException';
     }
 }
 
 export class EmailAlreadyInUseException extends Error {
     constructor() {
-        super('Email already in use');
+        super('Correo ya en uso');
         this.name = 'EmailAlreadyInUseException';
     }
 }
@@ -42,14 +42,14 @@ export class InvalidUserFieldException extends Error {
 
 export class InvalidCredentialsException extends Error {
     constructor() {
-        super('Invalid credentials');
+        super('Credenciales inválidas');
         this.name = 'InvalidCredentialsException';
     }
 }
 
 export class InvalidPasswordException extends Error {
     constructor() {
-        super('Invalid password');
+        super('Contraseña inválida');
         this.name = 'InvalidPasswordException';
     }
 }

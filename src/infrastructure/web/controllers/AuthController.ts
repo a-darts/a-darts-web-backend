@@ -40,7 +40,7 @@ export class AuthController {
    *             $ref: '#/components/schemas/RegisterRequest'
    *     responses:
    *       201:
-   *         description: User registered successfully
+   *         description: Usuario registrado correctamente
    *         content:
    *           application/json:
    *             schema:
@@ -51,7 +51,7 @@ export class AuthController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: User registered successfully
+   *                   example: Usuario registrado correctamente
    *                 data:
    *                   $ref: '#/components/schemas/User'
    *       400:
@@ -66,7 +66,7 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Email, password, alias and role are required
+   *                   example: Correo, contraseña, alias y rol son obligatorios
    *       409:
    *         description: Bad request
    *         content:
@@ -79,9 +79,9 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Email already in use
+   *                   example: Correo ya en uso
    *       500:
-   *         description: Internal Server Error
+   *         description: Error interno del servidor
    *         content:
    *           application/json:
    *             schema:
@@ -92,7 +92,7 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Internal server error
+   *                   example: Error interno del servidor
    */
   async register(req: Request, res: Response) {
     try {
@@ -100,7 +100,7 @@ export class AuthController {
       return res.status(201).json(
         ApiResponseBuilder.success(
           userDto,
-          "User registered successfully",
+          "Usuario registrado correctamente",
         )
       );
     } catch (error: any) {
@@ -116,7 +116,7 @@ export class AuthController {
       }
       console.error('[ERROR]:', error);
       res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
+        ApiResponseBuilder.error('Error interno del servidor')
       );
     }
   }
@@ -135,7 +135,7 @@ export class AuthController {
    *             $ref: '#/components/schemas/LoginRequest'
    *     responses:
    *       200:
-   *         description: Login successful
+   *         description: Inicio de sesión correcto
    *         content:
    *           application/json:
    *             schema:
@@ -146,7 +146,7 @@ export class AuthController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Login successful
+   *                   example: Inicio de sesión correcto
    *                 data:
    *                   type: object
    *                   properties:
@@ -167,7 +167,7 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Email and password are required
+   *                   example: Correo y contraseña son obligatorios
    *       401:
    *         description: Unauthorized
    *         content:
@@ -180,7 +180,7 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Invalid credentials
+   *                   example: Credenciales inválidas
    *       403:
    *         description: Forbidden
    *         content:
@@ -193,9 +193,9 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User deleted
+   *                   example: Usuario eliminado
    *       500:
-   *         description: Internal Server Error
+   *         description: Error interno del servidor
    *         content:
    *           application/json:
    *             schema:
@@ -206,13 +206,13 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Internal server error
+   *                   example: Error interno del servidor
    */
   async login(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
-        throw new InvalidUserFieldException('Email and password are required');
+        throw new InvalidUserFieldException('Correo y contraseña son obligatorios');
       }
 
       const userDto = await loginUser.execute(req.body);
@@ -226,7 +226,7 @@ export class AuthController {
       res.status(200).json(
         ApiResponseBuilder.success(
           { token, user: userDto },
-          'Login successful'
+          'Inicio de sesión correcto'
         )
       );
     } catch (error: any) {
@@ -250,7 +250,7 @@ export class AuthController {
       }
       console.error('[ERROR]:', error);
       res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
+        ApiResponseBuilder.error('Error interno del servidor')
       );
     }
   }
@@ -265,7 +265,7 @@ export class AuthController {
    *       - bearerAuth: []
    *     responses:
    *       200:
-   *         description: Logout successfull
+   *         description: Cierre de sesión correcto
    *         content:
    *           application/json:
    *             schema:
@@ -276,7 +276,7 @@ export class AuthController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Logout successfull
+   *                   example: Cierre de sesión correcto
    *                 data:
    *                   type: string
    *                   example: null
@@ -292,9 +292,9 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: No token provided
+   *                   example: Token no proporcionado
    *       500:
-   *         description: Internal Server Error
+   *         description: Error interno del servidor
    *         content:
    *           application/json:
    *             schema:
@@ -305,7 +305,7 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Internal server error
+   *                   example: Error interno del servidor
    */
   async logout(req: AuthRequest, res: Response) {
     try {
@@ -313,7 +313,7 @@ export class AuthController {
 
       if (!token) {
         return res.status(401).json(
-          ApiResponseBuilder.error('No token provided')
+          ApiResponseBuilder.error('Token no proporcionado')
         );
       }
 
@@ -331,13 +331,13 @@ export class AuthController {
       res.status(200).json(
         ApiResponseBuilder.success(
           null,
-          'Logout successful',
+          'Cierre de sesión correcto',
         )
       );
     } catch (error: any) {
       console.error('[ERROR]:', error);
       res.status(500).json(
-        ApiResponseBuilder.error('Error during logout')
+        ApiResponseBuilder.error('Error interno del servidor')
       );
     }
   }
@@ -352,7 +352,7 @@ export class AuthController {
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User data retrieved successfully
+ *         description: Información del usuario devuelta correctamente
  *         content:
  *           application/json:
  *             schema:
@@ -363,7 +363,7 @@ export class AuthController {
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: User data retrieved successfully
+ *                   example: Información del usuario devuelta correctamente
  *                 data:
  *                   $ref: '#/components/schemas/User'
  *       401:
@@ -378,7 +378,7 @@ export class AuthController {
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: No token provided
+ *                   example: Token no proporcionado
  *       404:
  *         description: Not Found
  *         content:
@@ -391,9 +391,9 @@ export class AuthController {
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: User not found
+ *                   example: Usuario no encontrado
  *       500:
- *         description: Internal Server Error
+ *         description: Error interno del servidor
  *         content:
  *           application/json:
  *             schema:
@@ -404,20 +404,20 @@ export class AuthController {
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Internal server error
+ *                   example: Error interno del servidor
  */
   async getMe(req: AuthRequest, res: Response) {
     try {
       if (!req.user) {
         return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
+          ApiResponseBuilder.error('Usuario no autenticado')
         );
       }
       const userDto = await getUserData.execute(req.user.id);
       res.status(200).json(
         ApiResponseBuilder.success(
           userDto,
-          'User data retrieved successfully',
+          'Información del usuario devuelta correctamente',
         )
       );
     } catch (error: any) {
@@ -428,7 +428,7 @@ export class AuthController {
       }
       console.error('[ERROR]:', error);
       res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
+        ApiResponseBuilder.error('Error interno del servidor')
       );
     }
   }

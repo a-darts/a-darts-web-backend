@@ -131,7 +131,7 @@ export class UserController {
    *             $ref: '#/components/schemas/UpdateEmailRequest'
    *     responses:
    *       200:
-   *         description: Email updated successfully
+   *         description: Correo actualizado correctamente
    *         content:
    *           application/json:
    *             schema:
@@ -142,7 +142,7 @@ export class UserController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Email updated successfully
+   *                   example: Correo actualizado correctamente
    *                 data:
    *                   type: string
    *                   example: null
@@ -158,7 +158,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: New email is required
+   *                   example: El nuevo correo es obligatorio
    *       401:
    *         description: Unauthorized
    *         content:
@@ -171,7 +171,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: No token provided
+   *                   example: Token no proporcionado
    *       403:
    *         description: Forbidden
    *         content:
@@ -184,7 +184,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User deleted
+   *                   example: Usuario eliminado
    *       404:
    *         description: Not Found
    *         content:
@@ -197,7 +197,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User not found
+   *                   example: Usuario no encontrado
    *       409:
    *         description: Conflict
    *         content:
@@ -210,9 +210,9 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Email already in use
+   *                   example: Correo ya en uso
    *       500:
-   *         description: Internal Server Error
+   *         description: Error interno del servidor
    *         content:
    *           application/json:
    *             schema:
@@ -223,18 +223,18 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Internal server error
+   *                   example: Error interno del servidor
    */
   async updateEmail(req: AuthRequest, res: Response) {
     try {
       const { newEmail } = req.body;
       if (!newEmail) {
-        throw new InvalidUserFieldException('New email is required');
+        throw new InvalidUserFieldException('El nuevo correo es obligatorio');
       }
 
       if (!req.user) {
         return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
+          ApiResponseBuilder.error('Usuario no autenticado')
         );
       }
 
@@ -243,7 +243,7 @@ export class UserController {
         newEmail: newEmail,
       });
       res.status(200).json(
-        ApiResponseBuilder.success(null, 'Email updated successfully')
+        ApiResponseBuilder.success(null, 'Correo actualizado correctamente')
       );
     } catch (error: any) {
       if (error instanceof InvalidUserFieldException) {
@@ -268,7 +268,7 @@ export class UserController {
       }
       console.error('[ERROR]:', error);
       res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
+        ApiResponseBuilder.error('Error interno del servidor')
       );
     }
   }
@@ -289,7 +289,7 @@ export class UserController {
    *             $ref: '#/components/schemas/UpdatePasswordRequest'
    *     responses:
    *       200:
-   *         description: Password updated successfully
+   *         description: Contraseña actualizada correctamente
    *         content:
    *           application/json:
    *             schema:
@@ -300,7 +300,7 @@ export class UserController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Password updated successfully
+   *                   example: Contraseña actualizada correctamente
    *                 data:
    *                   type: string
    *                   example: null
@@ -316,7 +316,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Old password and new password are required
+   *                   example: La anterior y la nueva contraseña son obligatorias
    *       401:
    *         description: Unauthorized
    *         content:
@@ -329,7 +329,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: No token provided
+   *                   example: Token no proporcionado
    *       403:
    *         description: Forbidden
    *         content:
@@ -342,7 +342,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User deleted
+   *                   example: Usuario eliminado
    *       404:
    *         description: Not Found
    *         content:
@@ -355,9 +355,9 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User not found
+   *                   example: Usuario no encontrado
    *       500:
-   *         description: Internal Server Error
+   *         description: Error interno del servidor
    *         content:
    *           application/json:
    *             schema:
@@ -368,18 +368,18 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Internal server error
+   *                   example: Error interno del servidor
    */
   async updatePassword(req: AuthRequest, res: Response) {
     try {
       const { oldPassword, newPassword } = req.body;
       if (!oldPassword || !newPassword) {
-        throw new InvalidUserFieldException('Old password and new password are required');
+        throw new InvalidUserFieldException('La anterior y la nueva contraseña son obligatorias');
       }
 
       if (!req.user) {
         return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
+          ApiResponseBuilder.error('Usuario no autenticado')
         );
       }
       await updateUserPassword.execute({
@@ -388,7 +388,7 @@ export class UserController {
         newPassword: newPassword,
       });
       res.status(200).json(
-        ApiResponseBuilder.success(null, 'Password updated successfully')
+        ApiResponseBuilder.success(null, 'Contraseña actualizada correctamente')
       );
     } catch (error: any) {
       if (error instanceof InvalidUserFieldException) {
@@ -413,7 +413,7 @@ export class UserController {
       }
       console.error('[ERROR]:', error);
       res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
+        ApiResponseBuilder.error('Error interno del servidor')
       );
     }
   }
@@ -434,7 +434,7 @@ export class UserController {
    *             $ref: '#/components/schemas/UpdateAliasRequest'
    *     responses:
    *       200:
-   *         description: Alias updated successfully
+   *         description: Alias actualizado correctamente
    *         content:
    *           application/json:
    *             schema:
@@ -445,7 +445,7 @@ export class UserController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Alias updated successfully
+   *                   example: Alias actualizado correctamente
    *                 data:
    *                   type: string
    *                   example: null
@@ -461,7 +461,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: New alias is required
+   *                   example: El nuevo alias es obligatorio
    *       401:
    *         description: Unauthorized
    *         content:
@@ -474,7 +474,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: No token provided
+   *                   example: Token no proporcionado
    *       403:
    *         description: Forbidden
    *         content:
@@ -487,7 +487,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User deleted
+   *                   example: Usuario eliminado
    *       404:
    *         description: Not Found
    *         content:
@@ -500,9 +500,9 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User not found
+   *                   example: Usuario no encontrado
    *       500:
-   *         description: Internal Server Error
+   *         description: Error interno del servidor
    *         content:
    *           application/json:
    *             schema:
@@ -513,18 +513,18 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Internal server error
+   *                   example: Error interno del servidor
    */
   async updateAlias(req: AuthRequest, res: Response) {
     try {
       const { newAlias } = req.body;
       if (!newAlias) {
-        throw new InvalidUserFieldException('New alias is required');
+        throw new InvalidUserFieldException('El nuevo alias es obligatorio');
       }
 
       if (!req.user) {
         return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
+          ApiResponseBuilder.error('Usuario no autenticado')
         );
       }
 
@@ -533,7 +533,7 @@ export class UserController {
         newAlias: newAlias,
       });
       res.status(200).json(
-        ApiResponseBuilder.success(null, 'Alias updated successfully')
+        ApiResponseBuilder.success(null, 'Alias actualizado exitosamente')
       );
     } catch (error: any) {
       if (error instanceof InvalidUserFieldException) {
@@ -553,7 +553,7 @@ export class UserController {
       }
       console.error('[ERROR]:', error);
       res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
+        ApiResponseBuilder.error('Error interno del servidor')
       );
     }
   }

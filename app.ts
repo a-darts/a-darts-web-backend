@@ -21,7 +21,7 @@ app.use('/api', router);
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.error(err.stack);
     res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
+        ApiResponseBuilder.error('Error interno del servidor')
     );
 });
 
