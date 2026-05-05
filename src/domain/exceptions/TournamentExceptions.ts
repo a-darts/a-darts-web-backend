@@ -1,0 +1,20 @@
+export class TournamentNotInDraftException extends Error {
+    constructor() {
+        super('Tournament is not in draft');
+        this.name = 'TournamentNotInDraftException';
+    }
+}
+
+export class TournamentRegistrationNotClosedException extends Error {
+    constructor() {
+        super('Tournament registration is not closed');
+        this.name = 'TournamentRegistrationNotClosedException';
+    }
+}
+
+export class TournamentNotInProgressException extends Error {
+    constructor() {
+        super('Tournament is not in progress');
+        this.name = 'TournamentNotInProgressException';
+    }
+}
