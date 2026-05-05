@@ -1,0 +1,16 @@
+import { PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
+import { PlayerRepository } from '../../../domain/repositories/PlayerRepository.js';
+import { PlayerResponseDto } from '../../dtos/player/PlayerDTOs.js';
+import { PlayerMapper } from '../../dtos/player/PlayerMapper.js';
+
+export class GetAllPlayers {
+  constructor(private readonly playerRepository: PlayerRepository) { }
+
+  public async execute(): Promise<PlayerResponseDto[]> {
+    // 1. Rehydrate all players from the DB
+    const players = await this.playerRepository.findAll();
+
+    // 2. Return the players data (without password)
+    return players.map(player => PlayerMapper.toResponse(player));
+  }
+}
