@@ -25,6 +25,36 @@ const getUserData = new GetUserData(userRepository);
 const registerUser = new RegisterUser(userRepository, passwordHasher);
 const loginUser = new LoginUser(userRepository, passwordHasher);
 
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         email:
+ *           type: string
+ *           example: prueba@gmail.com
+ *         alias:
+ *           type: string
+ *           example: prueba
+ *         role:
+ *           type: string
+ *           enum: [player, admin]
+ *           example: admin
+ *         status:
+ *           type: string
+ *           enum: [active, inactive, blocked, deleted]
+ *           example: active
+ *         registratedAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-05-04T13:10:16.841Z
+ */
 export class AuthController {
   /**
    * @swagger
@@ -343,69 +373,69 @@ export class AuthController {
   }
 
   /**
- * @swagger
- * /api/auth/me:
- *   get:
- *     summary: Get current user data
- *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: User data retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: User data retrieved successfully
- *                 data:
- *                   $ref: '#/components/schemas/User'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: No token provided
- *       404:
- *         description: Not Found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: User not found
- *       500:
- *         description: Internal Server Error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: Internal server error
- */
+   * @swagger
+   * /api/auth/me:
+   *   get:
+   *     summary: Get current user data
+   *     tags: [Auth]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: User data retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: User data retrieved successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/User'
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
   async getMe(req: AuthRequest, res: Response) {
     try {
       if (!req.user) {

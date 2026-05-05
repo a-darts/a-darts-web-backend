@@ -1,4 +1,3 @@
-import { PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
 import { PlayerRepository } from '../../../domain/repositories/PlayerRepository.js';
 import { PlayerResponseDto } from '../../dtos/player/PlayerDTOs.js';
 import { PlayerMapper } from '../../dtos/player/PlayerMapper.js';
