@@ -112,7 +112,7 @@ export class PlayerController {
 
   /**
  * @swagger
- * /api/players/{id}:
+ * /api/players/{userId}:
  *   get:
  *     summary: Get player data by user ID
  *     tags: [Players]
