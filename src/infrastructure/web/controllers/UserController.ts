@@ -10,7 +10,7 @@ import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse
 import {
   EmailAlreadyInUseException,
   InvalidPasswordException,
-  InvalidUserFieldException,
+  MissingRequiredUserFieldsException,
   UserDeletedException,
   UserNotFoundException
 } from '../../../domain/exceptions/UserExceptions.js';
@@ -158,7 +158,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: New email is required
+   *                   example: All fields are required
    *       401:
    *         description: Unauthorized
    *         content:
@@ -229,7 +229,7 @@ export class UserController {
     try {
       const { newEmail } = req.body;
       if (!newEmail) {
-        throw new InvalidUserFieldException('New email is required');
+        throw new MissingRequiredUserFieldsException();
       }
 
       if (!req.user) {
@@ -246,7 +246,7 @@ export class UserController {
         ApiResponseBuilder.success(null, 'Email updated successfully')
       );
     } catch (error: any) {
-      if (error instanceof InvalidUserFieldException) {
+      if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -316,7 +316,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Old password and new password are required
+   *                   example: All fields are required
    *       401:
    *         description: Unauthorized
    *         content:
@@ -374,7 +374,7 @@ export class UserController {
     try {
       const { oldPassword, newPassword } = req.body;
       if (!oldPassword || !newPassword) {
-        throw new InvalidUserFieldException('Old password and new password are required');
+        throw new MissingRequiredUserFieldsException();
       }
 
       if (!req.user) {
@@ -391,7 +391,7 @@ export class UserController {
         ApiResponseBuilder.success(null, 'Password updated successfully')
       );
     } catch (error: any) {
-      if (error instanceof InvalidUserFieldException) {
+      if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -461,7 +461,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: New alias is required
+   *                   example: All fields are required
    *       401:
    *         description: Unauthorized
    *         content:
@@ -519,7 +519,7 @@ export class UserController {
     try {
       const { newAlias } = req.body;
       if (!newAlias) {
-        throw new InvalidUserFieldException('New alias is required');
+        throw new MissingRequiredUserFieldsException();
       }
 
       if (!req.user) {
@@ -536,7 +536,7 @@ export class UserController {
         ApiResponseBuilder.success(null, 'Alias updated successfully')
       );
     } catch (error: any) {
-      if (error instanceof InvalidUserFieldException) {
+      if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );

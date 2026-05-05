@@ -1,4 +1,4 @@
-import { InvalidUserFieldException, UserDeletedException, UserNotActiveException } from "../exceptions/UserExceptions.js";
+import { MissingRequiredUserFieldsException, UserDeletedException, UserNotActiveException } from "../exceptions/UserExceptions.js";
 
 export type UserRole = 'player' | 'admin';
 export type UserStatus = 'active' | 'inactive' | 'blocked' | 'deleted';
@@ -46,14 +46,14 @@ export class User {
     role: UserRole,
   ): User {
     if (!email || !password || !alias || !role) {
-      throw new InvalidUserFieldException('Email, password, alias and role are required');
+      throw new MissingRequiredUserFieldsException();
     }
     if (
       email.trim() === '' ||
       password.trim() === '' ||
       alias.trim() === ''
     ) {
-      throw new InvalidUserFieldException('Email, password and alias cannot be empty');
+      throw new MissingRequiredUserFieldsException();
     }
 
     return new User(
@@ -78,7 +78,7 @@ export class User {
     }
 
     if (!newEmail || newEmail.trim() === '') {
-      throw new InvalidUserFieldException('Email cannot be empty');
+      throw new MissingRequiredUserFieldsException();
     }
     this.email = newEmail;
   }
@@ -89,7 +89,7 @@ export class User {
     }
 
     if (!newPassword || newPassword.trim() === '') {
-      throw new InvalidUserFieldException('Password cannot be empty');
+      throw new MissingRequiredUserFieldsException();
     }
 
     this.password = newPassword;
@@ -101,7 +101,7 @@ export class User {
     }
 
     if (!newAlias || newAlias.trim() === '') {
-      throw new InvalidUserFieldException('Alias cannot be empty');
+      throw new MissingRequiredUserFieldsException();
     }
     this.alias = newAlias;
   }

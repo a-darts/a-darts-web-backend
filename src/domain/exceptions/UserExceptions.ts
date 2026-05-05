@@ -33,13 +33,6 @@ export class EmailAlreadyInUseException extends Error {
     }
 }
 
-export class InvalidUserFieldException extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'InvalidUserFieldException';
-    }
-}
-
 export class InvalidCredentialsException extends Error {
     constructor() {
         super('Invalid credentials');
@@ -51,5 +44,12 @@ export class InvalidPasswordException extends Error {
     constructor() {
         super('Invalid password');
         this.name = 'InvalidPasswordException';
+    }
+}
+
+export class MissingRequiredUserFieldsException extends Error {
+    constructor() {
+        super('All fields are required');
+        this.name = 'MissingRequiredUserFieldsException';
     }
 }

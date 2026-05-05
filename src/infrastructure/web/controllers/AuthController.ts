@@ -11,7 +11,7 @@ import { redis } from '../../redis/redisClient.js';
 import {
   EmailAlreadyInUseException,
   InvalidCredentialsException,
-  InvalidUserFieldException,
+  MissingRequiredUserFieldsException,
   UserBlockedException,
   UserDeletedException,
   UserNotFoundException
@@ -66,7 +66,7 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Email, password, alias and role are required
+   *                   example: All fields are required
    *       409:
    *         description: Bad request
    *         content:
@@ -104,7 +104,7 @@ export class AuthController {
         )
       );
     } catch (error: any) {
-      if (error instanceof InvalidUserFieldException) {
+      if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -167,7 +167,7 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Email and password are required
+   *                   example: All fields are required
    *       401:
    *         description: Unauthorized
    *         content:
@@ -212,7 +212,7 @@ export class AuthController {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
-        throw new InvalidUserFieldException('Email and password are required');
+        throw new MissingRequiredUserFieldsException();
       }
 
       const userDto = await loginUser.execute(req.body);
@@ -230,7 +230,7 @@ export class AuthController {
         )
       );
     } catch (error: any) {
-      if (error instanceof InvalidUserFieldException) {
+      if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
