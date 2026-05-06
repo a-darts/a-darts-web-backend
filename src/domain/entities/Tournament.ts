@@ -1,8 +1,19 @@
-import { TournamentNotInDraftException, TournamentNotInProgressException, TournamentRegistrationNotClosedException } from "../exceptions/TournamentExceptions.js";
+import {
+  TournamentNotInDraftException,
+  TournamentNotInProgressException,
+  TournamentNotPublishedException,
+} from "../exceptions/TournamentExceptions.js";
 import { MissingRequiredUserFieldsException } from "../exceptions/UserExceptions.js";
+import { Registration, RegistrationPeriod, RegistrationStatus } from "./Registration.js";
+import { TournamentInfo } from "./TournamentInfo.js";
 
-export type TournamentStatus = 'draft' | 'published' | 'registration_open' | 'registration_closed' | 'in_progress' | 'finished' | 'cancelled';
-
+export enum TournamentStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+  IN_PROGRESS = 'in_progress',
+  FINISHED = 'finished',
+  CANCELLED = 'cancelled',
+}
 
 export class Tournament {
   private readonly id: string;
@@ -11,16 +22,23 @@ export class Tournament {
   private readonly createdAt: Date;
   private status: TournamentStatus;
 
+  private info: TournamentInfo;
+  private registration: Registration;
+
   constructor(
     id: string,
     name: string,
     createdAt: Date,
     status: TournamentStatus,
+    info: TournamentInfo,
+    registration: Registration,
   ) {
     this.id = id;
     this.name = name;
     this.createdAt = createdAt;
     this.status = status;
+    this.info = info;
+    this.registration = registration;
   }
 
 
@@ -29,11 +47,9 @@ export class Tournament {
   // --------------------------------------------------------------------
   public static create(
     name: string,
+    info: TournamentInfo,
   ): Tournament {
-    if (!name) {
-      throw new MissingRequiredUserFieldsException();
-    }
-    if (name.trim() === '') {
+    if (!name || name.trim() === '') {
       throw new MissingRequiredUserFieldsException();
     }
 
@@ -41,7 +57,9 @@ export class Tournament {
       crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
       name,
       new Date(),
-      'draft',
+      TournamentStatus.DRAFT,
+      info,
+      Registration.create(),
     );
   }
 
@@ -56,33 +74,78 @@ export class Tournament {
     this.name = newName;
   }
 
+  public updateInfo(info: TournamentInfo): void {
+    this.info = info;
+  }
+
 
   // --------------------------------------------------------------------
   // STATUS MANAGEMENT
   // --------------------------------------------------------------------
   public publish(): void {
-    if (this.status !== 'draft') {
+    if (this.status !== TournamentStatus.DRAFT) {
       throw new TournamentNotInDraftException();
     }
-    this.status = 'published';
+    this.status = TournamentStatus.PUBLISHED;
   }
 
   public start(): void {
-    if (this.status !== 'registration_closed') {
-      throw new TournamentRegistrationNotClosedException();
+    if (this.status !== TournamentStatus.PUBLISHED) {
+      throw new TournamentNotPublishedException();
     }
-    this.status = 'in_progress';
+    this.status = TournamentStatus.IN_PROGRESS;
   }
 
   public finish(): void {
-    if (this.status !== 'in_progress') {
+    if (this.status !== TournamentStatus.IN_PROGRESS) {
       throw new TournamentNotInProgressException();
     }
-    this.status = 'finished';
+    this.status = TournamentStatus.FINISHED;
   }
 
   public cancel(): void {
-    this.status = 'cancelled';
+    this.status = TournamentStatus.CANCELLED;
+  }
+
+
+  // --------------------------------------------------------------------
+  // REGISTRATION METHODS
+  // --------------------------------------------------------------------
+  public openRegistration(): void {
+    if (
+      this.status === TournamentStatus.CANCELLED ||
+      this.status === TournamentStatus.FINISHED
+    ) {
+      throw new Error('');
+    }
+    // Si el torneo es un borrador, tampoco se permite abrir las inscripciones
+    if (this.status === TournamentStatus.DRAFT) {
+      throw new Error('');
+    }
+
+    this.registration = this.registration.open();
+  }
+
+  public closeRegistration(): void {
+    if (
+      this.status === TournamentStatus.CANCELLED ||
+      this.status === TournamentStatus.FINISHED
+    ) {
+      throw new Error('');
+    }
+
+    this.registration = this.registration.close();
+  }
+
+  public scheduleRegistration(open: Date | null, close: Date | null) {
+    if (
+      this.status === TournamentStatus.CANCELLED ||
+      this.status === TournamentStatus.FINISHED
+    ) {
+      throw new Error('');
+    }
+
+    this.registration = this.registration.schedule(open, close);
   }
 
 
@@ -105,6 +168,15 @@ export class Tournament {
     return this.status;
   }
 
+  public getInfo(): TournamentInfo {
+    return this.info;
+  }
+
+  public getRegistration(): Registration {
+    return this.registration;
+  }
+
+
   // --------------------------------------------------------------------
   // REHYDRATE METHOD
   // --------------------------------------------------------------------
@@ -112,8 +184,30 @@ export class Tournament {
     return new Tournament(
       data.id,
       data.name,
-      data.createdAt,
-      data.status,
+      new Date(data.createdAt),
+      data.status as TournamentStatus,
+      new TournamentInfo(
+        data.info.place,
+        data.info.date,
+        data.info.mode,
+        data.info.game,
+        data.info.schedule,
+        data.info.maxPlayers,
+        data.info.typeOfGame,
+        data.info.numLegs,
+        data.info.numSets,
+        data.info.rules,
+        data.info.info,
+        data.info.federation,
+      ),
+      new Registration(
+        data.registration.hasCheckIn,
+        data.registration.status as RegistrationStatus,
+        new RegistrationPeriod(
+          data.registration.period.startsAt ? new Date(data.registration.period.startsAt) : null,
+          data.registration.period.endsAt ? new Date(data.registration.period.endsAt) : null,
+        ),
+      ),
     );
   }
 }

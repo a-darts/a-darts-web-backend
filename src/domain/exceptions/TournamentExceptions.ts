@@ -18,3 +18,17 @@ export class TournamentNotInProgressException extends Error {
         this.name = 'TournamentNotInProgressException';
     }
 }
+
+export class TournamentNotPublishedException extends Error {
+    constructor() {
+        super('Tournament is not published');
+        this.name = 'TournamentNotPublishedException';
+    }
+}
+
+export class TournamentRegistrationNotOpenException extends Error {
+    constructor() {
+        super('Tournament registration is not open');
+        this.name = 'TournamentRegistrationNotOpenException';
+    }
+}
