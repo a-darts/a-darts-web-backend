@@ -200,6 +200,7 @@ export class Tournament {
         data.info.info,
         data.info.federation,
       ),
+      // CAMBIAR
       new Registration(
         data.registration.hasCheckIn,
         data.registration.status as RegistrationStatus,
