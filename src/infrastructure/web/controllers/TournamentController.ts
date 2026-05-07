@@ -9,12 +9,14 @@ import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/U
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
 import { UpdateTournamentStatus } from '../../../application/services/tournament/UpdateTournamentStatus.js';
 import { RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
+import { UpdateTournamentInfo } from '../../../application/services/tournament/UpdateTournamentInfo.js';
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
 
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
 const createTournament = new CreateTournament(tournamentRepository);
 const updateTournamentStatus = new UpdateTournamentStatus(tournamentRepository);
+const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
 
 /**
  * @swagger
@@ -37,67 +39,74 @@ const updateTournamentStatus = new UpdateTournamentStatus(tournamentRepository);
  *           type: string
  *           example: PUBLISHED
  *         info:
+ *           $ref: '#/components/schemas/TournamentInfo'
+ *         registration:
+ *           $ref: '#/components/schemas/Registration'
+ * 
+ *     TournamentInfo:
+ *       type: object
+ *       properties:
+ *         place:
+ *           type: string
+ *           example: Hotel Verona, Puertollano
+ *         dateTime:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-05-02T11:00:00.000Z
+ *         mode:
+ *           type: string
+ *           example: WOMEN_SINGLES
+ *         game:
+ *           type: string
+ *           example: 501
+ *         schedule:
+ *           type: string
+ *           example: KO
+ *         maxPlayers:
+ *           type: number
+ *           example: 300
+ *         gameType:
+ *           type: string
+ *           example: BEST_OF
+ *         numLegs:
+ *           type: number
+ *           example: 5
+ *         numSets:
+ *           type: number
+ *           example: 1
+ *         rules:
+ *           type: string
+ *           example: La salida será por aproximación
+ *         info:
+ *           type: string
+ *           example: For more information, visit https://example.com
+ *         federation:
+ *           type: string
+ *           example: ESPAÑA
+ * 
+ *     Registration:
+ *       type: object
+ *       properties:
+ *         hasCheckIn:
+ *           type: boolean
+ *           example: true
+ *         registrationPeriod:
  *           type: object
  *           properties:
- *             place:
- *               type: string
- *               example: Hotel Verona, Puertollano
- *             dateTime:
+ *             startsAt:
  *               type: string
  *               format: date-time
  *               example: 2026-05-02T11:00:00.000Z
- *             mode:
+ *             endsAt:
  *               type: string
- *               example: WOMEN_SINGLES
- *             game:
- *               type: string
- *               example: 501
- *             schedule:
- *               type: string
- *               example: KO
- *             maxPlayers:
- *               type: number
- *               example: 300
- *             gameType:
- *               type: string
- *               example: BEST_OF
- *             numLegs:
- *               type: number
- *               example: 5
- *             numSets:
- *               type: number
- *               example: 1
- *             rules:
- *               type: string
- *               example: La salida será por aproximación
- *             info:
- *               type: string
- *               example: For more information, visit https://example.com
- *             federation:
- *               type: string
- *               example: ESPAÑA
- *         registration:
- *           type: object
- *           properties:
- *             hasCheckIn:
- *               type: boolean
- *               example: true
- *             registrationPeriod:
- *               type: object
- *               properties:
- *                 startsAt:
- *                   type: string
- *                   format: date-time
- *                   example: 2026-05-02T11:00:00.000Z
- *                 endsAt:
- *                   type: string
- *                   format: date-time
- *                   example: 2026-05-02T11:00:00.000Z
- *             registeredParticipantsIds:
- *               type: array
- *               items:
- *                 type: string
- *               example: ["1", "2", "3"]
+ *               format: date-time
+ *               example: 2026-05-02T11:00:00.000Z
+ *         registeredParticipantsIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["1", "2", "3"]
+ * 
  *     CreateTournamentRequest:
  *       type: object
  *       properties:
@@ -105,45 +114,8 @@ const updateTournamentStatus = new UpdateTournamentStatus(tournamentRepository);
  *           type: string
  *           example: Campeonato de España Individual Femenino
  *         info:
- *           type: object
- *           properties:
- *             place:
- *               type: string
- *               example: Hotel Verona, Puertollano
- *             dateTime:
- *               type: string
- *               format: date-time
- *               example: 2026-05-02T11:00:00.000Z
- *             mode:
- *               type: string
- *               example: WOMEN_SINGLES
- *             game:
- *               type: string
- *               example: 501
- *             schedule:
- *               type: string
- *               example: KO
- *             maxPlayers:
- *               type: number
- *               example: 300
- *             gameType:
- *               type: string
- *               example: BEST_OF
- *             numLegs:
- *               type: number
- *               example: 5
- *             numSets:
- *               type: number
- *               example: 1
- *             rules:
- *               type: string
- *               example: La salida será por aproximación
- *             info:
- *               type: string
- *               example: For more information, visit https://example.com
- *             federation:
- *               type: string
- *               example: ESPAÑA
+ *           $ref: '#/components/schemas/TournamentInfo'
+ *
  *     UpdateTournamentStatusRequest:
  *       type: object
  *       required:
@@ -153,6 +125,14 @@ const updateTournamentStatus = new UpdateTournamentStatus(tournamentRepository);
  *           type: string
  *           enum: [DRAFT, PUBLISHED, IN_PROGRESS, FINISHED, CANCELLED]
  *           example: PUBLISHED
+ *
+ *     UpdateTournamentInfoRequest:
+ *       type: object
+ *       required:
+ *         - newInfo
+ *       properties:
+ *         newInfo:
+ *           $ref: '#/components/schemas/TournamentInfo'
  */
 export class TournamentController {
 
@@ -485,6 +465,150 @@ export class TournamentController {
         error instanceof RegistrationNotClosedException
       ) {
         return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof TournamentNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/info:
+   *   put:
+   *     summary: Update tournament info
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateTournamentInfoRequest'
+   *     responses:
+   *       200:
+   *         description: Info updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Info updated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async updateTournamentInfo(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const { newInfo } = req.body;
+      if (!newInfo) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await updateTournamentInfo.execute({
+        id: id,
+        newInfo: newInfo,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(null, 'Info updated successfully')
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
       }

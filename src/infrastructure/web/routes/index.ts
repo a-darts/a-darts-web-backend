@@ -37,5 +37,6 @@ router.put('/players/:id/federation', authMiddleware, isAdmin, playerController.
 router.get('/tournaments', authMiddleware, tournamentController.getAllTournaments);
 router.post('/tournaments', authMiddleware, isAdmin, tournamentController.createTournament);
 router.put('/tournaments/:id/status', authMiddleware, isAdmin, tournamentController.updateTournamentStatus);
+router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
 
 export default router;
