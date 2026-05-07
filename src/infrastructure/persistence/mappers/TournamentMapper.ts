@@ -2,8 +2,19 @@ import {
     Tournament as PrismaTournament,
     RegistrationStatus as PrismaRegistrationStatus,
     TournamentStatus as PrismaTournamentStatus,
+    GameModes as PrismaGameModes,
+    ScheduleTypes as PrismaScheduleTypes,
+    GameTypes as PrismaGameTypes,
 } from '@prisma/client';
-import { Tournament, TournamentStatus } from '../../../domain/entities/Tournament.js';
+import {
+    Tournament,
+    TournamentStatus,
+} from '../../../domain/entities/Tournament.js';
+import {
+    GameModes,
+    ScheduleTypes,
+    GameTypes,
+} from '../../../domain/entities/TournamentInfo.js';
 import { RegistrationStatus } from '../../../domain/entities/Registration.js';
 
 export class TournamentMapper {
@@ -20,11 +31,11 @@ export class TournamentMapper {
             // TournamentInfo fields
             infoPlace: info.getPlace(),
             infoDateTime: info.getDateTime(),
-            infoMode: info.getMode(),
+            infoMode: info.getMode() as PrismaGameModes,
             infoGame: info.getGame(),
-            infoSchedule: info.getSchedule(),
+            infoSchedule: info.getSchedule() as PrismaScheduleTypes,
             infoMaxPlayers: info.getMaxPlayers(),
-            infoTypeOfGame: info.getTypeOfGame(),
+            infoGameType: info.getGameType() as PrismaGameTypes,
             infoNumLegs: info.getNumLegs(),
             infoNumSets: info.getNumSets(),
             infoRules: info.getRules(),
@@ -55,11 +66,11 @@ export class TournamentMapper {
             info: {
                 place: prismaTournament.infoPlace,
                 dateTime: prismaTournament.infoDateTime,
-                mode: prismaTournament.infoMode,
+                mode: prismaTournament.infoMode as GameModes,
                 game: prismaTournament.infoGame,
-                schedule: prismaTournament.infoSchedule,
+                schedule: prismaTournament.infoSchedule as ScheduleTypes,
                 maxPlayers: prismaTournament.infoMaxPlayers,
-                typeOfGame: prismaTournament.infoTypeOfGame,
+                gameType: prismaTournament.infoGameType as GameTypes,
                 numLegs: prismaTournament.infoNumLegs,
                 numSets: prismaTournament.infoNumSets,
                 rules: prismaTournament.infoRules,

@@ -48,7 +48,7 @@ enum GameModes {
 }
 
 enum ScheduleTypes {
-  K_O
+  KO
 }
 
 enum GameTypes {
@@ -105,7 +105,7 @@ model Tournament {
   infoGame       String
   infoSchedule   ScheduleTypes
   infoMaxPlayers Int
-  infoTypeOfGame GameTypes
+  infoGameType   GameTypes
   infoNumLegs    Int
   infoNumSets    Int
   infoRules      String

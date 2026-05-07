@@ -197,7 +197,7 @@ export class Tournament {
         data.info.game,
         data.info.schedule,
         data.info.maxPlayers,
-        data.info.typeOfGame,
+        data.info.gameType,
         data.info.numLegs,
         data.info.numSets,
         data.info.rules,

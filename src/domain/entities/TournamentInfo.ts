@@ -1,6 +1,25 @@
-export type GameModes = 'single' | 'women_singles' | 'men_singles' | 'mixes_singles' | 'youth_singles' | 'pairs' | 'women_pairs' | 'men_pairs' | 'mixed_pairs' | 'youth_pairs' | 'teams';
-export type ScheduleTypes = 'K.O.';
-export type GameTypes = 'best_of' | 'first_to';
+export enum GameModes {
+    SINGLE = 'SINGLE',
+    WOMEN_SINGLES = 'WOMEN_SINGLES',
+    MEN_SINGLES = 'MEN_SINGLES',
+    MIXED_SINGLES = 'MIXED_SINGLES',
+    YOUTH_SINGLES = 'YOUTH_SINGLES',
+    PAIRS = 'PAIRS',
+    WOMEN_PAIRS = 'WOMEN_PAIRS',
+    MEN_PAIRS = 'MEN_PAIRS',
+    MIXED_PAIRS = 'MIXED_PAIRS',
+    YOUTH_PAIRS = 'YOUTH_PAIRS',
+    TEAMS = 'TEAMS',
+}
+
+export enum ScheduleTypes {
+    KO = 'KO',
+}
+
+export enum GameTypes {
+    BEST_OF = 'BEST_OF',
+    FIRST_TO = 'FIRST_TO',
+}
 
 
 export class TournamentInfo {
@@ -10,7 +29,7 @@ export class TournamentInfo {
     private readonly game: string;
     private readonly schedule: ScheduleTypes;
     private readonly maxPlayers: number;
-    private readonly typeOfGame: GameTypes;
+    private readonly gameType: GameTypes;
     private readonly numLegs: number;
     private readonly numSets: number;
     private readonly rules: string;
@@ -25,7 +44,7 @@ export class TournamentInfo {
         game: string,
         schedule: ScheduleTypes,
         maxPlayers: number,
-        typeOfGame: GameTypes,
+        gameType: GameTypes,
         numLegs: number,
         numSets: number,
         rules: string,
@@ -38,7 +57,7 @@ export class TournamentInfo {
         this.game = game;
         this.schedule = schedule;
         this.maxPlayers = maxPlayers;
-        this.typeOfGame = typeOfGame;
+        this.gameType = gameType;
         this.numLegs = numLegs;
         this.numSets = numSets;
         this.rules = rules;
@@ -74,8 +93,8 @@ export class TournamentInfo {
         return this.maxPlayers;
     }
 
-    public getTypeOfGame(): GameTypes {
-        return this.typeOfGame;
+    public getGameType(): GameTypes {
+        return this.gameType;
     }
 
     public getNumLegs(): number {
