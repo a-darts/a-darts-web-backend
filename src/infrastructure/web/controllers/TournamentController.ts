@@ -1337,7 +1337,7 @@ export class TournamentController {
 
   /**
    * @swagger
-   * /api/tournaments/{id}/participants/{playerId}:
+   * /api/tournaments/{id}/participants/{participantId}:
    *   delete:
    *     summary: Unregister a player from a tournament
    *     tags: [Tournaments]
