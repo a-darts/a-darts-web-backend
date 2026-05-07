@@ -12,6 +12,14 @@ export class PlayerAlreadyExistsException extends Error {
     }
 }
 
+export class InvalidRegisteredPlayerSeasonException extends Error {
+    constructor() {
+        super('Player is not registered in the same season as the tournament');
+        this.name = 'InvalidRegisteredPlayerSeasonException';
+    }
+}
+
+
 export class InvalidYearException extends Error {
     constructor() {
         super('Invalid year. It must be between 1900 and 2200');
