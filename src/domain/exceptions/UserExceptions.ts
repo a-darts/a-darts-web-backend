@@ -60,10 +60,3 @@ export class InvalidUserFieldsException extends Error {
         this.name = 'InvalidUserFieldsException';
     }
 }
-
-export class ForbiddenAccessException extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'ForbiddenAccessException';
-    }
-}

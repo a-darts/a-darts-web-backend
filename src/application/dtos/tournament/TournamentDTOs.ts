@@ -40,3 +40,8 @@ export interface CreateTournamentRequestDTO {
     name: string;
     info: TournamentInfoDTO;
 }
+
+export interface UpdateTournamentStatusRequestDTO {
+    id: string;
+    newStatus: TournamentStatus;
+}

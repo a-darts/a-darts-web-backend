@@ -40,3 +40,9 @@ export class TournamentNotFoundException extends Error {
     }
 }
 
+export class InvalidTournamentStatusUpdateException extends Error {
+    constructor() {
+        super('Invalid tournament status update');
+        this.name = 'InvalidTournamentStatusUpdateException';
+    }
+}

@@ -6,7 +6,7 @@ import { GetAllPlayers } from '../../../application/services/player/GetAllPlayer
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
 import { GetPlayerData } from '../../../application/services/player/GetPlayerData.js';
 import { InvalidSeasonException, InvalidYearException, PlayerAlreadyExistsException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
-import { ForbiddenAccessException, InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
+import { InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreatePlayer } from '../../../application/services/player/CreatePlayer.js';
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 import { UpdatePlayerFederation } from '../../../application/services/player/UpdatePlayerFederation.js';
@@ -530,11 +530,6 @@ export class PlayerController {
     } catch (error: any) {
       if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (error instanceof ForbiddenAccessException) {
-        return res.status(403).json(
           ApiResponseBuilder.error(error.message)
         );
       }

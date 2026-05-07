@@ -4,14 +4,17 @@ import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { GetAllTournaments } from '../../../application/services/tournament/GetAllTournaments.js';
 import { PrismaTournamentRepository } from '../../persistence/repositories/PrismaTournamentRepository.js';
-import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
-import { InvalidUserFieldsException, MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
+import { InvalidTournamentStatusUpdateException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
+import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
+import { UpdateTournamentStatus } from '../../../application/services/tournament/UpdateTournamentStatus.js';
+import { RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
 
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
 const createTournament = new CreateTournament(tournamentRepository);
+const updateTournamentStatus = new UpdateTournamentStatus(tournamentRepository);
 
 /**
  * @swagger
@@ -141,6 +144,15 @@ const createTournament = new CreateTournament(tournamentRepository);
  *             federation:
  *               type: string
  *               example: ESPAÑA
+ *     UpdateTournamentStatusRequest:
+ *       type: object
+ *       required:
+ *         - newStatus
+ *       properties:
+ *         newStatus:
+ *           type: string
+ *           enum: [DRAFT, PUBLISHED, IN_PROGRESS, FINISHED, CANCELLED]
+ *           example: PUBLISHED
  */
 export class TournamentController {
 
@@ -312,6 +324,175 @@ export class TournamentController {
         );
       }
 
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/status:
+   *   put:
+   *     summary: Update tournament status
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateTournamentStatusRequest'
+   *     responses:
+   *       200:
+   *         description: Status updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Status updated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament is not published
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async updateTournamentStatus(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const { newStatus } = req.body;
+      if (!newStatus) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await updateTournamentStatus.execute({
+        id: id,
+        newStatus: newStatus,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(null, 'Status updated successfully')
+      );
+    } catch (error: any) {
+      if (
+        error instanceof MissingRequiredUserFieldsException ||
+        error instanceof InvalidTournamentStatusUpdateException
+      ) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotInDraftException ||
+        error instanceof TournamentNotPublishedException ||
+        error instanceof TournamentNotInProgressException ||
+        error instanceof RegistrationNotClosedException
+      ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof TournamentNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')

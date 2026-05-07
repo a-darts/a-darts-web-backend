@@ -95,7 +95,7 @@ export class Tournament {
       throw new TournamentNotPublishedException();
     }
 
-    if (!this.registration.isOpen()) {
+    if (this.registration.isOpen()) {
       throw new RegistrationNotClosedException();
     }
     this.status = TournamentStatus.IN_PROGRESS;

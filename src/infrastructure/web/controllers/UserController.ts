@@ -9,13 +9,11 @@ import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import {
   EmailAlreadyInUseException,
-  ForbiddenAccessException,
   InvalidPasswordException,
   MissingRequiredUserFieldsException,
   UserDeletedException,
   UserNotFoundException
 } from '../../../domain/exceptions/UserExceptions.js';
-import { UserRoles } from '../../../domain/entities/User.js';
 
 const userRepository = new PrismaUserRepository(prisma);
 const passwordHasher = new BcryptPasswordHasher();
@@ -260,10 +258,7 @@ export class UserController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (
-        error instanceof UserDeletedException ||
-        error instanceof ForbiddenAccessException
-      ) {
+      if (error instanceof UserDeletedException) {
         return res.status(403).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -421,10 +416,7 @@ export class UserController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (
-        error instanceof UserDeletedException ||
-        error instanceof ForbiddenAccessException
-      ) {
+      if (error instanceof UserDeletedException) {
         return res.status(403).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -571,10 +563,7 @@ export class UserController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (
-        error instanceof UserDeletedException ||
-        error instanceof ForbiddenAccessException
-      ) {
+      if (error instanceof UserDeletedException) {
         return res.status(403).json(
           ApiResponseBuilder.error(error.message)
         );
