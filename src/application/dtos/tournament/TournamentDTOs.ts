@@ -16,7 +16,7 @@ interface TournamentInfoDTO {
     mode: GameModes;
     game: string;
     schedule: ScheduleTypes;
-    maxPlayers: number;
+    maxPlayers: number | null;
     gameType: GameTypes;
     numLegs: number;
     numSets: number;

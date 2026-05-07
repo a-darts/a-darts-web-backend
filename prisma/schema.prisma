@@ -106,7 +106,7 @@ model Tournament {
   infoMode       GameModes
   infoGame       String
   infoSchedule   ScheduleTypes
-  infoMaxPlayers Int
+  infoMaxPlayers Int?
   infoGameType   GameTypes
   infoNumLegs    Int
   infoNumSets    Int

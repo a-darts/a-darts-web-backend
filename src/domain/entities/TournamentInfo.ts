@@ -28,7 +28,7 @@ export class TournamentInfo {
     private readonly mode: GameModes;
     private readonly game: string;
     private readonly schedule: ScheduleTypes;
-    private readonly maxPlayers: number;
+    private readonly maxPlayers: number | null;
     private readonly gameType: GameTypes;
     private readonly numLegs: number;
     private readonly numSets: number;
@@ -43,7 +43,7 @@ export class TournamentInfo {
         mode: GameModes,
         game: string,
         schedule: ScheduleTypes,
-        maxPlayers: number,
+        maxPlayers: number | null,
         gameType: GameTypes,
         numLegs: number,
         numSets: number,
@@ -89,7 +89,7 @@ export class TournamentInfo {
         return this.schedule;
     }
 
-    public getMaxPlayers(): number {
+    public getMaxPlayers(): number | null {
         return this.maxPlayers;
     }
 
