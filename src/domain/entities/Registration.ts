@@ -1,4 +1,4 @@
-import { InvalidRegistrationPeriodException } from "../exceptions/RegistrationExceptions.js";
+import { InvalidRegistrationPeriodException, PlayerAlreadyCheckedInException, PlayerAlreadyRegisteredException, PlayerNotCheckedInException, PlayerNotRegisteredException } from "../exceptions/RegistrationExceptions.js";
 
 export enum RegistrationStatus {
     OPEN = 'open',
@@ -9,19 +9,19 @@ export class Registration {
     private readonly hasCheckIn: boolean;
     private readonly status: RegistrationStatus;
     private readonly registrationPeriod: RegistrationPeriod;
-    private readonly registratedParticipants: RegistratedParticipant[];
+    private readonly registratedParticipantsIds: string[];
 
 
     constructor(
         hasCheckIn: boolean,
         status: RegistrationStatus,
         registrationPeriod: RegistrationPeriod,
-        registratedParticipants: RegistratedParticipant[],
+        registratedParticipantsIds: string[],
     ) {
         this.hasCheckIn = hasCheckIn;
         this.status = status;
         this.registrationPeriod = registrationPeriod;
-        this.registratedParticipants = [...registratedParticipants];
+        this.registratedParticipantsIds = [...registratedParticipantsIds];
     }
 
 
@@ -47,7 +47,7 @@ export class Registration {
             this.hasCheckIn,
             RegistrationStatus.OPEN,
             new RegistrationPeriod(null, this.registrationPeriod.getEndsAt()),
-            this.registratedParticipants,
+            this.registratedParticipantsIds,
         );
     }
 
@@ -57,7 +57,7 @@ export class Registration {
             this.hasCheckIn,
             RegistrationStatus.CLOSED,
             new RegistrationPeriod(this.registrationPeriod.getStartsAt(), new Date()),
-            this.registratedParticipants,
+            this.registratedParticipantsIds,
         );
     }
 
@@ -66,11 +66,11 @@ export class Registration {
             this.hasCheckIn,
             this.status,
             new RegistrationPeriod(open, close),
-            this.registratedParticipants,
+            this.registratedParticipantsIds,
         );
     }
 
-    public canAcceptRegistrations(): boolean {
+    public isOpen(): boolean {
         return this.status === RegistrationStatus.OPEN && this.registrationPeriod.isOpen();
     }
 
@@ -79,27 +79,25 @@ export class Registration {
     // REGISTRATION PARTICIPANTS MANAGEMENT
     // --------------------------------------------------------------------
     public registerParticipant(playerId: string): Registration {
-        if (this.registratedParticipants.some(p => p.getPlayerId() === playerId)) {
-            throw new Error('Player already registered');
+        if (this.registratedParticipantsIds.some(p => p === playerId)) {
+            throw new PlayerAlreadyRegisteredException();
         }
-
-        const newParticipant = RegistratedParticipant.create(playerId);
 
         return new Registration(
             this.hasCheckIn,
             this.status,
             this.registrationPeriod,
-            [...this.registratedParticipants, newParticipant],
+            [...this.registratedParticipantsIds, playerId],
         );
     }
 
-    public unregisterPlayer(playerId: string): Registration {
-        if (!this.registratedParticipants.some(p => p.getPlayerId() === playerId)) {
-            throw new Error('Player is not registered in this tournament');
+    public unregisterParticipant(playerId: string): Registration {
+        if (!this.registratedParticipantsIds.some(p => p === playerId)) {
+            throw new PlayerNotRegisteredException();
         }
 
-        const updatedParticipants = this.registratedParticipants.filter(
-            p => p.getPlayerId() !== playerId
+        const updatedParticipants = this.registratedParticipantsIds.filter(
+            p => p !== playerId
         );
 
         return new Registration(
@@ -110,46 +108,8 @@ export class Registration {
         );
     }
 
-    public checkInParticipant(playerId: string): Registration {
-        const participant = this.registratedParticipants.find(
-            p => p.getPlayerId() === playerId
-        );
-        if (!participant) {
-            throw new Error('Player is not registered in this tournament');
-        }
-
-        const checkedInParticipant = participant.doCheckIn();
-        const updatedParticipants = this.registratedParticipants.map(p =>
-            p.getPlayerId() === playerId ? checkedInParticipant : p
-        );
-
-        return new Registration(
-            this.hasCheckIn,
-            this.status,
-            this.registrationPeriod,
-            updatedParticipants,
-        );
-    }
-
-    public undoCheckInParticipant(playerId: string): Registration {
-        const participant = this.registratedParticipants.find(
-            p => p.getPlayerId() === playerId
-        );
-        if (!participant) {
-            throw new Error('Player is not registered in this tournament');
-        }
-
-        const uncheckedParticipant = participant.undoCheckIn();
-        const updatedParticipants = this.registratedParticipants.map(p =>
-            p.getPlayerId() === playerId ? uncheckedParticipant : p
-        );
-
-        return new Registration(
-            this.hasCheckIn,
-            this.status,
-            this.registrationPeriod,
-            updatedParticipants,
-        );
+    public isPlayerRegistered(playerId: string): boolean {
+        return this.registratedParticipantsIds.some(p => p === playerId);
     }
 
 
@@ -203,15 +163,18 @@ export class RegistrationPeriod {
 
 
 export class RegistratedParticipant {
+    private readonly id: string;
     private readonly playerId: string;
     private readonly registeredAt: Date;
-    private readonly checkedInAt: Date | null;
+    private checkedInAt: Date | null;
 
     constructor(
+        id: string,
         playerId: string,
         registeredAt: Date,
         checkedInAt: Date | null,
     ) {
+        this.id = id;
         this.playerId = playerId;
         this.registeredAt = registeredAt;
         this.checkedInAt = checkedInAt;
@@ -225,6 +188,7 @@ export class RegistratedParticipant {
         playerId: string,
     ): RegistratedParticipant {
         return new RegistratedParticipant(
+            crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             playerId,
             new Date(),
             null,
@@ -235,26 +199,18 @@ export class RegistratedParticipant {
     // --------------------------------------------------------------------
     // CHECK IN METHODS
     // --------------------------------------------------------------------
-    public doCheckIn(): RegistratedParticipant {
+    public doCheckIn() {
         if (this.checkedInAt) {
-            throw new Error('Already checked in');
+            throw new PlayerAlreadyCheckedInException();
         }
-        return new RegistratedParticipant(
-            this.playerId,
-            this.registeredAt,
-            new Date(),
-        );
+        this.checkedInAt = new Date();
     }
 
-    public undoCheckIn(): RegistratedParticipant {
+    public undoCheckIn() {
         if (!this.checkedInAt) {
-            throw new Error('Not checked in');
+            throw new PlayerNotCheckedInException();
         }
-        return new RegistratedParticipant(
-            this.playerId,
-            this.registeredAt,
-            null,
-        );
+        this.checkedInAt = null;
     }
 
     public hasDoneCheckIn(): boolean {
@@ -265,6 +221,10 @@ export class RegistratedParticipant {
     // --------------------------------------------------------------------
     // GETTERS
     // --------------------------------------------------------------------    
+    public getId(): string {
+        return this.id;
+    }
+
     public getPlayerId(): string {
         return this.playerId;
     }

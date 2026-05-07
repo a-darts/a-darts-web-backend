@@ -1,3 +1,4 @@
+import { RegistrationNotClosedException } from "../exceptions/RegistrationExceptions.js";
 import {
   TournamentNotInDraftException,
   TournamentNotInProgressException,
@@ -93,6 +94,10 @@ export class Tournament {
     if (this.status !== TournamentStatus.PUBLISHED) {
       throw new TournamentNotPublishedException();
     }
+
+    if (!this.registration.isOpen()) {
+      throw new RegistrationNotClosedException();
+    }
     this.status = TournamentStatus.IN_PROGRESS;
   }
 
@@ -112,40 +117,31 @@ export class Tournament {
   // REGISTRATION METHODS
   // --------------------------------------------------------------------
   public openRegistration(): void {
-    if (
-      this.status === TournamentStatus.CANCELLED ||
-      this.status === TournamentStatus.FINISHED
-    ) {
-      throw new Error('');
-    }
-    // Si el torneo es un borrador, tampoco se permite abrir las inscripciones
-    if (this.status === TournamentStatus.DRAFT) {
-      throw new Error('');
+    if (!this.isPublished()) {
+      throw new TournamentNotPublishedException();
     }
 
     this.registration = this.registration.open();
   }
 
   public closeRegistration(): void {
-    if (
-      this.status === TournamentStatus.CANCELLED ||
-      this.status === TournamentStatus.FINISHED
-    ) {
-      throw new Error('');
+    if (!this.isPublished()) {
+      throw new TournamentNotPublishedException();
     }
 
     this.registration = this.registration.close();
   }
 
   public scheduleRegistration(open: Date | null, close: Date | null) {
-    if (
-      this.status === TournamentStatus.CANCELLED ||
-      this.status === TournamentStatus.FINISHED
-    ) {
-      throw new Error('');
+    if (!this.isPublished()) {
+      throw new TournamentNotPublishedException();
     }
 
     this.registration = this.registration.schedule(open, close);
+  }
+
+  private isPublished(): boolean {
+    return this.status === TournamentStatus.PUBLISHED;
   }
 
 
@@ -208,6 +204,7 @@ export class Tournament {
           data.registration.period.startsAt ? new Date(data.registration.period.startsAt) : null,
           data.registration.period.endsAt ? new Date(data.registration.period.endsAt) : null,
         ),
+        data.registration.registratedParticipantsIds,
       ),
     );
   }
