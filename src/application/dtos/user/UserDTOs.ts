@@ -6,7 +6,7 @@ export interface UserResponseDto {
     alias: string;
     role: UserRole;
     status: UserStatus;
-    registratedAt: Date;
+    registeredAt: Date;
 }
 
 export interface RegisterUserRequestDto {

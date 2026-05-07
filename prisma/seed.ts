@@ -33,7 +33,7 @@ async function main() {
             alias: 'SuperAdmin',
             role: 'admin',
             status: 'active',
-            registratedAt: new Date(),
+            registeredAt: new Date(),
         },
     });
 

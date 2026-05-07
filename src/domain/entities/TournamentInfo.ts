@@ -5,7 +5,7 @@ export type GameTypes = 'best_of' | 'first_to';
 
 export class TournamentInfo {
     private readonly place: string;
-    private readonly date: Date;
+    private readonly dateTime: Date;
     private readonly mode: GameModes;
     private readonly game: string;
     private readonly schedule: ScheduleTypes;
@@ -20,7 +20,7 @@ export class TournamentInfo {
 
     constructor(
         place: string,
-        date: Date,
+        dateTime: Date,
         mode: GameModes,
         game: string,
         schedule: ScheduleTypes,
@@ -33,7 +33,7 @@ export class TournamentInfo {
         federation: string,
     ) {
         this.place = place;
-        this.date = date;
+        this.dateTime = dateTime;
         this.mode = mode;
         this.game = game;
         this.schedule = schedule;
@@ -54,8 +54,8 @@ export class TournamentInfo {
         return this.place;
     }
 
-    public getDate(): Date {
-        return this.date;
+    public getDateTime(): Date {
+        return this.dateTime;
     }
 
     public getMode(): GameModes {

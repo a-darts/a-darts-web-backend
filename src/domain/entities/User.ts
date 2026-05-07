@@ -11,7 +11,7 @@ export class User {
   private alias: string;
   private readonly role: UserRole;
 
-  private readonly registratedAt: Date;
+  private readonly registeredAt: Date;
   private deletedAt?: Date | null;
   private status: UserStatus;
 
@@ -21,7 +21,7 @@ export class User {
     password: string,
     alias: string,
     role: UserRole,
-    registratedAt: Date,
+    registeredAt: Date,
     deletedAt: Date | null,
     status: UserStatus,
   ) {
@@ -30,7 +30,7 @@ export class User {
     this.password = password;
     this.alias = alias;
     this.role = role;
-    this.registratedAt = registratedAt;
+    this.registeredAt = registeredAt;
     this.deletedAt = deletedAt;
     this.status = status;
   }
@@ -167,8 +167,8 @@ export class User {
     return this.role;
   }
 
-  public getRegistratedAt(): Date {
-    return this.registratedAt;
+  public getRegisteredAt(): Date {
+    return this.registeredAt;
   }
 
   public getDeletedAt(): Date | null | undefined {
@@ -189,7 +189,7 @@ export class User {
       data.password,
       data.alias,
       data.role,
-      data.registratedAt,
+      data.registeredAt,
       data.deletedAt,
       data.status,
     );

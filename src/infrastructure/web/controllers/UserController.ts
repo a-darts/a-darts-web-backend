@@ -46,7 +46,7 @@ const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher
  *           type: string
  *           enum: [active, inactive, blocked, deleted]
  *           example: active
- *         registratedAt:
+ *         registeredAt:
  *           type: string
  *           format: date-time
  *           example: 2026-05-04T13:10:16.841Z

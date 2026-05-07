@@ -13,26 +13,65 @@ datasource db {
 }
 
 enum UserRole {
-  player
-  admin
+  PLAYER
+  ADMIN
 }
 
 enum UserStatus {
-  active
-  inactive
-  blocked
-  deleted
+  ACTIVE
+  INACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum TournamentStatus {
+  DRAFT
+  PUBLISHED
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+// TournamentInfo 
+enum GameModes {
+  SINGLE
+  WOMEN_SINGLES
+  MEN_SINGLES
+  MIXED_SINGLES
+  YOUTH_SINGLES
+  PAIRS
+  WOMEN_PAIRS
+  MEN_PAIRS
+  MIXED_PAIRS
+  YOUTH_PAIRS
+  TEAMS
+}
+
+enum ScheduleTypes {
+  K_O
+}
+
+enum GameTypes {
+  BEST_OF
+  FIRST_TO
+}
+
+//
+
+enum RegistrationStatus {
+  OPEN
+  CLOSED
 }
 
 model User {
-  id            String     @id @db.Uuid
-  email         String     @unique
-  password      String?
-  alias         String
-  role          UserRole
-  registratedAt DateTime
-  deletedAt     DateTime?
-  status        UserStatus
+  id           String     @id @db.Uuid
+  email        String     @unique
+  password     String?
+  alias        String
+  role         UserRole
+  registeredAt DateTime
+  deletedAt    DateTime?
+  status       UserStatus
 
   playerProfile Player?
 
@@ -51,4 +90,52 @@ model Player {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("players")
+}
+
+model Tournament {
+  id        String           @id @db.Uuid
+  name      String
+  createdAt DateTime
+  status    TournamentStatus
+
+  // Value object TournamentInfo fields
+  infoPlace      String
+  infoDateTime   DateTime
+  infoMode       GameModes
+  infoGame       String
+  infoSchedule   ScheduleTypes
+  infoMaxPlayers Int
+  infoTypeOfGame GameTypes
+  infoNumLegs    Int
+  infoNumSets    Int
+  infoRules      String
+  infoInfo       String
+  infoFederation String
+  //
+
+  // Value object Registration fields
+  registrationHasCheckIn             Boolean
+  registrationStatus                 RegistrationStatus
+  // RegistrationPeriod fields
+  registrationStartsAt               DateTime?
+  registrationEndsAt                 DateTime?
+  //
+  registrationRegisteredParticipants RegisteredParticipant[]
+  //
+
+  @@map("tournaments")
+}
+
+model RegisteredParticipant {
+  id           String    @id @db.Uuid
+  playerId     String    @db.Uuid
+  registeredAt DateTime
+  checkedInAt  DateTime?
+
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  tournamentId String     @db.Uuid
+
+  // Índice para buscar rápido por jugador y por torneo
+  @@unique([playerId, tournamentId])
+  @@map("registeredParticipants")
 }

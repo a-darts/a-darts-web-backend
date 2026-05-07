@@ -204,7 +204,6 @@ export class Tournament {
         data.info.info,
         data.info.federation,
       ),
-      // CAMBIAR
       new Registration(
         data.registration.hasCheckIn,
         data.registration.status as RegistrationStatus,
@@ -212,7 +211,7 @@ export class Tournament {
           data.registration.period.startsAt ? new Date(data.registration.period.startsAt) : null,
           data.registration.period.endsAt ? new Date(data.registration.period.endsAt) : null,
         ),
-        data.registration.registratedParticipantsIds,
+        data.registration.registeredParticipantsIds,
       ),
     );
   }
