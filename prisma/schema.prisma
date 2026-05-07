@@ -114,13 +114,13 @@ model Tournament {
   //
 
   // Value object Registration fields
-  registrationHasCheckIn             Boolean
-  registrationStatus                 RegistrationStatus
+  registrationHasCheckIn                Boolean
+  registrationStatus                    RegistrationStatus
   // RegistrationPeriod fields
-  registrationStartsAt               DateTime?
-  registrationEndsAt                 DateTime?
+  registrationPeriodStartsAt            DateTime?
+  registrationPeriodEndsAt              DateTime?
   //
-  registrationRegisteredParticipants RegisteredParticipant[]
+  registrationRegisteredParticipantsIds String[]
   //
 
   @@map("tournaments")
@@ -132,10 +132,11 @@ model RegisteredParticipant {
   registeredAt DateTime
   checkedInAt  DateTime?
 
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
-  tournamentId String     @db.Uuid
+  tournamentId String @db.Uuid
 
-  // Índice para buscar rápido por jugador y por torneo
+  // Índice para buscar rápido por id del jugador e id del torneo
   @@unique([playerId, tournamentId])
+  // Índice para buscar rápido por id del jugador
+  @@index([playerId])
   @@map("registeredParticipants")
 }

@@ -7,8 +7,8 @@ import {
 } from "../exceptions/ParticipantExceptions.js";
 
 export enum RegistrationStatus {
-    OPEN = 'open',
-    CLOSED = 'closed',
+    OPEN = 'OPEN',
+    CLOSED = 'CLOSED',
 }
 
 export class Registration {
@@ -122,6 +122,21 @@ export class Registration {
     // --------------------------------------------------------------------
     // GETTERS
     // --------------------------------------------------------------------
+    public getHasCheckIn(): boolean {
+        return this.hasCheckIn;
+    }
+
+    public getStatus(): RegistrationStatus {
+        return this.status;
+    }
+
+    public getRegistrationPeriod(): RegistrationPeriod {
+        return this.registrationPeriod;
+    }
+
+    public getRegisteredParticipantsIds(): string[] {
+        return [...this.registeredParticipantsIds];
+    }
 }
 
 

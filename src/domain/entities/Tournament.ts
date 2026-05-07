@@ -9,11 +9,11 @@ import { Registration, RegistrationPeriod, RegistrationStatus } from "./Registra
 import { TournamentInfo } from "./TournamentInfo.js";
 
 export enum TournamentStatus {
-  DRAFT = 'draft',
-  PUBLISHED = 'published',
-  IN_PROGRESS = 'in_progress',
-  FINISHED = 'finished',
-  CANCELLED = 'cancelled',
+  DRAFT = 'DRAFT',
+  PUBLISHED = 'PUBLISHED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  FINISHED = 'FINISHED',
+  CANCELLED = 'CANCELLED',
 }
 
 export class Tournament {
@@ -185,10 +185,6 @@ export class Tournament {
   // REHYDRATE METHOD
   // --------------------------------------------------------------------
   static rehydrate(data: any): Tournament {
-    const participantIds = data.participants
-      ? data.participants.map((p: any) => p.playerId)
-      : [];
-
     return new Tournament(
       data.id,
       data.name,
@@ -196,7 +192,7 @@ export class Tournament {
       data.status as TournamentStatus,
       new TournamentInfo(
         data.info.place,
-        data.info.date,
+        data.info.dateTime,
         data.info.mode,
         data.info.game,
         data.info.schedule,
@@ -215,7 +211,7 @@ export class Tournament {
           data.registration.period.startsAt ? new Date(data.registration.period.startsAt) : null,
           data.registration.period.endsAt ? new Date(data.registration.period.endsAt) : null,
         ),
-        participantIds,
+        data.registeredParticipantsIds,
       ),
     );
   }
