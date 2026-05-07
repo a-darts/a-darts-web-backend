@@ -14,8 +14,24 @@ export const isSelfOrAdmin = (req: AuthRequest, res: Response, next: NextFunctio
 
     const isOwner = requestor.id === targetUserId;
     const isAdmin = requestor.role === UserRoles.ADMIN;
-
     if (isOwner || isAdmin) {
+        return next();
+    }
+
+    return res.status(403).json(
+        ApiResponseBuilder.error('You do not have permission to perform this action')
+    );
+};
+
+export const isAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+    const requestor = req.user;
+
+    if (!requestor) {
+        return res.status(401).json(ApiResponseBuilder.error('Unauthorized'));
+    }
+
+    const isAdmin = requestor.role === UserRoles.ADMIN;
+    if (isAdmin) {
         return next();
     }
 

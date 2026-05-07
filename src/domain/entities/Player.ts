@@ -1,56 +1,5 @@
 import { InvalidSeasonException, InvalidYearException } from "../exceptions/PlayerExceptions.js";
 
-export class Season {
-    private readonly startYear: number;
-    private readonly endYear: number;
-
-    constructor(startYear: number, endYear: number) {
-        this.startYear = startYear;
-        this.endYear = endYear;
-        this.validate();
-    }
-
-    private validate(): void {
-        if (
-            this.startYear < 1900 || this.startYear > 2200 ||
-            this.endYear < 1900 || this.endYear > 2200
-        ) {
-            throw new InvalidYearException();
-        }
-        if (this.startYear + 1 !== this.endYear) {
-            throw new InvalidSeasonException();
-        }
-    }
-
-
-    // --------------------------------------------------------------------
-    // COMPARISON METHODS
-    // --------------------------------------------------------------------
-    public equals(other: Season): boolean {
-        return this.startYear === other.startYear && this.endYear === other.endYear;
-    }
-
-    public isAfter(other: Season): boolean {
-        return this.startYear > other.startYear;
-    }
-
-
-    // --------------------------------------------------------------------
-    // GETTERS
-    // --------------------------------------------------------------------
-    public getStartYear(): number {
-        return this.startYear;
-    }
-
-    public getEndYear(): number {
-        return this.endYear;
-    }
-
-    public toString(): string {
-        return `${this.startYear}-${this.endYear}`;
-    }
-}
-
 
 export class Player {
     private readonly userId: string;
@@ -101,5 +50,58 @@ export class Player {
             data.federation,
             new Season(data.seasonStartYear, data.seasonEndYear),
         );
+    }
+}
+
+
+
+export class Season {
+    private readonly startYear: number;
+    private readonly endYear: number;
+
+    constructor(startYear: number, endYear: number) {
+        this.startYear = startYear;
+        this.endYear = endYear;
+        this.validate();
+    }
+
+    private validate(): void {
+        if (
+            this.startYear < 1900 || this.startYear > 2200 ||
+            this.endYear < 1900 || this.endYear > 2200
+        ) {
+            throw new InvalidYearException();
+        }
+        if (this.startYear + 1 !== this.endYear) {
+            throw new InvalidSeasonException();
+        }
+    }
+
+
+    // --------------------------------------------------------------------
+    // COMPARISON METHODS
+    // --------------------------------------------------------------------
+    public equals(other: Season): boolean {
+        return this.startYear === other.startYear && this.endYear === other.endYear;
+    }
+
+    public isAfter(other: Season): boolean {
+        return this.startYear > other.startYear;
+    }
+
+
+    // --------------------------------------------------------------------
+    // GETTERS
+    // --------------------------------------------------------------------
+    public getStartYear(): number {
+        return this.startYear;
+    }
+
+    public getEndYear(): number {
+        return this.endYear;
+    }
+
+    public toString(): string {
+        return `${this.startYear}-${this.endYear}`;
     }
 }

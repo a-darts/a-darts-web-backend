@@ -1,7 +1,6 @@
-import { EmailAlreadyInUseException, ForbiddenAccessException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
+import { EmailAlreadyInUseException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { UpdateUserEmailRequestDto } from '../../dtos/user/UserDTOs.js';
-import { UserAuthorization } from './utils/UserAuthorization.js';
 
 export class UpdateUserEmail {
   constructor(private readonly userRepository: UserRepository) { }

@@ -11,6 +11,10 @@ export interface CreatePlayerRequestDTO {
     userId: string;
     registrationNumber: string;
     federation: string;
-    seasonStartYear: number;
-    seasonEndYear: number;
+    season: SeasonDTO;
+}
+
+export interface SeasonDTO {
+    startYear: number;
+    endYear: number;
 }

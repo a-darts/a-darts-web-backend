@@ -1,7 +1,6 @@
-import { ForbiddenAccessException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
+import { UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { UpdateUserAliasRequestDto } from '../../dtos/user/UserDTOs.js';
-import { UserAuthorization } from './utils/UserAuthorization.js';
 
 export class UpdateUserAlias {
   constructor(private readonly userRepository: UserRepository) { }

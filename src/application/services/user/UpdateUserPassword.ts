@@ -1,8 +1,7 @@
-import { ForbiddenAccessException, InvalidPasswordException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
+import { InvalidPasswordException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
 import { UpdateUserPasswordRequestDto } from '../../dtos/user/UserDTOs.js';
-import { UserAuthorization } from './utils/UserAuthorization.js';
 
 export class UpdateUserPassword {
   constructor(
