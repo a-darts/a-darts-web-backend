@@ -25,17 +25,6 @@ export class Player {
 
 
     // --------------------------------------------------------------------
-    // UPDATE METHODS
-    // --------------------------------------------------------------------
-    public updateFederation(newFederation: string): void {
-        if (!newFederation || newFederation.trim() === '') {
-            throw new MissingRequiredUserFieldsException();
-        }
-        this.federation = newFederation;
-    }
-
-
-    // --------------------------------------------------------------------
     // FACTORY METHOD
     // --------------------------------------------------------------------
     public static create(
@@ -58,6 +47,17 @@ export class Player {
             federation,
             season,
         );
+    }
+
+
+    // --------------------------------------------------------------------
+    // UPDATE METHODS
+    // --------------------------------------------------------------------
+    public updateFederation(newFederation: string): void {
+        if (!newFederation || newFederation.trim() === '') {
+            throw new MissingRequiredUserFieldsException();
+        }
+        this.federation = newFederation;
     }
 
 

@@ -5,6 +5,7 @@ export class PlayerMapper {
     // From Domain Entity to Prisma Object
     static toPersistence(player: Player) {
         return {
+            id: player.getId(),
             userId: player.getUserId(),
             registrationNumber: player.getRegistrationNumber(),
             federation: player.getFederation(),
@@ -16,6 +17,7 @@ export class PlayerMapper {
     // From Prisma Object to Domain Entity
     static toDomain(prismaPlayer: PrismaPlayer): Player {
         return Player.rehydrate({
+            id: prismaPlayer.id,
             userId: prismaPlayer.userId,
             registrationNumber: prismaPlayer.registrationNumber,
             federation: prismaPlayer.federation,
