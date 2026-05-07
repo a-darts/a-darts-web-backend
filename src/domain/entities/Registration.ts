@@ -74,6 +74,10 @@ export class Registration {
         return this.status === RegistrationStatus.OPEN && this.registrationPeriod.isOpen();
     }
 
+
+    // --------------------------------------------------------------------
+    // REGISTRATION PARTICIPANTS MANAGEMENT
+    // --------------------------------------------------------------------
     public registerParticipant(playerId: string): Registration {
         if (this.registratedParticipants.some(p => p.getPlayerId() === playerId)) {
             throw new Error('Player already registered');
@@ -106,7 +110,7 @@ export class Registration {
         );
     }
 
-    public checkInPlayer(playerId: string): Registration {
+    public checkInParticipant(playerId: string): Registration {
         const participant = this.registratedParticipants.find(
             p => p.getPlayerId() === playerId
         );
@@ -127,7 +131,7 @@ export class Registration {
         );
     }
 
-    public undoCheckInPlayer(playerId: string): Registration {
+    public undoCheckInParticipant(playerId: string): Registration {
         const participant = this.registratedParticipants.find(
             p => p.getPlayerId() === playerId
         );
@@ -147,6 +151,11 @@ export class Registration {
             updatedParticipants,
         );
     }
+
+
+    // --------------------------------------------------------------------
+    // GETTERS
+    // --------------------------------------------------------------------
 }
 
 
@@ -255,7 +264,7 @@ export class RegistratedParticipant {
 
     // --------------------------------------------------------------------
     // GETTERS
-    // --------------------------------------------------------------------
+    // --------------------------------------------------------------------    
     public getPlayerId(): string {
         return this.playerId;
     }
