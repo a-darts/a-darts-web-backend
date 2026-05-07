@@ -24,15 +24,27 @@ export interface LoginUserRequestDto {
 export interface UpdateUserAliasRequestDto {
     id: string;
     newAlias: string;
+    requestor: {
+        id: string;
+        role: UserRoles;
+    };
 }
 
 export interface UpdateUserEmailRequestDto {
     id: string;
     newEmail: string;
+    requestor: {
+        id: string;
+        role: UserRoles;
+    };
 }
 
 export interface UpdateUserPasswordRequestDto {
     id: string;
     oldPassword: string;
     newPassword: string;
+    requestor: {
+        id: string;
+        role: UserRoles;
+    };
 }

@@ -22,9 +22,9 @@ router.post('/auth/logout', authMiddleware, authController.logout);
 router.get('/auth/me', authMiddleware, authController.getMe);
 
 // User routes
-router.put('/users/email', authMiddleware, userController.updateEmail);
-router.put('/users/password', authMiddleware, userController.updatePassword);
-router.put('/users/alias', authMiddleware, userController.updateAlias);
+router.put('/users/:id/email', authMiddleware, userController.updateEmail);
+router.put('/users/:id/password', authMiddleware, userController.updatePassword);
+router.put('/users/:id/alias', authMiddleware, userController.updateAlias);
 
 // Player routes
 router.get('/players', authMiddleware, playerController.getAllPlayers);

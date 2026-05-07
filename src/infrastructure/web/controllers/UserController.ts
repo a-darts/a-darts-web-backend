@@ -9,11 +9,13 @@ import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import {
   EmailAlreadyInUseException,
+  ForbiddenAccessException,
   InvalidPasswordException,
   MissingRequiredUserFieldsException,
   UserDeletedException,
   UserNotFoundException
 } from '../../../domain/exceptions/UserExceptions.js';
+import { UserRoles } from '../../../domain/entities/User.js';
 
 const userRepository = new PrismaUserRepository(prisma);
 const passwordHasher = new BcryptPasswordHasher();
@@ -117,12 +119,20 @@ export class UserController {
 
   /**
    * @swagger
-   * /api/users/email:
+   * /api/users/{id}/email:
    *   put:
    *     summary: Update user email
    *     tags: [Users]
    *     security:
    *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: User ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
    *     requestBody:
    *       required: true
    *       content:
@@ -184,7 +194,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User deleted
+   *                   example: Users with PLAYER role can only update their own email
    *       404:
    *         description: Not Found
    *         content:
@@ -227,6 +237,11 @@ export class UserController {
    */
   async updateEmail(req: AuthRequest, res: Response) {
     try {
+      const userId = req.params.id;
+      if (!userId || typeof userId !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
       const { newEmail } = req.body;
       if (!newEmail) {
         throw new MissingRequiredUserFieldsException();
@@ -239,8 +254,12 @@ export class UserController {
       }
 
       await updateUserEmail.execute({
-        id: req.user.id,
+        id: userId,
         newEmail: newEmail,
+        requestor: {
+          id: req.user.id,
+          role: req.user.role as UserRoles,
+        }
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Email updated successfully')
@@ -251,7 +270,10 @@ export class UserController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof UserDeletedException) {
+      if (
+        error instanceof UserDeletedException ||
+        error instanceof ForbiddenAccessException
+      ) {
         return res.status(403).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -275,12 +297,20 @@ export class UserController {
 
   /**
    * @swagger
-   * /api/users/password:
+   * /api/users/{id}/password:
    *   put:
    *     summary: Update user password
    *     tags: [Users]
    *     security:
    *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: User ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
    *     requestBody:
    *       required: true
    *       content:
@@ -372,6 +402,11 @@ export class UserController {
    */
   async updatePassword(req: AuthRequest, res: Response) {
     try {
+      const userId = req.params.id;
+      if (!userId || typeof userId !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
       const { oldPassword, newPassword } = req.body;
       if (!oldPassword || !newPassword) {
         throw new MissingRequiredUserFieldsException();
@@ -383,9 +418,13 @@ export class UserController {
         );
       }
       await updateUserPassword.execute({
-        id: req.user.id,
+        id: userId,
         oldPassword: oldPassword,
         newPassword: newPassword,
+        requestor: {
+          id: req.user.id,
+          role: req.user.role as UserRoles,
+        },
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Password updated successfully')
@@ -401,7 +440,10 @@ export class UserController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof UserDeletedException) {
+      if (
+        error instanceof UserDeletedException ||
+        error instanceof ForbiddenAccessException
+      ) {
         return res.status(403).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -420,12 +462,20 @@ export class UserController {
 
   /**
    * @swagger
-   * /api/users/alias:
+   * /api/users/{id}/alias:
    *   put:
    *     summary: Update user alias
    *     tags: [Users]
    *     security:
    *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: User ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
    *     requestBody:
    *       required: true
    *       content:
@@ -517,6 +567,11 @@ export class UserController {
    */
   async updateAlias(req: AuthRequest, res: Response) {
     try {
+      const userId = req.params.id;
+      if (!userId || typeof userId !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
       const { newAlias } = req.body;
       if (!newAlias) {
         throw new MissingRequiredUserFieldsException();
@@ -529,8 +584,12 @@ export class UserController {
       }
 
       await updateUserAlias.execute({
-        id: req.user.id,
+        id: userId,
         newAlias: newAlias,
+        requestor: {
+          id: req.user.id,
+          role: req.user.role as UserRoles,
+        }
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Alias updated successfully')
@@ -541,7 +600,10 @@ export class UserController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof UserDeletedException) {
+      if (
+        error instanceof UserDeletedException ||
+        error instanceof ForbiddenAccessException
+      ) {
         return res.status(403).json(
           ApiResponseBuilder.error(error.message)
         );
