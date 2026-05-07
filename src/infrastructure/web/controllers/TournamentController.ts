@@ -8,9 +8,10 @@ import { InvalidTournamentStatusUpdateException, TournamentNotFoundException, To
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
 import { UpdateTournamentStatus } from '../../../application/services/tournament/UpdateTournamentStatus.js';
-import { RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
+import { InvalidRegistrationStatusException, RegistrationAlreadyClosedException, RegistrationAlreadyOpenException, RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
 import { UpdateTournamentInfo } from '../../../application/services/tournament/UpdateTournamentInfo.js';
 import { UpdateTournamentName } from '../../../application/services/tournament/UpdateTournamentName.js';
+import { UpdateTournamentRegistrationStatus } from '../../../application/services/tournament/registration/UpdateTournamentRegistrationStatus.js';
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
 
@@ -19,6 +20,8 @@ const createTournament = new CreateTournament(tournamentRepository);
 const updateTournamentStatus = new UpdateTournamentStatus(tournamentRepository);
 const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
 const updateTournamentName = new UpdateTournamentName(tournamentRepository);
+const updateTournamentRegistrationStatus = new UpdateTournamentRegistrationStatus(tournamentRepository);
+
 
 /**
  * @swagger
@@ -144,6 +147,16 @@ const updateTournamentName = new UpdateTournamentName(tournamentRepository);
  *         newName:
  *           type: string
  *           example: Nuevo nombre del campeonato
+ * 
+ *     UpdateTournamentRegistrationStatusRequest:
+ *       type: object
+ *       required:
+ *         - newRegistrationStatus
+ *       properties:
+ *         newRegistrationStatus:
+ *           type: string
+ *           enum: [OPEN, CLOSED]
+ *           example: OPEN
  */
 export class TournamentController {
 
@@ -768,6 +781,174 @@ export class TournamentController {
       }
       if (error instanceof TournamentNotFoundException) {
         return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/registration/status:
+   *   put:
+   *     summary: Update tournament registration status
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateTournamentRegistrationStatusRequest'
+   *     responses:
+   *       200:
+   *         description: Registration status updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Registration status updated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament is not published
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async updateTournamentRegistrationStatus(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const { newRegistrationStatus } = req.body;
+      if (!newRegistrationStatus) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await updateTournamentRegistrationStatus.execute({
+        id: id,
+        newRegistrationStatus: newRegistrationStatus,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(null, 'Registration status updated successfully')
+      );
+    } catch (error: any) {
+      if (
+        error instanceof MissingRequiredUserFieldsException ||
+        error instanceof InvalidRegistrationStatusException
+      ) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof TournamentNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotPublishedException ||
+        error instanceof RegistrationAlreadyOpenException ||
+        error instanceof RegistrationAlreadyClosedException
+      ) {
+        return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
       }

@@ -1,5 +1,7 @@
 import {
     InvalidRegistrationPeriodException,
+    RegistrationAlreadyClosedException,
+    RegistrationAlreadyOpenException,
 } from "../exceptions/RegistrationExceptions.js";
 import {
     ParticipantNotRegisteredException,
@@ -49,6 +51,10 @@ export class Registration {
     // --------------------------------------------------------------------
     // Manual registration open
     public open(): Registration {
+        if (this.status === RegistrationStatus.OPEN) {
+            throw new RegistrationAlreadyOpenException();
+        }
+
         return new Registration(
             this.hasCheckIn,
             RegistrationStatus.OPEN,
@@ -59,6 +65,10 @@ export class Registration {
 
     // Manual registration close
     public close(): Registration {
+        if (this.status === RegistrationStatus.CLOSED) {
+            throw new RegistrationAlreadyClosedException();
+        }
+
         return new Registration(
             this.hasCheckIn,
             RegistrationStatus.CLOSED,

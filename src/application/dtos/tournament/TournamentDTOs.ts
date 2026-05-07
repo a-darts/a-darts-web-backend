@@ -1,3 +1,4 @@
+import { RegistrationStatus } from "../../../domain/entities/Registration.js";
 import { TournamentStatus } from "../../../domain/entities/Tournament.js";
 import { GameModes, GameTypes, ScheduleTypes } from "../../../domain/entities/TournamentInfo.js";
 
@@ -54,4 +55,9 @@ export interface UpdateTournamentInfoRequestDTO {
 export interface UpdateTournamentNameRequestDTO {
     id: string;
     newName: string;
+}
+
+export interface UpdateTournamentRegistrationStatusRequestDTO {
+    id: string;
+    newRegistrationStatus: RegistrationStatus;
 }
