@@ -112,6 +112,10 @@ export class Tournament {
     this.status = TournamentStatus.CANCELLED;
   }
 
+  private isPublished(): boolean {
+    return this.status === TournamentStatus.PUBLISHED;
+  }
+
 
   // --------------------------------------------------------------------
   // REGISTRATION METHODS
@@ -140,8 +144,12 @@ export class Tournament {
     this.registration = this.registration.schedule(open, close);
   }
 
-  private isPublished(): boolean {
-    return this.status === TournamentStatus.PUBLISHED;
+  public registerParticipant(playerId: string) {
+    this.registration = this.registration.registerParticipant(playerId);
+  }
+
+  public unregisterParticipant(playerId: string) {
+    this.registration = this.registration.unregisterParticipant(playerId);
   }
 
 

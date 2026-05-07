@@ -1,4 +1,10 @@
-import { InvalidRegistrationPeriodException, PlayerAlreadyCheckedInException, PlayerAlreadyRegisteredException, PlayerNotCheckedInException, PlayerNotRegisteredException } from "../exceptions/RegistrationExceptions.js";
+import {
+    InvalidRegistrationPeriodException,
+} from "../exceptions/RegistrationExceptions.js";
+import {
+    ParticipantNotRegisteredException,
+    ParticipantAlreadyRegisteredException,
+} from "../exceptions/ParticipantExceptions.js";
 
 export enum RegistrationStatus {
     OPEN = 'open',
@@ -80,7 +86,7 @@ export class Registration {
     // --------------------------------------------------------------------
     public registerParticipant(playerId: string): Registration {
         if (this.registratedParticipantsIds.some(p => p === playerId)) {
-            throw new PlayerAlreadyRegisteredException();
+            throw new ParticipantAlreadyRegisteredException();
         }
 
         return new Registration(
@@ -93,7 +99,7 @@ export class Registration {
 
     public unregisterParticipant(playerId: string): Registration {
         if (!this.registratedParticipantsIds.some(p => p === playerId)) {
-            throw new PlayerNotRegisteredException();
+            throw new ParticipantNotRegisteredException();
         }
 
         const updatedParticipants = this.registratedParticipantsIds.filter(
@@ -157,83 +163,5 @@ export class RegistrationPeriod {
 
     public getEndsAt(): Date | null {
         return this.endsAt;
-    }
-}
-
-
-
-export class RegistratedParticipant {
-    private readonly id: string;
-    private readonly playerId: string;
-    private readonly registeredAt: Date;
-    private checkedInAt: Date | null;
-
-    constructor(
-        id: string,
-        playerId: string,
-        registeredAt: Date,
-        checkedInAt: Date | null,
-    ) {
-        this.id = id;
-        this.playerId = playerId;
-        this.registeredAt = registeredAt;
-        this.checkedInAt = checkedInAt;
-    }
-
-
-    // --------------------------------------------------------------------
-    // FACTORY METHOD
-    // --------------------------------------------------------------------
-    public static create(
-        playerId: string,
-    ): RegistratedParticipant {
-        return new RegistratedParticipant(
-            crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
-            playerId,
-            new Date(),
-            null,
-        );
-    }
-
-
-    // --------------------------------------------------------------------
-    // CHECK IN METHODS
-    // --------------------------------------------------------------------
-    public doCheckIn() {
-        if (this.checkedInAt) {
-            throw new PlayerAlreadyCheckedInException();
-        }
-        this.checkedInAt = new Date();
-    }
-
-    public undoCheckIn() {
-        if (!this.checkedInAt) {
-            throw new PlayerNotCheckedInException();
-        }
-        this.checkedInAt = null;
-    }
-
-    public hasDoneCheckIn(): boolean {
-        return this.checkedInAt !== null;
-    }
-
-
-    // --------------------------------------------------------------------
-    // GETTERS
-    // --------------------------------------------------------------------    
-    public getId(): string {
-        return this.id;
-    }
-
-    public getPlayerId(): string {
-        return this.playerId;
-    }
-
-    public getRegisteredAt(): Date {
-        return this.registeredAt;
-    }
-
-    public getCheckedInAt(): Date | null {
-        return this.checkedInAt;
     }
 }
