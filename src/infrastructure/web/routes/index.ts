@@ -40,5 +40,6 @@ router.put('/tournaments/:id/status', authMiddleware, isAdmin, tournamentControl
 router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
 router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
 router.put('/tournaments/:id/registration/status', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationStatus);
+router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationPeriod);
 
 export default router;

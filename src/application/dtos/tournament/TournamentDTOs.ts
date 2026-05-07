@@ -61,3 +61,8 @@ export interface UpdateTournamentRegistrationStatusRequestDTO {
     id: string;
     newRegistrationStatus: RegistrationStatus;
 }
+
+export interface UpdateTournamentRegistrationPeriodRequestDTO {
+    id: string;
+    newRegistrationPeriod: RegistrationPeriodDTO;
+}
