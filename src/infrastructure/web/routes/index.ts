@@ -5,6 +5,7 @@ import { AuthController } from '../controllers/AuthController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { PlayerController } from '../controllers/PlayerController.js';
 import { TournamentController } from '../controllers/TournamentController.js';
+import { isSelfOrAdmin } from '../middlewares/authorizer.js';
 
 const router = Router();
 const userController = new UserController();
@@ -22,9 +23,9 @@ router.post('/auth/logout', authMiddleware, authController.logout);
 router.get('/auth/me', authMiddleware, authController.getMe);
 
 // User routes
-router.put('/users/:id/email', authMiddleware, userController.updateEmail);
-router.put('/users/:id/password', authMiddleware, userController.updatePassword);
-router.put('/users/:id/alias', authMiddleware, userController.updateAlias);
+router.put('/users/:id/email', authMiddleware, isSelfOrAdmin, userController.updateEmail);
+router.put('/users/:id/password', authMiddleware, isSelfOrAdmin, userController.updatePassword);
+router.put('/users/:id/alias', authMiddleware, isSelfOrAdmin, userController.updateAlias);
 
 // Player routes
 router.get('/players', authMiddleware, playerController.getAllPlayers);

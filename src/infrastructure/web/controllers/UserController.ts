@@ -247,19 +247,9 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      if (!req.user) {
-        return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
-        );
-      }
-
       await updateUserEmail.execute({
         id: userId,
         newEmail: newEmail,
-        requestor: {
-          id: req.user.id,
-          role: req.user.role as UserRoles,
-        }
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Email updated successfully')
@@ -412,19 +402,10 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      if (!req.user) {
-        return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
-        );
-      }
       await updateUserPassword.execute({
         id: userId,
         oldPassword: oldPassword,
         newPassword: newPassword,
-        requestor: {
-          id: req.user.id,
-          role: req.user.role as UserRoles,
-        },
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Password updated successfully')
@@ -577,19 +558,9 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      if (!req.user) {
-        return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
-        );
-      }
-
       await updateUserAlias.execute({
         id: userId,
         newAlias: newAlias,
-        requestor: {
-          id: req.user.id,
-          role: req.user.role as UserRoles,
-        }
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Alias updated successfully')

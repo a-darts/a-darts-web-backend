@@ -150,12 +150,6 @@ export class TournamentController {
    */
   async getAllTournaments(req: AuthRequest, res: Response) {
     try {
-      if (!req.user) {
-        return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
-        );
-      }
-
       const tournaments = await getAllTournaments.execute();
       res.status(200).json(
         ApiResponseBuilder.success(

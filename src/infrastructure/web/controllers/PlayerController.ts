@@ -92,12 +92,6 @@ export class PlayerController {
    */
   async getAllPlayers(req: AuthRequest, res: Response) {
     try {
-      if (!req.user) {
-        return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
-        );
-      }
-
       const players = await getAllPlayers.execute();
       res.status(200).json(
         ApiResponseBuilder.success(players, 'Players fetched successfully')
@@ -204,11 +198,6 @@ export class PlayerController {
         throw new InvalidUserFieldsException();
       }
 
-      if (!req.user) {
-        return res.status(401).json(
-          ApiResponseBuilder.error('User not authenticated')
-        );
-      }
       const playerDto = await getPlayerData.execute(userId);
       res.status(200).json(
         ApiResponseBuilder.success(
