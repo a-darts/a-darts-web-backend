@@ -17,8 +17,10 @@ import { RegisterParticipantInTournament } from '../../../application/services/t
 import { PrismaRegisteredParticipantRepository } from '../../persistence/repositories/PrismaRegisteredParticipantRepository.js';
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
 import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
-import { ParticipantAlreadyRegisteredException, ParticipantNotRegisteredException, RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
+import { ParticipantAlreadyCheckedInException, ParticipantAlreadyRegisteredException, ParticipantNotCheckedInException, ParticipantNotRegisteredException, RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
 import { UnregisterParticipantFromTournament } from '../../../application/services/tournament/registration/UnregisterParticipantFromTournament.js';
+import { DoCheckInParticipant } from '../../../application/services/tournament/registration/DoCheckInParticipant.js';
+import { UndoCheckInParticipant } from '../../../application/services/tournament/registration/undoCheckInParticipant.js';
 
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
@@ -34,7 +36,8 @@ const updateTournamentRegistrationStatus = new UpdateTournamentRegistrationStatu
 const updateTournamentRegistrationPeriod = new UpdateTournamentRegistrationPeriod(tournamentRepository);
 const registerParticipantInTournament = new RegisterParticipantInTournament(tournamentRepository, registeredParticipantRepository, playerRepository);
 const unregisterParticipantFromTournament = new UnregisterParticipantFromTournament(tournamentRepository, registeredParticipantRepository);
-
+const doCheckInParticipant = new DoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
+const undoCheckInParticipant = new UndoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 
 /**
  * @swagger
@@ -1322,7 +1325,10 @@ export class TournamentController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof ParticipantAlreadyRegisteredException) {
+      if (
+        error instanceof ParticipantAlreadyRegisteredException ||
+        error instanceof RegistrationAlreadyClosedException
+      ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -1489,6 +1495,344 @@ export class TournamentController {
         );
       }
       if (error instanceof ParticipantNotRegisteredException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/participants/{participantId}/checkin:
+   *   post:
+   *     summary: Do check in a participant
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *       - name: participantId
+   *         in: path
+   *         required: true
+   *         description: Participant ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Participant checked in successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Participant checked in successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Participant is not registered in this tournament
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async doCheckInParticipant(req: AuthRequest, res: Response) {
+    try {
+      const { id, participantId } = req.params;
+      if (
+        !id || !participantId ||
+        typeof id !== 'string' || typeof participantId !== 'string'
+      ) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await doCheckInParticipant.execute({
+        id: id,
+        participantId: participantId,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Participant checked in successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotFoundException ||
+        error instanceof RegisteredParticipantNotFoundException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof ParticipantNotRegisteredException ||
+        error instanceof ParticipantAlreadyCheckedInException
+      ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/participants/{participantId}/checkin:
+   *   delete:
+   *     summary: Undo check in a participant
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *       - name: participantId
+   *         in: path
+   *         required: true
+   *         description: Participant ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Participant undo check in successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Participant undo check in successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Participant is not registered in this tournament
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async undoCheckInParticipant(req: AuthRequest, res: Response) {
+    try {
+      const { id, participantId } = req.params;
+      if (
+        !id || !participantId ||
+        typeof id !== 'string' || typeof participantId !== 'string'
+      ) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await undoCheckInParticipant.execute({
+        id: id,
+        participantId: participantId,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Participant undo check in successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotFoundException ||
+        error instanceof RegisteredParticipantNotFoundException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof ParticipantNotRegisteredException ||
+        error instanceof ParticipantNotCheckedInException
+      ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );

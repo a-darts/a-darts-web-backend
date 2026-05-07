@@ -99,6 +99,10 @@ export class Registration {
             throw new ParticipantAlreadyRegisteredException();
         }
 
+        if (this.status === RegistrationStatus.CLOSED) {
+            throw new RegistrationAlreadyClosedException();
+        }
+
         return new Registration(
             this.hasCheckIn,
             this.status,

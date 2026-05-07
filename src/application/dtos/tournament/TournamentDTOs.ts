@@ -76,3 +76,13 @@ export interface UnregisterParticipantInTournamentRequestDTO {
     id: string;
     participantId: string;
 }
+
+export interface DoCheckInParticipantRequestDTO {
+    id: string;
+    participantId: string;
+}
+
+export interface UndoCheckInParticipantRequestDTO {
+    id: string;
+    participantId: string;
+}
