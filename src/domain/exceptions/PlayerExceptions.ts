@@ -19,7 +19,6 @@ export class InvalidRegisteredPlayerSeasonException extends Error {
     }
 }
 
-
 export class InvalidYearException extends Error {
     constructor() {
         super('Invalid year. It must be between 1900 and 2200');

@@ -1,4 +1,5 @@
 import { RegisteredParticipant } from '../../../../domain/entities/Participant.js';
+import { ParticipantAlreadyRegisteredException } from '../../../../domain/exceptions/ParticipantExceptions.js';
 import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../../domain/exceptions/PlayerExceptions.js';
 import { TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
 import { PlayerRepository } from '../../../../domain/repositories/PlayerRepository.js';
@@ -35,13 +36,22 @@ export class RegisterParticipantInTournament {
             throw new InvalidRegisteredPlayerSeasonException();
         }
 
-        // 4. Register the participant in the tournament
+        // 4. Check if the participant is already registered in this tournament
+        const existingParticipant = await this.registeredParticipantRepository.findByTournamentIdAndPlayerId(
+            request.id,
+            request.playerId,
+        );
+        if (existingParticipant) {
+            throw new ParticipantAlreadyRegisteredException();
+        }
+
+        // 5. Register the participant in the tournament
         tournament.registerParticipant(request.playerId);
 
-        // 5. Persist the changes in the DB
-        // 5.1. Update the tournament registered participants ids
+        // 6. Persist the changes in the DB
+        // 6.1. Update the tournament registered participants ids
         await this.tournamentRepository.update(tournament);
-        // 5.2. Create the new registered participant
+        // 6.2. Create the new registered participant
         const newRegisteredParticipant = RegisteredParticipant.create(
             request.playerId,
         );

@@ -42,5 +42,6 @@ router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentControlle
 router.put('/tournaments/:id/registration/status', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationStatus);
 router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationPeriod);
 router.post('/tournaments/:id/participants', authMiddleware, isAdmin, tournamentController.registerParticipant);
+router.delete('/tournaments/:id/participants/:playerId', authMiddleware, isAdmin, tournamentController.unregisterParticipant);
 
 export default router;

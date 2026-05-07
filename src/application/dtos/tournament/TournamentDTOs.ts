@@ -71,3 +71,8 @@ export interface RegisterParticipantInTournamentRequestDTO {
     id: string;
     playerId: string;
 }
+
+export interface UnregisterParticipantInTournamentRequestDTO {
+    id: string;
+    playerId: string;
+}

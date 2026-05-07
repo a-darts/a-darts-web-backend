@@ -25,3 +25,10 @@ export class ParticipantNotRegisteredException extends Error {
         this.name = 'ParticipantNotRegisteredException';
     }
 }
+
+export class RegisteredParticipantNotFoundException extends Error {
+    constructor() {
+        super('Registered participant not found');
+        this.name = 'RegisteredParticipantNotFoundException';
+    }
+}
