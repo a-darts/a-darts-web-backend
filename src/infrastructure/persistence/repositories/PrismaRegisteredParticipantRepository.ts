@@ -7,7 +7,7 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
     constructor(private readonly prisma: PrismaClient) { }
 
     async create(tournamentId: string, registeredParticipant: RegisteredParticipant): Promise<void> {
-        const data = RegisteredParticipantMapper.toPersistence(registeredParticipant);
+        const data = RegisteredParticipantMapper.toPersistence(tournamentId, registeredParticipant);
         await this.prisma.registeredParticipant.create({
             data: {
                 ...data,
@@ -16,8 +16,8 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
         });
     }
 
-    async update(registeredParticipant: RegisteredParticipant): Promise<void> {
-        const data = RegisteredParticipantMapper.toPersistence(registeredParticipant);
+    async update(tournamentId: string, registeredParticipant: RegisteredParticipant): Promise<void> {
+        const data = RegisteredParticipantMapper.toPersistence(tournamentId, registeredParticipant);
         await this.prisma.registeredParticipant.update({
             where: {
                 id: registeredParticipant.getId(),

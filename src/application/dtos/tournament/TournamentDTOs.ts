@@ -69,5 +69,5 @@ export interface UpdateTournamentRegistrationPeriodRequestDTO {
 
 export interface RegisterParticipantInTournamentRequestDTO {
     id: string;
-    participantId: string;
+    playerId: string;
 }

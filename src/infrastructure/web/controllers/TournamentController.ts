@@ -13,8 +13,16 @@ import { UpdateTournamentInfo } from '../../../application/services/tournament/U
 import { UpdateTournamentName } from '../../../application/services/tournament/UpdateTournamentName.js';
 import { UpdateTournamentRegistrationStatus } from '../../../application/services/tournament/registration/UpdateTournamentRegistrationStatus.js';
 import { UpdateTournamentRegistrationPeriod } from '../../../application/services/tournament/registration/UpdateTournamentRegistrationPeriod.js';
+import { RegisterParticipantInTournament } from '../../../application/services/tournament/registration/RegisterParticipantInTournament.js';
+import { PrismaRegisteredParticipantRepository } from '../../persistence/repositories/PrismaRegisteredParticipantRepository.js';
+import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
+import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
+import { ParticipantAlreadyRegisteredException } from '../../../domain/exceptions/ParticipantExceptions.js';
+
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
+const registeredParticipantRepository = new PrismaRegisteredParticipantRepository(prisma);
+const playerRepository = new PrismaPlayerRepository(prisma);
 
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
 const createTournament = new CreateTournament(tournamentRepository);
@@ -23,6 +31,8 @@ const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
 const updateTournamentName = new UpdateTournamentName(tournamentRepository);
 const updateTournamentRegistrationStatus = new UpdateTournamentRegistrationStatus(tournamentRepository);
 const updateTournamentRegistrationPeriod = new UpdateTournamentRegistrationPeriod(tournamentRepository);
+const registerParticipantInTournament = new RegisterParticipantInTournament(tournamentRepository, registeredParticipantRepository, playerRepository);
+
 
 /**
  * @swagger
@@ -175,6 +185,15 @@ const updateTournamentRegistrationPeriod = new UpdateTournamentRegistrationPerio
  *               type: string
  *               format: date-time
  *               example: 2026-05-02T11:00:00.000Z
+ * 
+ *     RegisterParticipantInTournamentRequest:
+ *       type: object
+ *       required:
+ *         - playerId
+ *       properties:
+ *         playerId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  */
 export class TournamentController {
 
@@ -1132,6 +1151,176 @@ export class TournamentController {
         );
       }
       if (error instanceof TournamentNotPublishedException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/participants:
+   *   post:
+   *     summary: Register a player in a tournament
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/RegisterParticipantInTournamentRequest'
+   *     responses:
+   *       201:
+   *         description: Participant registered successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Participant registered successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Participant is already registered in this tournament
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async registerParticipant(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const { playerId } = req.body;
+      if (!playerId) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await registerParticipantInTournament.execute({
+        id: id,
+        playerId: playerId,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Participant registered successfully',
+        )
+      );
+    } catch (error: any) {
+      if (
+        error instanceof MissingRequiredUserFieldsException ||
+        error instanceof InvalidRegisteredPlayerSeasonException
+      ) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotFoundException ||
+        error instanceof PlayerNotFoundException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof ParticipantAlreadyRegisteredException) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
