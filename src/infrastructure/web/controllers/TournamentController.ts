@@ -10,6 +10,7 @@ import { CreateTournament } from '../../../application/services/tournament/Creat
 import { UpdateTournamentStatus } from '../../../application/services/tournament/UpdateTournamentStatus.js';
 import { RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
 import { UpdateTournamentInfo } from '../../../application/services/tournament/UpdateTournamentInfo.js';
+import { UpdateTournamentName } from '../../../application/services/tournament/UpdateTournamentName.js';
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
 
@@ -17,6 +18,7 @@ const getAllTournaments = new GetAllTournaments(tournamentRepository);
 const createTournament = new CreateTournament(tournamentRepository);
 const updateTournamentStatus = new UpdateTournamentStatus(tournamentRepository);
 const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
+const updateTournamentName = new UpdateTournamentName(tournamentRepository);
 
 /**
  * @swagger
@@ -133,6 +135,15 @@ const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
  *       properties:
  *         newInfo:
  *           $ref: '#/components/schemas/TournamentInfo'
+ * 
+ *     UpdateTournamentNameRequest:
+ *       type: object
+ *       required:
+ *         - newName
+ *       properties:
+ *         newName:
+ *           type: string
+ *           example: Nuevo nombre del campeonato
  */
 export class TournamentController {
 
@@ -605,6 +616,149 @@ export class TournamentController {
       });
       res.status(200).json(
         ApiResponseBuilder.success(null, 'Info updated successfully')
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof TournamentNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/name:
+   *   put:
+   *     summary: Update tournament name
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateTournamentNameRequest'
+   *     responses:
+   *       200:
+   *         description: Name updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Name updated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async updateTournamentName(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const { newName } = req.body;
+      if (!newName) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await updateTournamentName.execute({
+        id: id,
+        newName: newName,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(null, 'Name updated successfully')
       );
     } catch (error: any) {
       if (error instanceof MissingRequiredUserFieldsException) {

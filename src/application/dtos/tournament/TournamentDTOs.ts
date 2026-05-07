@@ -50,3 +50,8 @@ export interface UpdateTournamentInfoRequestDTO {
     id: string;
     newInfo: TournamentInfoDTO;
 }
+
+export interface UpdateTournamentNameRequestDTO {
+    id: string;
+    newName: string;
+}
