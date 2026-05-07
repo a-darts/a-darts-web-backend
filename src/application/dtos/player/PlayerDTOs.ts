@@ -15,6 +15,11 @@ export interface CreatePlayerRequestDTO {
     season: SeasonDTO;
 }
 
+export interface UpdatePlayerFederationRequestDTO {
+    id: string;
+    newFederation: string;
+}
+
 export interface SeasonDTO {
     startYear: number;
     endYear: number;

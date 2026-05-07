@@ -6,9 +6,10 @@ import { GetAllPlayers } from '../../../application/services/player/GetAllPlayer
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
 import { GetPlayerData } from '../../../application/services/player/GetPlayerData.js';
 import { InvalidSeasonException, InvalidYearException, PlayerAlreadyExistsException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
-import { InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
+import { ForbiddenAccessException, InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreatePlayer } from '../../../application/services/player/CreatePlayer.js';
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
+import { UpdatePlayerFederation } from '../../../application/services/player/UpdatePlayerFederation.js';
 
 const playerRepository = new PrismaPlayerRepository(prisma);
 const userRepository = new PrismaUserRepository(prisma);
@@ -16,6 +17,7 @@ const userRepository = new PrismaUserRepository(prisma);
 const getAllPlayers = new GetAllPlayers(playerRepository);
 const getPlayerData = new GetPlayerData(playerRepository);
 const createPlayer = new CreatePlayer(playerRepository, userRepository);
+const updatePlayerFederation = new UpdatePlayerFederation(playerRepository);
 
 /**
  * @swagger
@@ -63,6 +65,14 @@ const createPlayer = new CreatePlayer(playerRepository, userRepository);
  *             endYear:
  *               type: number
  *               example: 2027
+ *     UpdateFederationRequest:
+ *       type: object
+ *       required:
+ *         - newFederation
+ *       properties:
+ *         newFederation:
+ *           type: string
+ *           example: ARAGON
  */
 export class PlayerController {
 
@@ -345,6 +355,19 @@ export class PlayerController {
    *                 message:
    *                   type: string
    *                   example: Player already exists
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
    */
   async createPlayer(req: AuthRequest, res: Response) {
     try {
@@ -373,6 +396,153 @@ export class PlayerController {
         );
       }
 
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/players/{id}/federation:
+   *   put:
+   *     summary: Update player federation
+   *     tags: [Players]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Player ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateFederationRequest'
+   *     responses:
+   *       200:
+   *         description: Federation updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Federation updated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Player not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async updatePlayerFederation(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const { newFederation } = req.body;
+      if (!newFederation) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await updatePlayerFederation.execute({
+        id: id,
+        newFederation: newFederation,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(null, 'Federation updated successfully')
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof ForbiddenAccessException) {
+        return res.status(403).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof PlayerNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')
