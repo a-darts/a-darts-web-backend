@@ -74,5 +74,5 @@ export interface RegisterParticipantInTournamentRequestDTO {
 
 export interface UnregisterParticipantInTournamentRequestDTO {
     id: string;
-    playerId: string;
+    participantId: string;
 }

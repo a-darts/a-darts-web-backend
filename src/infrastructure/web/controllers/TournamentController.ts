@@ -1351,10 +1351,10 @@ export class TournamentController {
    *         schema:
    *           type: string
    *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *       - name: playerId
+   *       - name: participantId
    *         in: path
    *         required: true
-   *         description: Player ID
+   *         description: Participant ID
    *         schema:
    *           type: string
    *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
@@ -1456,17 +1456,17 @@ export class TournamentController {
    */
   async unregisterParticipant(req: AuthRequest, res: Response) {
     try {
-      const { id, playerId } = req.params;
+      const { id, participantId } = req.params;
       if (
-        !id || !playerId ||
-        typeof id !== 'string' || typeof playerId !== 'string'
+        !id || !participantId ||
+        typeof id !== 'string' || typeof participantId !== 'string'
       ) {
         throw new MissingRequiredUserFieldsException();
       }
 
       await unregisterParticipantFromTournament.execute({
         id: id,
-        playerId: playerId,
+        participantId: participantId,
       });
       res.status(200).json(
         ApiResponseBuilder.success(
