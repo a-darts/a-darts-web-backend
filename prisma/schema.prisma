@@ -64,7 +64,7 @@ enum RegistrationStatus {
 }
 
 model User {
-  id           String     @id @db.Uuid
+  id           String     @id @default(uuid()) @db.Uuid
   email        String     @unique
   password     String?
   alias        String
@@ -73,13 +73,14 @@ model User {
   deletedAt    DateTime?
   status       UserStatus
 
-  playerProfile Player?
+  playerProfiles Player[]
 
   @@map("users")
 }
 
 model Player {
-  userId             String @id @db.Uuid
+  id                 String @id @default(uuid()) @db.Uuid
+  userId             String @db.Uuid
   registrationNumber String
   federation         String
   // Value object Season fields
@@ -89,11 +90,12 @@ model Player {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, seasonStartYear])
   @@map("players")
 }
 
 model Tournament {
-  id        String           @id @db.Uuid
+  id        String           @id @default(uuid()) @db.Uuid
   name      String
   createdAt DateTime
   status    TournamentStatus
@@ -127,14 +129,13 @@ model Tournament {
 }
 
 model RegisteredParticipant {
-  id           String    @id @db.Uuid
+  id           String    @id @default(uuid()) @db.Uuid
   playerId     String    @db.Uuid
   registeredAt DateTime
   checkedInAt  DateTime?
 
   tournamentId String @db.Uuid
 
-  // Índice para buscar rápido por id del jugador e id del torneo
   @@unique([playerId, tournamentId])
   // Índice para buscar rápido por id del jugador
   @@index([playerId])

@@ -5,14 +5,17 @@ import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse
 import { GetAllPlayers } from '../../../application/services/player/GetAllPlayers.js';
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
 import { GetPlayerData } from '../../../application/services/player/GetPlayerData.js';
-import { PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
-import { InvalidUserFieldsException, MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
+import { InvalidSeasonException, InvalidYearException, PlayerAlreadyExistsException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
+import { InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
+import { CreatePlayer } from '../../../application/services/player/CreatePlayer.js';
+import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 
 const playerRepository = new PrismaPlayerRepository(prisma);
+const userRepository = new PrismaUserRepository(prisma);
 
 const getAllPlayers = new GetAllPlayers(playerRepository);
 const getPlayerData = new GetPlayerData(playerRepository);
-
+const createPlayer = new CreatePlayer(playerRepository, userRepository);
 
 /**
  * @swagger
@@ -21,6 +24,9 @@ const getPlayerData = new GetPlayerData(playerRepository);
  *     Player:
  *       type: object
  *       properties:
+ *         id:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  *         userId:
  *           type: string
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
@@ -36,6 +42,27 @@ const getPlayerData = new GetPlayerData(playerRepository);
  *         seasonEndYear:
  *           type: number
  *           example: 2027
+ *     CreatePlayerRequest:
+ *       type: object
+ *       properties:
+ *         userId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         registrationNumber:
+ *           type: string
+ *           example: 5441068146
+ *         federation:
+ *           type: string
+ *           example: ARAGON
+ *         season:
+ *           type: object
+ *           properties:
+ *             startYear:
+ *               type: number
+ *               example: 2026
+ *             endYear:
+ *               type: number
+ *               example: 2027
  */
 export class PlayerController {
 
@@ -105,100 +132,100 @@ export class PlayerController {
   }
 
   /**
- * @swagger
- * /api/players/{userId}:
- *   get:
- *     summary: Get player data by user ID
- *     tags: [Players]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: The user ID associated with the player
- *     responses:
- *       200:
- *         description: Player data retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: Player data retrieved successfully
- *                 data:
- *                   $ref: '#/components/schemas/Player'
- *       400:
- *         description: Bad Request
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: All fields are required
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: No token provided
- *       404:
- *         description: Not Found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: Player not found
- *       500:
- *         description: Internal Server Error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: Internal server error
- */
+   * @swagger
+   * /api/players/{id}:
+   *   get:
+   *     summary: Get player data by user ID
+   *     tags: [Players]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The user ID associated with the player
+   *     responses:
+   *       200:
+   *         description: Player data retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Player data retrieved successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/Player'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Player not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
   async getPlayerData(req: AuthRequest, res: Response) {
     try {
-      const { userId } = req.params;
-      if (!userId) {
+      const { id } = req.params;
+      if (!id) {
         throw new MissingRequiredUserFieldsException();
       }
-      if (typeof userId !== 'string') {
+      if (typeof id !== 'string') {
         throw new InvalidUserFieldsException();
       }
 
-      const playerDto = await getPlayerData.execute(userId);
+      const playerDto = await getPlayerData.execute(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           playerDto,
@@ -216,6 +243,136 @@ export class PlayerController {
           ApiResponseBuilder.error(error.message)
         );
       }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/players:
+   *   post:
+   *     summary: Create a new player
+   *     tags: [Players]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/CreatePlayerRequest'
+   *     responses:
+   *       201:
+   *         description: Player created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Player created successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/Player'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Player already exists
+   */
+  async createPlayer(req: AuthRequest, res: Response) {
+    try {
+      const player = await createPlayer.execute(req.body);
+      res.status(201).json(
+        ApiResponseBuilder.success(player, 'Player created successfully')
+      );
+    } catch (error: any) {
+      if (
+        error instanceof MissingRequiredUserFieldsException ||
+        error instanceof InvalidYearException ||
+        error instanceof InvalidSeasonException
+      ) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof PlayerAlreadyExistsException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')

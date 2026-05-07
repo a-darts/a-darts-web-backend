@@ -1,5 +1,6 @@
 
 export interface PlayerResponseDto {
+    id: string;
     userId: string;
     registrationNumber: string;
     federation: string;

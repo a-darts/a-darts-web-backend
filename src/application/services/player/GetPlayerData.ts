@@ -6,9 +6,9 @@ import { PlayerMapper } from '../../../application/dtos/player/PlayerMapper.js';
 export class GetPlayerData {
   constructor(private readonly playerRepository: PlayerRepository) { }
 
-  public async execute(userId: string): Promise<PlayerResponseDto> {
+  public async execute(id: string): Promise<PlayerResponseDto> {
     // 1. Rehydrate the player from the DB
-    const player = await this.playerRepository.findByUserId(userId);
+    const player = await this.playerRepository.findById(id);
     if (!player) {
       throw new PlayerNotFoundException();
     }

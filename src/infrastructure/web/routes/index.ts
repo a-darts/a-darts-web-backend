@@ -5,7 +5,7 @@ import { AuthController } from '../controllers/AuthController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { PlayerController } from '../controllers/PlayerController.js';
 import { TournamentController } from '../controllers/TournamentController.js';
-import { isSelfOrAdmin } from '../middlewares/authorizer.js';
+import { isAdmin, isSelfOrAdmin } from '../middlewares/authorizer.js';
 
 const router = Router();
 const userController = new UserController();
@@ -29,7 +29,8 @@ router.put('/users/:id/alias', authMiddleware, isSelfOrAdmin, userController.upd
 
 // Player routes
 router.get('/players', authMiddleware, playerController.getAllPlayers);
-router.get('/players/:userId', authMiddleware, playerController.getPlayerData);
+router.get('/players/:id', authMiddleware, playerController.getPlayerData);
+router.post('/players', authMiddleware, isAdmin, playerController.createPlayer);
 
 // Tournament routes
 router.get('/tournaments', authMiddleware, tournamentController.getAllTournaments);

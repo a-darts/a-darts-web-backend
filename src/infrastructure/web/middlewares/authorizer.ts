@@ -27,7 +27,9 @@ export const isAdmin = (req: AuthRequest, res: Response, next: NextFunction) => 
     const requestor = req.user;
 
     if (!requestor) {
-        return res.status(401).json(ApiResponseBuilder.error('Unauthorized'));
+        return res.status(401).json(
+            ApiResponseBuilder.error('Unauthorized')
+        );
     }
 
     const isAdmin = requestor.role === UserRoles.ADMIN;

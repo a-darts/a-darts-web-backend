@@ -5,6 +5,13 @@ export class PlayerNotFoundException extends Error {
     }
 }
 
+export class PlayerAlreadyExistsException extends Error {
+    constructor() {
+        super('Player already exists in that season');
+        this.name = 'PlayerAlreadyExistsException';
+    }
+}
+
 export class InvalidYearException extends Error {
     constructor() {
         super('Invalid year. It must be between 1900 and 2200');

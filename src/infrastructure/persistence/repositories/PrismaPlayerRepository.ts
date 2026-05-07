@@ -14,14 +14,14 @@ export class PrismaPlayerRepository implements PlayerRepository {
     async update(player: Player): Promise<void> {
         const data = PlayerMapper.toPersistence(player);
         await this.prisma.player.update({
-            where: { userId: player.getUserId() },
+            where: { id: player.getId() },
             data,
         });
     }
 
-    async delete(userId: string): Promise<void> {
+    async delete(id: string): Promise<void> {
         await this.prisma.player.delete({
-            where: { userId }
+            where: { id }
         });
     }
 
@@ -30,8 +30,22 @@ export class PrismaPlayerRepository implements PlayerRepository {
         return playersData.map(PlayerMapper.toDomain);
     }
 
-    async findByUserId(userId: string): Promise<Player | null> {
-        const playersData = await this.prisma.player.findUnique({ where: { userId } });
+    async findById(id: string): Promise<Player | null> {
+        const playersData = await this.prisma.player.findUnique({ where: { id } });
         return playersData ? PlayerMapper.toDomain(playersData) : null;
+    }
+
+    async findByUserIdAndSeason(userId: string, seasonStartYear: number): Promise<Player | null> {
+        const playersData = await this.prisma.player.findUnique({
+            where: { userId_seasonStartYear: { userId, seasonStartYear } }
+        });
+        return playersData ? PlayerMapper.toDomain(playersData) : null;
+    }
+
+    async findAllByUserId(userId: string): Promise<Player[]> {
+        const playersData = await this.prisma.player.findMany({
+            where: { userId }
+        });
+        return playersData.map(PlayerMapper.toDomain);
     }
 }

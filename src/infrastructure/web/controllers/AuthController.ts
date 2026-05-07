@@ -98,7 +98,7 @@ export class AuthController {
    *                   type: string
    *                   example: All fields are required
    *       409:
-   *         description: Bad request
+   *         description: Conflict
    *         content:
    *           application/json:
    *             schema:
