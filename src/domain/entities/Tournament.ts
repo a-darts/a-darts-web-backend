@@ -50,7 +50,7 @@ export class Tournament {
     name: string,
     info: TournamentInfo,
   ): Tournament {
-    if (!name || name.trim() === '') {
+    if (!name || name.trim() === '' || !info) {
       throw new MissingRequiredUserFieldsException();
     }
 

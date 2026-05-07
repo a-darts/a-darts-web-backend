@@ -35,3 +35,8 @@ interface RegistrationPeriodDTO {
     startsAt: Date | null;
     endsAt: Date | null;
 }
+
+export interface CreateTournamentRequestDTO {
+    name: string;
+    info: TournamentInfoDTO;
+}

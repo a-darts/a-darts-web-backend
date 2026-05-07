@@ -35,5 +35,6 @@ router.put('/players/:id/federation', authMiddleware, isAdmin, playerController.
 
 // Tournament routes
 router.get('/tournaments', authMiddleware, tournamentController.getAllTournaments);
+router.post('/tournaments', authMiddleware, isAdmin, tournamentController.createTournament);
 
 export default router;
