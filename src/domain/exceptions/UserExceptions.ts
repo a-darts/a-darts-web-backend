@@ -53,3 +53,10 @@ export class MissingRequiredUserFieldsException extends Error {
         this.name = 'MissingRequiredUserFieldsException';
     }
 }
+
+export class InvalidUserFieldsException extends Error {
+    constructor() {
+        super('Invalid user fields');
+        this.name = 'InvalidUserFieldsException';
+    }
+}

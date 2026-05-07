@@ -6,7 +6,7 @@ import { GetAllPlayers } from '../../../application/services/player/GetAllPlayer
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
 import { GetPlayerData } from '../../../application/services/player/GetPlayerData.js';
 import { PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
-import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
+import { InvalidUserFieldsException, MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 
 const playerRepository = new PrismaPlayerRepository(prisma);
 
@@ -199,6 +199,9 @@ export class PlayerController {
       const { userId } = req.params;
       if (!userId) {
         throw new MissingRequiredUserFieldsException();
+      }
+      if (typeof userId !== 'string') {
+        throw new InvalidUserFieldsException();
       }
 
       if (!req.user) {
