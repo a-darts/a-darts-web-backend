@@ -185,6 +185,10 @@ export class Tournament {
   // REHYDRATE METHOD
   // --------------------------------------------------------------------
   static rehydrate(data: any): Tournament {
+    const participantIds = data.participants
+      ? data.participants.map((p: any) => p.playerId)
+      : [];
+
     return new Tournament(
       data.id,
       data.name,
@@ -211,7 +215,7 @@ export class Tournament {
           data.registration.period.startsAt ? new Date(data.registration.period.startsAt) : null,
           data.registration.period.endsAt ? new Date(data.registration.period.endsAt) : null,
         ),
-        data.registration.registeredParticipantsIds,
+        participantIds,
       ),
     );
   }

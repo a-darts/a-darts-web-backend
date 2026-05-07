@@ -102,4 +102,17 @@ export class RegisteredParticipant implements IParticipant {
     public getCheckedInAt(): Date | null {
         return this.checkedInAt;
     }
+
+
+    // --------------------------------------------------------------------
+    // REHYDRATE METHOD
+    // --------------------------------------------------------------------
+    static rehydrate(data: any): RegisteredParticipant {
+        return new RegisteredParticipant(
+            data.id,
+            data.playerId,
+            new Date(data.registeredAt),
+            data.checkedInAt ? new Date(data.checkedInAt) : null,
+        );
+    }
 }
