@@ -40,12 +40,12 @@ const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher
  *           example: prueba
  *         role:
  *           type: string
- *           enum: [player, admin]
- *           example: admin
+ *           enum: [PLAYER, ADMIN]
+ *           example: ADMIN
  *         status:
  *           type: string
- *           enum: [active, inactive, blocked, deleted]
- *           example: active
+ *           enum: [ACTIVE, INACTIVE, BLOCKED, DELETED]
+ *           example: ACTIVE
  *         registeredAt:
  *           type: string
  *           format: date-time
@@ -69,8 +69,8 @@ const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher
  *           example: prueba
  *         role:
  *           type: string
- *           enum: [player, admin]
- *           example: admin
+ *           enum: [PLAYER, ADMIN]
+ *           example: ADMIN
  *     LoginRequest:
  *       type: object
  *       required:

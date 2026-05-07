@@ -12,7 +12,7 @@ datasource db {
   provider = "postgresql"
 }
 
-enum UserRole {
+enum UserRoles {
   PLAYER
   ADMIN
 }
@@ -68,7 +68,7 @@ model User {
   email        String     @unique
   password     String?
   alias        String
-  role         UserRole
+  role         UserRoles
   registeredAt DateTime
   deletedAt    DateTime?
   status       UserStatus

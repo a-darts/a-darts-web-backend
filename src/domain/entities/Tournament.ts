@@ -208,10 +208,10 @@ export class Tournament {
         data.registration.hasCheckIn,
         data.registration.status as RegistrationStatus,
         new RegistrationPeriod(
-          data.registration.period.startsAt ? new Date(data.registration.period.startsAt) : null,
-          data.registration.period.endsAt ? new Date(data.registration.period.endsAt) : null,
+          data.registration.registrationPeriod.startsAt ? new Date(data.registration.registrationPeriod.startsAt) : null,
+          data.registration.registrationPeriod.endsAt ? new Date(data.registration.registrationPeriod.endsAt) : null,
         ),
-        data.registeredParticipantsIds,
+        data.registration.registeredParticipantsIds,
       ),
     );
   }

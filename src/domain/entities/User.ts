@@ -1,15 +1,23 @@
 import { MissingRequiredUserFieldsException, UserDeletedException, UserNotActiveException } from "../exceptions/UserExceptions.js";
 
-export type UserRole = 'player' | 'admin';
-export type UserStatus = 'active' | 'inactive' | 'blocked' | 'deleted';
+export enum UserRoles {
+  ADMIN = 'ADMIN',
+  PLAYER = 'PLAYER',
+}
 
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  BLOCKED = 'BLOCKED',
+  DELETED = 'DELETED',
+}
 
 export class User {
   private readonly id: string;
   private email: string;
   private password?: string;
   private alias: string;
-  private readonly role: UserRole;
+  private readonly role: UserRoles;
 
   private readonly registeredAt: Date;
   private deletedAt?: Date | null;
@@ -20,7 +28,7 @@ export class User {
     email: string,
     password: string,
     alias: string,
-    role: UserRole,
+    role: UserRoles,
     registeredAt: Date,
     deletedAt: Date | null,
     status: UserStatus,
@@ -43,7 +51,7 @@ export class User {
     email: string,
     password: string,
     alias: string,
-    role: UserRole,
+    role: UserRoles,
   ): User {
     if (!email || !password || !alias || !role) {
       throw new MissingRequiredUserFieldsException();
@@ -64,7 +72,7 @@ export class User {
       role,
       new Date(),
       null,
-      'inactive',
+      UserStatus.INACTIVE,
     );
   }
 
@@ -73,7 +81,7 @@ export class User {
   // UPDATE METHODS
   // --------------------------------------------------------------------
   public updateEmail(newEmail: string): void {
-    if (this.status === 'deleted') {
+    if (this.status === UserStatus.DELETED) {
       throw new UserDeletedException;
     }
 
@@ -84,7 +92,7 @@ export class User {
   }
 
   public updatePassword(newPassword: string): void {
-    if (this.status === 'deleted') {
+    if (this.status === UserStatus.DELETED) {
       throw new UserDeletedException;
     }
 
@@ -96,7 +104,7 @@ export class User {
   }
 
   public updateAlias(newAlias: string): void {
-    if (this.status === 'deleted') {
+    if (this.status === UserStatus.DELETED) {
       throw new UserDeletedException();
     }
 
@@ -111,10 +119,10 @@ export class User {
   // STATUS MANAGEMENT
   // --------------------------------------------------------------------
   public delete(): void {
-    if (this.status === 'deleted') {
+    if (this.status === UserStatus.DELETED) {
       throw new UserDeletedException();
     }
-    this.status = 'deleted';
+    this.status = UserStatus.DELETED;
     this.deletedAt = new Date();
 
     // Anonymize sensitive data to comply with GDPR
@@ -123,24 +131,24 @@ export class User {
   }
 
   public activate(): void {
-    if (this.status === 'deleted') {
+    if (this.status === UserStatus.DELETED) {
       throw new UserDeletedException();
     }
-    this.status = 'active';
+    this.status = UserStatus.ACTIVE;
   }
 
   public deactivate(): void {
-    if (this.status !== 'active') {
+    if (this.status !== UserStatus.ACTIVE) {
       throw new UserNotActiveException();
     }
-    this.status = 'inactive';
+    this.status = UserStatus.INACTIVE;
   }
 
   public block(): void {
-    if (this.status === 'deleted') {
+    if (this.status === UserStatus.DELETED) {
       throw new UserDeletedException();
     }
-    this.status = 'blocked';
+    this.status = UserStatus.BLOCKED;
   }
 
 
@@ -163,7 +171,7 @@ export class User {
     return this.alias;
   }
 
-  public getRole(): UserRole {
+  public getRole(): UserRoles {
     return this.role;
   }
 

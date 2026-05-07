@@ -32,3 +32,11 @@ export class TournamentRegistrationNotOpenException extends Error {
         this.name = 'TournamentRegistrationNotOpenException';
     }
 }
+
+export class TournamentNotFoundException extends Error {
+    constructor() {
+        super('Tournament not found');
+        this.name = 'TournamentNotFoundException';
+    }
+}
+

@@ -1,10 +1,10 @@
-import { UserRole, UserStatus } from '../../../domain/entities/User.js';
+import { UserRoles, UserStatus } from '../../../domain/entities/User.js';
 
 export interface UserResponseDto {
     id: string;
     email: string;
     alias: string;
-    role: UserRole;
+    role: UserRoles;
     status: UserStatus;
     registeredAt: Date;
 }
@@ -13,7 +13,7 @@ export interface RegisterUserRequestDto {
     email: string;
     password: string;
     alias: string;
-    role: UserRole;
+    role: UserRoles;
 }
 
 export interface LoginUserRequestDto {

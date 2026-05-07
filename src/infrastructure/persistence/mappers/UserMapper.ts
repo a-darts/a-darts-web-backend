@@ -1,5 +1,9 @@
-import { User as PrismaUser } from '@prisma/client';
-import { User } from '../../../domain/entities/User.js';
+import {
+    User as PrismaUser,
+    UserRoles as PrismaUserRoles,
+    UserStatus as PrismaUserStatus,
+} from '@prisma/client';
+import { User, UserRoles, UserStatus } from '../../../domain/entities/User.js';
 
 export class UserMapper {
     // From Domain Entity to Prisma Object
@@ -9,10 +13,10 @@ export class UserMapper {
             email: user.getEmail(),
             password: user.getPassword(),
             alias: user.getAlias(),
-            role: user.getRole(),
+            role: user.getRole() as PrismaUserRoles,
             registeredAt: user.getRegisteredAt(),
             deletedAt: user.getDeletedAt(),
-            status: user.getStatus(),
+            status: user.getStatus() as PrismaUserStatus,
         };
     }
 
@@ -23,10 +27,10 @@ export class UserMapper {
             email: prismaUser.email,
             password: prismaUser.password,
             alias: prismaUser.alias,
-            role: prismaUser.role,
+            role: prismaUser.role as UserRoles,
             registeredAt: prismaUser.registeredAt,
             deletedAt: prismaUser.deletedAt,
-            status: prismaUser.status,
+            status: prismaUser.status as UserStatus,
         });
     }
 }
