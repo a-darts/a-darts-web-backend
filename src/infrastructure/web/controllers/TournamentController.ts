@@ -21,6 +21,7 @@ import { ParticipantAlreadyCheckedInException, ParticipantAlreadyRegisteredExcep
 import { UnregisterParticipantFromTournament } from '../../../application/services/tournament/registration/UnregisterParticipantFromTournament.js';
 import { DoCheckInParticipant } from '../../../application/services/tournament/registration/DoCheckInParticipant.js';
 import { UndoCheckInParticipant } from '../../../application/services/tournament/registration/UndoCheckInParticipant.js';
+import { GetTournamentById } from '../../../application/services/tournament/GetTournamentById.js';
 
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
@@ -28,6 +29,7 @@ const registeredParticipantRepository = new PrismaRegisteredParticipantRepositor
 const playerRepository = new PrismaPlayerRepository(prisma);
 
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
+const getTournamentById = new GetTournamentById(tournamentRepository);
 const createTournament = new CreateTournament(tournamentRepository);
 const updateTournamentStatus = new UpdateTournamentStatus(tournamentRepository);
 const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
@@ -224,19 +226,6 @@ export class TournamentController {
    *                   example: Tournaments fetched successfully
    *                 data:
    *                   $ref: '#/components/schemas/Tournament'
-   *       401:
-   *         description: Unauthorized
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: No token provided
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -261,6 +250,92 @@ export class TournamentController {
         )
       );
     } catch (error: any) {
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}:
+   *   get:
+   *     summary: Get tournament by id
+   *     tags: [Tournaments]
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Tournament fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Tournament fetched successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/Tournament'
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getTournamentById(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const tournaments = await getTournamentById.execute(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          tournaments,
+          'Tournament fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof TournamentNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')
