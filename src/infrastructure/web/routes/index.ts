@@ -46,6 +46,7 @@ router.post('/tournaments/:id/participants', authMiddleware, isAdmin, tournament
 router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isAdmin, tournamentController.unregisterParticipant);
 router.post('/tournaments/:id/participants/:participantId/checkin', authMiddleware, isAdmin, tournamentController.doCheckInParticipant);
 router.delete('/tournaments/:id/participants/:participantId/checkin', authMiddleware, isAdmin, tournamentController.undoCheckInParticipant);
+router.get('/tournaments/:id/participants', tournamentController.getParticipantsByTournamentId);
 
 
 export default router;

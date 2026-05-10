@@ -5,7 +5,7 @@ import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse
 import { GetAllTournaments } from '../../../application/services/tournament/GetAllTournaments.js';
 import { PrismaTournamentRepository } from '../../persistence/repositories/PrismaTournamentRepository.js';
 import { InvalidTournamentStatusUpdateException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
-import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
+import { MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
 import { UpdateTournamentStatus } from '../../../application/services/tournament/UpdateTournamentStatus.js';
 import { InvalidRegistrationPeriodException, InvalidRegistrationStatusException, RegistrationAlreadyClosedException, RegistrationAlreadyOpenException, RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
@@ -22,11 +22,14 @@ import { UnregisterParticipantFromTournament } from '../../../application/servic
 import { DoCheckInParticipant } from '../../../application/services/tournament/registration/DoCheckInParticipant.js';
 import { UndoCheckInParticipant } from '../../../application/services/tournament/registration/UndoCheckInParticipant.js';
 import { GetTournamentById } from '../../../application/services/tournament/GetTournamentById.js';
+import { GetParticipantsByTournamentId } from '../../../application/services/tournament/registration/GetParticipantsByTournamentId.js';
+import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
 const registeredParticipantRepository = new PrismaRegisteredParticipantRepository(prisma);
 const playerRepository = new PrismaPlayerRepository(prisma);
+const userRepository = new PrismaUserRepository(prisma);
 
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
 const getTournamentById = new GetTournamentById(tournamentRepository);
@@ -40,6 +43,7 @@ const registerParticipantInTournament = new RegisterParticipantInTournament(tour
 const unregisterParticipantFromTournament = new UnregisterParticipantFromTournament(tournamentRepository, registeredParticipantRepository);
 const doCheckInParticipant = new DoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const undoCheckInParticipant = new UndoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
+const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
 
 /**
  * @swagger
@@ -1910,6 +1914,91 @@ export class TournamentController {
           ApiResponseBuilder.error(error.message)
         );
       }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/participants:
+   *   get:
+   *     summary: Get participants by tournament id
+   *     tags: [Tournaments]
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Participants fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Participants fetched successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/Tournament'
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getParticipantsByTournamentId(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const participants = await getParticipantsByTournamentId.execute(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          participants,
+          'Participants fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof TournamentNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')
