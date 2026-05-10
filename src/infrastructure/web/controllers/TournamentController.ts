@@ -20,7 +20,7 @@ import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from 
 import { ParticipantAlreadyCheckedInException, ParticipantAlreadyRegisteredException, ParticipantNotCheckedInException, ParticipantNotRegisteredException, RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
 import { UnregisterParticipantFromTournament } from '../../../application/services/tournament/registration/UnregisterParticipantFromTournament.js';
 import { DoCheckInParticipant } from '../../../application/services/tournament/registration/DoCheckInParticipant.js';
-import { UndoCheckInParticipant } from '../../../application/services/tournament/registration/undoCheckInParticipant.js';
+import { UndoCheckInParticipant } from '../../../application/services/tournament/registration/UndoCheckInParticipant.js';
 
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
@@ -208,8 +208,6 @@ export class TournamentController {
    *   get:
    *     summary: Get all tournaments
    *     tags: [Tournaments]
-   *     security:
-   *       - bearerAuth: []
    *     responses:
    *       200:
    *         description: Tournaments fetched successfully

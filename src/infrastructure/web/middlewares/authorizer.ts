@@ -1,4 +1,3 @@
-// src/infrastructure/http/middlewares/authorizer.ts
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from './authMiddleware.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
