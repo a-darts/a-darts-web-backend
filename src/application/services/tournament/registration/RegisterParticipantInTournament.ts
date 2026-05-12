@@ -54,9 +54,9 @@ export class RegisterParticipantInTournament {
         // 6.2. Create the new registered participant
         const newRegisteredParticipant = RegisteredParticipant.create(
             request.playerId,
+            request.id,
         );
         await this.registeredParticipantRepository.create(
-            tournament.getId(),
             newRegisteredParticipant,
         );
     }

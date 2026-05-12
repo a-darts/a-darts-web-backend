@@ -3,13 +3,13 @@ import { RegisteredParticipant } from '../../../domain/entities/Participant.js';
 
 export class RegisteredParticipantMapper {
     // From Domain Entity to Prisma Object
-    static toPersistence(tournamentId: string, registeredParticipant: RegisteredParticipant) {
+    static toPersistence(registeredParticipant: RegisteredParticipant) {
         return {
             id: registeredParticipant.getId(),
             playerId: registeredParticipant.getPlayerId(),
             registeredAt: registeredParticipant.getRegisteredAt(),
             checkedInAt: registeredParticipant.getCheckedInAt(),
-            tournamentId: tournamentId,
+            tournamentId: registeredParticipant.getTournamentId(),
         };
     }
 
@@ -20,6 +20,7 @@ export class RegisteredParticipantMapper {
             playerId: prismaRegisteredParticipant.playerId,
             registeredAt: prismaRegisteredParticipant.registeredAt,
             checkedInAt: prismaRegisteredParticipant.checkedInAt,
+            tournamentId: prismaRegisteredParticipant.tournamentId,
         });
     }
 }

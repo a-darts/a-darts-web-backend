@@ -34,16 +34,20 @@ export class RegisteredParticipant implements IParticipant {
     private readonly registeredAt: Date;
     private checkedInAt: Date | null;
 
+    private readonly tournamentId: string;
+
     constructor(
         id: string,
         playerId: string,
         registeredAt: Date,
         checkedInAt: Date | null,
+        tournamentId: string,
     ) {
         this.id = id;
         this.playerId = playerId;
         this.registeredAt = registeredAt;
         this.checkedInAt = checkedInAt;
+        this.tournamentId = tournamentId;
     }
 
 
@@ -52,12 +56,14 @@ export class RegisteredParticipant implements IParticipant {
     // --------------------------------------------------------------------
     public static create(
         playerId: string,
+        tournamentId: string,
     ): RegisteredParticipant {
         return new RegisteredParticipant(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             playerId,
             new Date(),
             null,
+            tournamentId,
         );
     }
 
@@ -103,6 +109,10 @@ export class RegisteredParticipant implements IParticipant {
         return this.checkedInAt;
     }
 
+    public getTournamentId(): string {
+        return this.tournamentId;
+    }
+
 
     // --------------------------------------------------------------------
     // REHYDRATE METHOD
@@ -113,6 +123,7 @@ export class RegisteredParticipant implements IParticipant {
             data.playerId,
             new Date(data.registeredAt),
             data.checkedInAt ? new Date(data.checkedInAt) : null,
+            data.tournamentId,
         );
     }
 }

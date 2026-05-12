@@ -38,7 +38,6 @@ export class DoCheckInParticipant {
 
         // 5. Persist the changes in the DB
         await this.registeredParticipantRepository.update(
-            request.id,
             registeredParticipant,
         );
     }

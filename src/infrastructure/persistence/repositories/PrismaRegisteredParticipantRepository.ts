@@ -6,18 +6,13 @@ import { RegisteredParticipantRepository } from '../../../domain/repositories/Re
 export class PrismaRegisteredParticipantRepository implements RegisteredParticipantRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
-    async create(tournamentId: string, registeredParticipant: RegisteredParticipant): Promise<void> {
-        const data = RegisteredParticipantMapper.toPersistence(tournamentId, registeredParticipant);
-        await this.prisma.registeredParticipant.create({
-            data: {
-                ...data,
-                tournamentId: tournamentId,
-            },
-        });
+    async create(registeredParticipant: RegisteredParticipant): Promise<void> {
+        const data = RegisteredParticipantMapper.toPersistence(registeredParticipant);
+        await this.prisma.registeredParticipant.create({ data });
     }
 
-    async update(tournamentId: string, registeredParticipant: RegisteredParticipant): Promise<void> {
-        const data = RegisteredParticipantMapper.toPersistence(tournamentId, registeredParticipant);
+    async update(registeredParticipant: RegisteredParticipant): Promise<void> {
+        const data = RegisteredParticipantMapper.toPersistence(registeredParticipant);
         await this.prisma.registeredParticipant.update({
             where: { id: registeredParticipant.getId() },
             data,
