@@ -1,4 +1,5 @@
-import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException } from "../exceptions/MatchExceptions.js";
+import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchFinishedException, ParticipantNotFoundException } from "../exceptions/MatchExceptions.js";
+import { RegisteredParticipantNotFoundException } from "../exceptions/ParticipantExceptions.js";
 
 
 export enum MatchStatus {
@@ -17,8 +18,8 @@ export class Match {
     private finishedAt: Date | null;
     private status: MatchStatus;
 
-    private participant1Id: string;
-    private participant2Id: string;
+    private readonly participant1Id: string;
+    private readonly participant2Id: string;
 
     private matchScore: MatchScore;
 
@@ -50,14 +51,15 @@ export class Match {
     // FACTORY METHOD
     // --------------------------------------------------------------------
     public static create(
-        round: number,
         participant1Id: string,
         participant2Id: string,
+        round: number,
+        boardNumber?: number,
     ): Match {
         return new Match(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             round,
-            null,
+            boardNumber ?? null,
             null,
             null,
             MatchStatus.PENDING,
@@ -75,6 +77,28 @@ export class Match {
         this.boardNumber = boardNumber;
     }
 
+    public addWinSet(participantId: string): void {
+        if (this.status !== MatchStatus.IN_PROGRESS) {
+            throw new MatchNotInProgressException();
+        }
+        if (participantId !== this.participant1Id && participantId !== this.participant2Id) {
+            throw new ParticipantNotFoundException();
+        }
+
+        this.matchScore = this.matchScore.addWinSet(participantId);
+    }
+
+    public addWinLeg(participantId: string): void {
+        if (this.status !== MatchStatus.IN_PROGRESS) {
+            throw new MatchNotInProgressException();
+        }
+        if (participantId !== this.participant1Id && participantId !== this.participant2Id) {
+            throw new ParticipantNotFoundException();
+        }
+
+        this.matchScore = this.matchScore.addWinLeg(participantId);
+    }
+
 
     // --------------------------------------------------------------------
     // STATUS MANAGEMENT
@@ -85,6 +109,7 @@ export class Match {
         }
 
         this.status = MatchStatus.IN_PROGRESS;
+        this.startedAt = new Date();
     }
 
     public finish() {
@@ -93,9 +118,14 @@ export class Match {
         }
 
         this.status = MatchStatus.FINISHED;
+        this.finishedAt = new Date();
     }
 
     public abandon() {
+        if (this.status === MatchStatus.FINISHED) {
+            throw new MatchFinishedException();
+        }
+
         this.status = MatchStatus.ABANDONED;
     }
 
@@ -218,7 +248,7 @@ export class MatchScore {
     constructor(
         scores: Record<string, ParticipantScore>,
     ) {
-        this.scores = scores;
+        this.scores = { ...scores };
     }
 
 
@@ -239,12 +269,26 @@ export class MatchScore {
     // --------------------------------------------------------------------
     // HELPER METHODS
     // --------------------------------------------------------------------
-    public addWinLeg(participantId: string): void {
-        this.scores[participantId] = this.scores[participantId].winLeg();
+    public addWinLeg(participantId: string): MatchScore {
+        if (!this.scores[participantId]) {
+            throw new ParticipantNotFoundException();
+        }
+        const newScores = {
+            ...this.scores,
+            [participantId]: this.scores[participantId].winLeg(),
+        }
+        return new MatchScore(newScores);
     }
 
-    public addWinSet(participantId: string): void {
-        this.scores[participantId] = this.scores[participantId].winSet();
+    public addWinSet(participantId: string): MatchScore {
+        if (!this.scores[participantId]) {
+            throw new ParticipantNotFoundException();
+        }
+        const newScores = {
+            ...this.scores,
+            [participantId]: this.scores[participantId].winSet(),
+        }
+        return new MatchScore(newScores);
     }
 
 
@@ -256,7 +300,7 @@ export class MatchScore {
     }
 
     public getScores(): Record<string, ParticipantScore> {
-        return this.scores;
+        return { ...this.scores };
     }
 
 

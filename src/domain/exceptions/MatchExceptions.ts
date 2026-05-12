@@ -25,3 +25,10 @@ export class MatchFinishedException extends Error {
         this.name = 'MatchFinishedException';
     }
 }
+
+export class ParticipantNotFoundException extends Error {
+    constructor() {
+        super('Participant not found');
+        this.name = 'ParticipantNotFoundException';
+    }
+}

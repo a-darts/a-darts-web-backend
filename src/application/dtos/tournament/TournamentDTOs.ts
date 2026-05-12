@@ -9,6 +9,7 @@ export interface TournamentResponseDTO {
     status: TournamentStatus;
     info: TournamentInfoDTO;
     registration: RegistrationDTO;
+    matchesIds: string[];
 }
 
 interface TournamentInfoDTO {

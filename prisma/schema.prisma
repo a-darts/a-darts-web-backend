@@ -63,6 +63,14 @@ enum RegistrationStatus {
   CLOSED
 }
 
+enum MatchStatus {
+  PENDING
+  IN_PROGRESS
+  FINISHED
+  SUSPENDED
+  ABANDONED
+}
+
 model User {
   id           String     @id @default(uuid()) @db.Uuid
   email        String     @unique
@@ -125,6 +133,8 @@ model Tournament {
   registrationRegisteredParticipantsIds String[]
   //
 
+  matchesIds String[]
+
   @@map("tournaments")
 }
 
@@ -140,4 +150,24 @@ model RegisteredParticipant {
   // Índice para buscar rápido por id del jugador
   @@index([playerId])
   @@map("registeredParticipants")
+}
+
+model Match {
+  id          String      @id @default(uuid()) @db.Uuid
+  round       Int
+  boardNumber Int?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  status      MatchStatus @default(PENDING)
+
+  participant1Id String @db.Uuid
+  participant2Id String @db.Uuid
+
+  matchScoreParticipant1Sets Int @default(0)
+  matchScoreParticipant1Legs Int @default(0)
+
+  matchScoreParticipant2Sets Int @default(0)
+  matchScoreParticipant2Legs Int @default(0)
+
+  @@map("matches")
 }

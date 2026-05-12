@@ -49,6 +49,7 @@ export class TournamentMapper {
             registrationPeriodEndsAt: registration.getRegistrationPeriod().getEndsAt(),
             registrationRegisteredParticipantsIds: registration.getRegisteredParticipantsIds(),
             //
+            matchesIds: tournament.getMatchesIds(),
         };
 
         return tournamentData;
@@ -88,6 +89,8 @@ export class TournamentMapper {
                 },
                 registeredParticipantsIds: prismaTournament.registrationRegisteredParticipantsIds || []
             },
+
+            matchesIds: prismaTournament.matchesIds || [],
         });
     }
 }

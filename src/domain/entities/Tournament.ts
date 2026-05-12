@@ -25,6 +25,7 @@ export class Tournament {
 
   private info: TournamentInfo;
   private registration: Registration;
+  private matchesIds: string[];
 
   constructor(
     id: string,
@@ -33,6 +34,7 @@ export class Tournament {
     status: TournamentStatus,
     info: TournamentInfo,
     registration: Registration,
+    matchesIds: string[],
   ) {
     this.id = id;
     this.name = name;
@@ -40,6 +42,7 @@ export class Tournament {
     this.status = status;
     this.info = info;
     this.registration = registration;
+    this.matchesIds = matchesIds;
   }
 
 
@@ -61,6 +64,7 @@ export class Tournament {
       TournamentStatus.DRAFT,
       info,
       Registration.create(),
+      [],
     );
   }
 
@@ -180,6 +184,10 @@ export class Tournament {
     return this.registration;
   }
 
+  public getMatchesIds(): string[] {
+    return this.matchesIds;
+  }
+
 
   // --------------------------------------------------------------------
   // REHYDRATE METHOD
@@ -213,6 +221,7 @@ export class Tournament {
         ),
         data.registration.registeredParticipantsIds,
       ),
+      data.matchesIds,
     );
   }
 }

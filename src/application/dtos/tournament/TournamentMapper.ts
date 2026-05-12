@@ -33,6 +33,7 @@ export class TournamentMapper {
                 },
                 registeredParticipantsIds: registration.getRegisteredParticipantsIds(),
             },
+            matchesIds: tournament.getMatchesIds(),
         };
 
         return tournamentData;

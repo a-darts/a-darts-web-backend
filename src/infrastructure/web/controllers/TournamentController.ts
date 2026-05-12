@@ -69,6 +69,11 @@ const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tourname
  *           $ref: '#/components/schemas/TournamentInfo'
  *         registration:
  *           $ref: '#/components/schemas/Registration'
+ *         matchesIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["f11e4b38-9c58-46a3-9852-d4f7f3a56c42"]
  * 
  *     TournamentInfo:
  *       type: object
@@ -133,6 +138,19 @@ const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tourname
  *           items:
  *             type: string
  *           example: ["1", "2", "3"]
+ * 
+ *     RegisteredParticipant:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         alias:
+ *           type: string
+ *           example: Pepe Pérez
+ *         federation:
+ *           type: string
+ *           example: ARAGON
  * 
  *     CreateTournamentRequest:
  *       type: object
@@ -1950,7 +1968,7 @@ export class TournamentController {
    *                   type: string
    *                   example: Participants fetched successfully
    *                 data:
-   *                   $ref: '#/components/schemas/Tournament'
+   *                   $ref: '#/components/schemas/RegisteredParticipant'
    *       404:
    *         description: Not Found
    *         content:
