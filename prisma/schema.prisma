@@ -163,11 +163,11 @@ model Match {
   participant1Id String @db.Uuid
   participant2Id String @db.Uuid
 
-  matchScoreParticipant1Sets Int @default(0)
-  matchScoreParticipant1Legs Int @default(0)
+  matchScoreParticipant1SetsWon Int @default(0)
+  matchScoreParticipant1LegsWon Int @default(0)
 
-  matchScoreParticipant2Sets Int @default(0)
-  matchScoreParticipant2Legs Int @default(0)
+  matchScoreParticipant2SetsWon Int @default(0)
+  matchScoreParticipant2LegsWon Int @default(0)
 
   @@map("matches")
 }

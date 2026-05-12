@@ -1,3 +1,4 @@
+import { TournamentStatus } from "@prisma/client";
 import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchFinishedException, ParticipantNotFoundException } from "../exceptions/MatchExceptions.js";
 import { RegisteredParticipantNotFoundException } from "../exceptions/ParticipantExceptions.js";
 
@@ -184,6 +185,35 @@ export class Match {
     public getMatchScore(): MatchScore {
         return this.matchScore;
     }
+
+
+    // --------------------------------------------------------------------
+    // REHYDRATE METHOD
+    // --------------------------------------------------------------------
+    static rehydrate(data: any): Match {
+        const scoreData = {
+            [data.participant1Id]: {
+                setsWon: data.matchScore.participant1.setsWon,
+                legsWon: data.matchScore.participant1.legsWon,
+            },
+            [data.participant2Id]: {
+                setsWon: data.matchScore.participant2.setsWon,
+                legsWon: data.matchScore.participant2.legsWon,
+            }
+        };
+        const matchScore = MatchScore.rehydrate(scoreData);
+        return new Match(
+            data.id,
+            data.round,
+            data.boardNumber,
+            data.startedAt ? new Date(data.startedAt) : null,
+            data.finishedAt ? new Date(data.finishedAt) : null,
+            data.status as MatchStatus,
+            data.participant1Id,
+            data.participant2Id,
+            matchScore,
+        );
+    }
 }
 
 
@@ -307,10 +337,10 @@ export class MatchScore {
     // --------------------------------------------------------------------
     // REHYDRATE METHOD
     // --------------------------------------------------------------------
-    static rehydrate(data: Record<string, { sets: number, legs: number }>): MatchScore {
+    static rehydrate(data: Record<string, { setsWon: number, legsWon: number }>): MatchScore {
         const scores: Record<string, ParticipantScore> = {};
         for (const [id, value] of Object.entries(data)) {
-            scores[id] = new ParticipantScore(value.sets, value.legs);
+            scores[id] = new ParticipantScore(value.setsWon, value.legsWon);
         }
         return new MatchScore(scores);
     }
