@@ -39,3 +39,13 @@ export interface UpdateMatchBoardNumberRequestDTO {
     id: string;
     newBoardNumber: number;
 }
+
+export interface RegisterLegWinRequestDTO {
+    id: string;
+    participantId: string;
+}
+
+export interface RegisterSetWinRequestDTO {
+    id: string;
+    participantId: string;
+}

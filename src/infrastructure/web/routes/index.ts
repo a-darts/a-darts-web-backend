@@ -56,6 +56,8 @@ router.post('/tournaments/:id/matches', authMiddleware, isAdmin, tournamentContr
 router.get('/matches/:id', matchController.getMatchById);
 router.put('/matches/:id/status', authMiddleware, isAdmin, matchController.updateMatchStatus);
 router.put('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.updateMatchBoardNumber);
+router.post('/matches/:id/sets', authMiddleware, isAdmin, matchController.registerSetWin);
+router.post('/matches/:id/legs', authMiddleware, isAdmin, matchController.registerLegWin);
 
 
 export default router;

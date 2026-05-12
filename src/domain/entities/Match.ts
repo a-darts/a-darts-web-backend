@@ -1,5 +1,5 @@
 import { TournamentStatus } from "@prisma/client";
-import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchFinishedException, ParticipantNotFoundException } from "../exceptions/MatchExceptions.js";
+import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchFinishedException, ParticipantNotFoundInMatchException } from "../exceptions/MatchExceptions.js";
 import { RegisteredParticipantNotFoundException } from "../exceptions/ParticipantExceptions.js";
 
 
@@ -89,7 +89,7 @@ export class Match {
             throw new MatchNotInProgressException();
         }
         if (participantId !== this.participant1Id && participantId !== this.participant2Id) {
-            throw new ParticipantNotFoundException();
+            throw new ParticipantNotFoundInMatchException();
         }
 
         this.matchScore = this.matchScore.addWinSet(participantId);
@@ -100,7 +100,7 @@ export class Match {
             throw new MatchNotInProgressException();
         }
         if (participantId !== this.participant1Id && participantId !== this.participant2Id) {
-            throw new ParticipantNotFoundException();
+            throw new ParticipantNotFoundInMatchException();
         }
 
         this.matchScore = this.matchScore.addWinLeg(participantId);
@@ -269,6 +269,13 @@ export class ParticipantScore {
         );
     }
 
+    public newSet(): ParticipantScore {
+        return new ParticipantScore(
+            this.setsWon,
+            0,
+        );
+    }
+
 
     // --------------------------------------------------------------------
     // GETTERS
@@ -312,7 +319,7 @@ export class MatchScore {
     // --------------------------------------------------------------------
     public addWinLeg(participantId: string): MatchScore {
         if (!this.scores[participantId]) {
-            throw new ParticipantNotFoundException();
+            throw new ParticipantNotFoundInMatchException();
         }
         const newScores = {
             ...this.scores,
@@ -323,12 +330,20 @@ export class MatchScore {
 
     public addWinSet(participantId: string): MatchScore {
         if (!this.scores[participantId]) {
-            throw new ParticipantNotFoundException();
+            throw new ParticipantNotFoundInMatchException();
         }
-        const newScores = {
-            ...this.scores,
-            [participantId]: this.scores[participantId].winSet(),
+
+        const newScores: Record<string, ParticipantScore> = {};
+        for (const id in this.scores) {
+            if (id === participantId) {
+                // Al ganador le sumamos el set
+                newScores[id] = this.scores[id].winSet();
+            } else {
+                // A los demás les reseteamos los legs a 0 manteniendo sus sets
+                newScores[id] = this.scores[id].newSet();
+            }
         }
+
         return new MatchScore(newScores);
     }
 
