@@ -20,3 +20,11 @@ export interface MatchResponseDTO {
         },
     };
 }
+
+export interface CreateMatchRequestDTO {
+    id: string; // Tournament ID
+    participant1Id: string;
+    participant2Id: string;
+    round: number;
+    boardNumber: number | null;
+}
