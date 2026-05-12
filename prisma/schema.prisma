@@ -169,5 +169,14 @@ model Match {
   matchScoreParticipant2SetsWon Int @default(0)
   matchScoreParticipant2LegsWon Int @default(0)
 
+  tournamentId String @db.Uuid // Para garantizar enfrentamientos únicos en un torneo
+
+  // Garantiza partidos únicos en un torneo
+  @@unique([tournamentId, participant1Id, participant2Id])
+  // Índices para consultas más rápidas
+  @@index([participant1Id])
+  @@index([participant2Id])
+  @@index([tournamentId])
+  //
   @@map("matches")
 }

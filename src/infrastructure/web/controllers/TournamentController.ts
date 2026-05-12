@@ -18,6 +18,7 @@ import { PrismaRegisteredParticipantRepository } from '../../persistence/reposit
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
 import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
 import { ParticipantAlreadyCheckedInException, ParticipantAlreadyRegisteredException, ParticipantNotCheckedInException, ParticipantNotRegisteredException, RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
+import { MatchAlreadyExistsException, ParticipantNotRegisteredInTournamentException } from '../../../domain/exceptions/MatchExceptions.js';
 import { UnregisterParticipantFromTournament } from '../../../application/services/tournament/registration/UnregisterParticipantFromTournament.js';
 import { DoCheckInParticipant } from '../../../application/services/tournament/registration/DoCheckInParticipant.js';
 import { UndoCheckInParticipant } from '../../../application/services/tournament/registration/UndoCheckInParticipant.js';
@@ -2290,7 +2291,7 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Participant is not registered in this tournament
+   *                   example: Participant 1 is not registered in this tournament
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -2331,23 +2332,20 @@ export class TournamentController {
         )
       );
     } catch (error: any) {
-      if (
-        error instanceof MissingRequiredUserFieldsException ||
-        error instanceof InvalidRegisteredPlayerSeasonException
-      ) {
+      if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (
-        error instanceof TournamentNotFoundException ||
-        error instanceof PlayerNotFoundException
-      ) {
+      if (error instanceof TournamentNotFoundException) {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof ParticipantNotRegisteredException) {
+      if (
+        error instanceof ParticipantNotRegisteredInTournamentException ||
+        error instanceof MatchAlreadyExistsException
+      ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );

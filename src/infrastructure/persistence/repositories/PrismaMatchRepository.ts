@@ -6,13 +6,18 @@ import { MatchRepository } from '../../../domain/repositories/MatchRepository.js
 export class PrismaMatchRepository implements MatchRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
-    async create(match: Match): Promise<void> {
-        const data = MatchMapper.toPersistence(match);
-        await this.prisma.match.create({ data });
+    async create(tournamentId: string, match: Match): Promise<void> {
+        const data = MatchMapper.toPersistence(tournamentId, match);
+        await this.prisma.match.create({
+            data: {
+                ...data,
+                tournamentId: tournamentId,
+            }
+        });
     }
 
-    async update(match: Match): Promise<void> {
-        const data = MatchMapper.toPersistence(match);
+    async update(tournamentId: string, match: Match): Promise<void> {
+        const data = MatchMapper.toPersistence(tournamentId, match);
         await this.prisma.match.update({
             where: { id: match.getId() },
             data,
@@ -42,5 +47,24 @@ export class PrismaMatchRepository implements MatchRepository {
             where: { id: { in: ids } }
         });
         return matchesData.map(MatchMapper.toDomain);
+    }
+
+    async findByParticipantsIdsAndTournamentId(participant1Id: string, participant2Id: string, tournamentId: string): Promise<Match | null> {
+        const matchData = await this.prisma.match.findFirst({
+            where: {
+                tournamentId: tournamentId,
+                OR: [
+                    {
+                        participant1Id: participant1Id,
+                        participant2Id: participant2Id,
+                    },
+                    {
+                        participant1Id: participant2Id,
+                        participant2Id: participant1Id,
+                    },
+                ],
+            },
+        });
+        return matchData ? MatchMapper.toDomain(matchData) : null;
     }
 }

@@ -19,9 +19,7 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
     async update(tournamentId: string, registeredParticipant: RegisteredParticipant): Promise<void> {
         const data = RegisteredParticipantMapper.toPersistence(tournamentId, registeredParticipant);
         await this.prisma.registeredParticipant.update({
-            where: {
-                id: registeredParticipant.getId(),
-            },
+            where: { id: registeredParticipant.getId() },
             data,
         });
     }

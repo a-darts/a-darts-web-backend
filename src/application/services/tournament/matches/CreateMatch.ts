@@ -1,12 +1,12 @@
+import { Prisma } from '@prisma/client';
 import { Match } from '../../../../domain/entities/Match.js';
-import { RegisteredParticipant } from '../../../../domain/entities/Participant.js';
-import { ParticipantAlreadyRegisteredException, ParticipantNotRegisteredException } from '../../../../domain/exceptions/ParticipantExceptions.js';
-import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../../domain/exceptions/PlayerExceptions.js';
+import { ParticipantNotRegisteredInTournamentException } from '../../../../domain/exceptions/MatchExceptions.js';
 import { TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
 import { RegisteredParticipantRepository } from '../../../../domain/repositories/RegisteredParticipantRepository.js';
 import { TournamentRepository } from '../../../../domain/repositories/TournamentRepository.js';
 import { CreateMatchRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
+import { MatchAlreadyExistsException } from '../../../../domain/exceptions/MatchExceptions.js';
 
 
 export class CreateMatch {
@@ -26,15 +26,25 @@ export class CreateMatch {
         // 2. Check if the participants are registered in the tournament
         const isParticipant1Registered = await this.registeredParticipantRepository.findById(request.participant1Id);
         if (!isParticipant1Registered) {
-            throw new ParticipantNotRegisteredException();
+            throw new ParticipantNotRegisteredInTournamentException(1);
         }
 
         const isParticipant2Registered = await this.registeredParticipantRepository.findById(request.participant2Id);
         if (!isParticipant2Registered) {
-            throw new ParticipantNotRegisteredException();
+            throw new ParticipantNotRegisteredInTournamentException(2);
         }
 
-        // 3. Create the match
+        // 3. Check if the match already exists in this tournament
+        const existingMatch = await this.matchRepository.findByParticipantsIdsAndTournamentId(
+            request.participant1Id,
+            request.participant2Id,
+            request.id,
+        );
+        if (existingMatch) {
+            throw new MatchAlreadyExistsException();
+        }
+
+        // 4. Create the match
         const match = Match.create(
             request.participant1Id,
             request.participant2Id,
@@ -42,7 +52,14 @@ export class CreateMatch {
             request.boardNumber ?? undefined,
         );
 
-        // 4. Persist the match in the DB
-        await this.matchRepository.create(match);
+        // 5. Persist the match in the DB
+        try {
+            await this.matchRepository.create(request.id, match);
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+                throw new MatchAlreadyExistsException();
+            }
+            throw error;
+        }
     }
 }

@@ -32,3 +32,18 @@ export class ParticipantNotFoundException extends Error {
         this.name = 'ParticipantNotFoundException';
     }
 }
+
+export class ParticipantNotRegisteredInTournamentException extends Error {
+    constructor(index: number) {
+        super(`Participant ${index} not registered in this tournament`);
+        this.name = 'ParticipantNotRegisteredInTournamentException';
+    }
+}
+
+export class MatchAlreadyExistsException extends Error {
+    constructor() {
+        super('Match already exists');
+        this.name = 'MatchAlreadyExistsException';
+    }
+}
+
