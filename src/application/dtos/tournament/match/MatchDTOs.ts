@@ -34,3 +34,8 @@ export interface UpdateMatchStatusRequestDTO {
     id: string;
     newStatus: MatchStatus;
 }
+
+export interface UpdateMatchBoardNumberRequestDTO {
+    id: string;
+    newBoardNumber: number;
+}

@@ -13,7 +13,7 @@ export class UpdateMatchStatus {
       throw new MatchNotFoundException();
     }
 
-    // 2. Update the status in the tournament object
+    // 2. Update the status in the match object
     switch (request.newStatus) {
       case MatchStatus.IN_PROGRESS:
         if (match.getStatus() === MatchStatus.SUSPENDED) {

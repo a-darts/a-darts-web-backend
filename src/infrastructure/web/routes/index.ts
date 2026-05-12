@@ -55,6 +55,7 @@ router.post('/tournaments/:id/matches', authMiddleware, isAdmin, tournamentContr
 // Match routes
 router.get('/matches/:id', matchController.getMatchById);
 router.put('/matches/:id/status', authMiddleware, isAdmin, matchController.updateMatchStatus);
+router.put('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.updateMatchBoardNumber);
 
 
 export default router;
