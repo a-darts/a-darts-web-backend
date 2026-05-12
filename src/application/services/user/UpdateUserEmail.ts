@@ -1,11 +1,11 @@
 import { EmailAlreadyInUseException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
-import { UpdateUserEmailRequestDto } from '../../dtos/user/UserDTOs.js';
+import { UpdateUserEmailRequestDTO } from '../../dtos/user/UserDTOs.js';
 
 export class UpdateUserEmail {
   constructor(private readonly userRepository: UserRepository) { }
 
-  public async execute(request: UpdateUserEmailRequestDto): Promise<void> {
+  public async execute(request: UpdateUserEmailRequestDTO): Promise<void> {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findById(request.id);
     if (!user) {

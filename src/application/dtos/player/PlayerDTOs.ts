@@ -1,5 +1,5 @@
 
-export interface PlayerResponseDto {
+export interface PlayerResponseDTO {
     id: string;
     userId: string;
     registrationNumber: string;

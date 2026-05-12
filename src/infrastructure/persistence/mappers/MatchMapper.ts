@@ -1,9 +1,10 @@
 import { MatchStatus as PrismaMatchStatus, Match as PrismaMatch } from '@prisma/client';
 import { Match, MatchStatus } from '../../../domain/entities/Match.js';
+import { prisma } from '../client.js';
 
 export class MatchMapper {
     // From Domain Entity to Prisma Object
-    static toPersistence(tournamentId: string, match: Match) {
+    static toPersistence(match: Match) {
         return {
             id: match.getId(),
             round: match.getRound(),
@@ -17,7 +18,7 @@ export class MatchMapper {
             matchScoreParticipant1LegsWon: match.getMatchScore().getScoreForParticipant(match.getParticipant1Id()).getLegsWon(),
             matchScoreParticipant2SetsWon: match.getMatchScore().getScoreForParticipant(match.getParticipant2Id()).getSetsWon(),
             matchScoreParticipant2LegsWon: match.getMatchScore().getScoreForParticipant(match.getParticipant2Id()).getLegsWon(),
-            tournamentId: tournamentId,
+            tournamentId: match.getTournamentId(),
         };
     }
 
@@ -42,6 +43,7 @@ export class MatchMapper {
                     legsWon: prismaMatch.matchScoreParticipant2LegsWon,
                 },
             },
+            tournamentId: prismaMatch.tournamentId,
         });
     }
 }

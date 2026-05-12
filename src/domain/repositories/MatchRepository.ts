@@ -1,8 +1,8 @@
 import { Match } from '../entities/Match.js';
 
 export interface MatchRepository {
-  create(tournamentId: string, match: Match): Promise<void>;
-  update(tournamentId: string, match: Match): Promise<void>;
+  create(match: Match): Promise<void>;
+  update(match: Match): Promise<void>;
   delete(id: string): Promise<void>;
   findAll(): Promise<Match[]>;
   findById(id: string): Promise<Match | null>;

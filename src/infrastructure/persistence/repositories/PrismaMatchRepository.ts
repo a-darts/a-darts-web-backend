@@ -6,18 +6,13 @@ import { MatchRepository } from '../../../domain/repositories/MatchRepository.js
 export class PrismaMatchRepository implements MatchRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
-    async create(tournamentId: string, match: Match): Promise<void> {
-        const data = MatchMapper.toPersistence(tournamentId, match);
-        await this.prisma.match.create({
-            data: {
-                ...data,
-                tournamentId: tournamentId,
-            }
-        });
+    async create(match: Match): Promise<void> {
+        const data = MatchMapper.toPersistence(match);
+        await this.prisma.match.create({ data });
     }
 
-    async update(tournamentId: string, match: Match): Promise<void> {
-        const data = MatchMapper.toPersistence(tournamentId, match);
+    async update(match: Match): Promise<void> {
+        const data = MatchMapper.toPersistence(match);
         await this.prisma.match.update({
             where: { id: match.getId() },
             data,

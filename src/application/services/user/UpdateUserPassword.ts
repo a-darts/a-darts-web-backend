@@ -1,7 +1,7 @@
 import { InvalidPasswordException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
-import { UpdateUserPasswordRequestDto } from '../../dtos/user/UserDTOs.js';
+import { UpdateUserPasswordRequestDTO } from '../../dtos/user/UserDTOs.js';
 
 export class UpdateUserPassword {
   constructor(
@@ -9,7 +9,7 @@ export class UpdateUserPassword {
     private readonly passwordHasher: PasswordHasher
   ) { }
 
-  public async execute(request: UpdateUserPasswordRequestDto): Promise<void> {
+  public async execute(request: UpdateUserPasswordRequestDTO): Promise<void> {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findById(request.id);
     if (!user) {

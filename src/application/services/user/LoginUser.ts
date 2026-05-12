@@ -1,7 +1,7 @@
 import { InvalidCredentialsException, UserBlockedException, UserDeletedException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
-import { LoginUserRequestDto, UserResponseDto } from '../../dtos/user/UserDTOs.js';
+import { LoginUserRequestDTO, UserResponseDTO } from '../../dtos/user/UserDTOs.js';
 import { UserMapper } from '../../dtos/user/UserMapper.js';
 
 export class LoginUser {
@@ -10,7 +10,7 @@ export class LoginUser {
     private readonly passwordHasher: PasswordHasher
   ) { }
 
-  public async execute(request: LoginUserRequestDto): Promise<UserResponseDto> {
+  public async execute(request: LoginUserRequestDTO): Promise<UserResponseDTO> {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findByEmail(request.email);
     if (!user) {

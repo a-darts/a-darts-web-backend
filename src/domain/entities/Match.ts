@@ -24,6 +24,8 @@ export class Match {
 
     private matchScore: MatchScore;
 
+    private readonly tournamentId: string;
+
 
     constructor(
         id: string,
@@ -35,6 +37,7 @@ export class Match {
         participant1Id: string,
         participant2Id: string,
         matchScore: MatchScore,
+        tournamentId: string,
     ) {
         this.id = id;
         this.round = round;
@@ -45,6 +48,7 @@ export class Match {
         this.participant1Id = participant1Id;
         this.participant2Id = participant2Id;
         this.matchScore = matchScore;
+        this.tournamentId = tournamentId;
     }
 
 
@@ -52,6 +56,7 @@ export class Match {
     // FACTORY METHOD
     // --------------------------------------------------------------------
     public static create(
+        tournamentId: string,
         participant1Id: string,
         participant2Id: string,
         round: number,
@@ -67,6 +72,7 @@ export class Match {
             participant1Id,
             participant2Id,
             MatchScore.create(participant1Id, participant2Id),
+            tournamentId,
         );
     }
 
@@ -186,6 +192,10 @@ export class Match {
         return this.matchScore;
     }
 
+    public getTournamentId(): string {
+        return this.tournamentId;
+    }
+
 
     // --------------------------------------------------------------------
     // REHYDRATE METHOD
@@ -212,6 +222,7 @@ export class Match {
             data.participant1Id,
             data.participant2Id,
             matchScore,
+            data.tournamentId,
         );
     }
 }

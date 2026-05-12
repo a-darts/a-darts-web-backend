@@ -1,6 +1,6 @@
 import { UserRoles, UserStatus } from '../../../domain/entities/User.js';
 
-export interface UserResponseDto {
+export interface UserResponseDTO {
     id: string;
     email: string;
     alias: string;
@@ -9,29 +9,29 @@ export interface UserResponseDto {
     registeredAt: Date;
 }
 
-export interface RegisterUserRequestDto {
+export interface RegisterUserRequestDTO {
     email: string;
     password: string;
     alias: string;
     role: UserRoles;
 }
 
-export interface LoginUserRequestDto {
+export interface LoginUserRequestDTO {
     email: string;
     password: string;
 }
 
-export interface UpdateUserAliasRequestDto {
+export interface UpdateUserAliasRequestDTO {
     id: string;
     newAlias: string;
 }
 
-export interface UpdateUserEmailRequestDto {
+export interface UpdateUserEmailRequestDTO {
     id: string;
     newEmail: string;
 }
 
-export interface UpdateUserPasswordRequestDto {
+export interface UpdateUserPasswordRequestDTO {
     id: string;
     oldPassword: string;
     newPassword: string;

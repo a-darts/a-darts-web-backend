@@ -19,6 +19,7 @@ export interface MatchResponseDTO {
             legsWon: number;
         },
     };
+    tournamentId: string;
 }
 
 export interface CreateMatchRequestDTO {
@@ -27,4 +28,9 @@ export interface CreateMatchRequestDTO {
     participant2Id: string;
     round: number;
     boardNumber: number | null;
+}
+
+export interface UpdateMatchStatusRequestDTO {
+    id: string;
+    newStatus: MatchStatus;
 }

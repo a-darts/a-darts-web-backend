@@ -1,11 +1,11 @@
 import { UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
-import { UpdateUserAliasRequestDto } from '../../dtos/user/UserDTOs.js';
+import { UpdateUserAliasRequestDTO } from '../../dtos/user/UserDTOs.js';
 
 export class UpdateUserAlias {
   constructor(private readonly userRepository: UserRepository) { }
 
-  public async execute(request: UpdateUserAliasRequestDto): Promise<void> {
+  public async execute(request: UpdateUserAliasRequestDTO): Promise<void> {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findById(request.id);
     if (!user) {

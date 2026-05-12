@@ -235,10 +235,10 @@ export class PlayerController {
         throw new InvalidUserFieldsException();
       }
 
-      const playerDto = await getPlayerData.execute(id);
+      const player = await getPlayerData.execute(id);
       res.status(200).json(
         ApiResponseBuilder.success(
-          playerDto,
+          player,
           'Player data retrieved successfully',
         )
       );

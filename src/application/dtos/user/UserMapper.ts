@@ -1,8 +1,8 @@
 import { User } from '../../../domain/entities/User.js';
-import { UserResponseDto } from './UserDTOs.js';
+import { UserResponseDTO } from './UserDTOs.js';
 
 export class UserMapper {
-    public static toResponse(user: User): UserResponseDto {
+    public static toResponse(user: User): UserResponseDTO {
         return {
             id: user.getId(),
             email: user.getEmail(),

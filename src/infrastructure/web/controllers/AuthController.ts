@@ -126,10 +126,10 @@ export class AuthController {
    */
   async register(req: Request, res: Response) {
     try {
-      const userDto = await registerUser.execute(req.body);
+      const user = await registerUser.execute(req.body);
       return res.status(201).json(
         ApiResponseBuilder.success(
-          userDto,
+          user,
           "User registered successfully",
         )
       );
@@ -245,17 +245,17 @@ export class AuthController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const userDto = await loginUser.execute(req.body);
+      const user = await loginUser.execute(req.body);
 
       const token = jwt.sign(
-        { id: userDto.id, email: userDto.email, role: userDto.role },
+        { id: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET as string,
         { expiresIn: '24h' }
       );
 
       res.status(200).json(
         ApiResponseBuilder.success(
-          { token, user: userDto },
+          { token, user: user },
           'User logged in successfully'
         )
       );
@@ -443,10 +443,10 @@ export class AuthController {
           ApiResponseBuilder.error('User not authenticated')
         );
       }
-      const userDto = await getUserData.execute(req.user.id);
+      const user = await getUserData.execute(req.user.id);
       res.status(200).json(
         ApiResponseBuilder.success(
-          userDto,
+          user,
           'User data retrieved successfully',
         )
       );

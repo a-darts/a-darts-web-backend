@@ -1,8 +1,8 @@
-import { User, UserRole } from '../../../domain/entities/User.js';
+import { User } from '../../../domain/entities/User.js';
 import { EmailAlreadyInUseException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
-import { RegisterUserRequestDto, UserResponseDto } from '../../dtos/user/UserDTOs.js';
+import { RegisterUserRequestDTO, UserResponseDTO } from '../../dtos/user/UserDTOs.js';
 import { UserMapper } from '../../dtos/user/UserMapper.js';
 
 export class RegisterUser {
@@ -11,7 +11,7 @@ export class RegisterUser {
     private readonly passwordHasher: PasswordHasher
   ) { }
 
-  public async execute(request: RegisterUserRequestDto): Promise<UserResponseDto> {
+  public async execute(request: RegisterUserRequestDTO): Promise<UserResponseDTO> {
     // 1. Rehydrate the user from the DB
     const existingUser = await this.userRepository.findByEmail(request.email);
     if (existingUser) {

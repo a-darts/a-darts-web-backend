@@ -46,6 +46,7 @@ export class CreateMatch {
 
         // 4. Create the match
         const match = Match.create(
+            request.id,
             request.participant1Id,
             request.participant2Id,
             request.round,
@@ -54,7 +55,7 @@ export class CreateMatch {
 
         // 5. Persist the match in the DB
         try {
-            await this.matchRepository.create(request.id, match);
+            await this.matchRepository.create(match);
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
                 throw new MatchAlreadyExistsException();
