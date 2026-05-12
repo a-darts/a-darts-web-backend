@@ -2,38 +2,17 @@ import { Response } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
-import { GetAllTournaments } from '../../../application/services/tournament/GetAllTournaments.js';
-import { PrismaTournamentRepository } from '../../persistence/repositories/PrismaTournamentRepository.js';
-import { InvalidTournamentStatusUpdateException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
-import { MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
-import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
-import { UpdateTournamentStatus } from '../../../application/services/tournament/UpdateTournamentStatus.js';
-import { InvalidRegistrationPeriodException, InvalidRegistrationStatusException, RegistrationAlreadyClosedException, RegistrationAlreadyOpenException, RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
-import { UpdateTournamentInfo } from '../../../application/services/tournament/UpdateTournamentInfo.js';
-import { UpdateTournamentName } from '../../../application/services/tournament/UpdateTournamentName.js';
-import { UpdateTournamentRegistrationStatus } from '../../../application/services/tournament/registration/UpdateTournamentRegistrationStatus.js';
-import { UpdateTournamentRegistrationPeriod } from '../../../application/services/tournament/registration/UpdateTournamentRegistrationPeriod.js';
-import { RegisterParticipantInTournament } from '../../../application/services/tournament/registration/RegisterParticipantInTournament.js';
-import { PrismaRegisteredParticipantRepository } from '../../persistence/repositories/PrismaRegisteredParticipantRepository.js';
-import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
-import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
-import { ParticipantAlreadyCheckedInException, ParticipantAlreadyRegisteredException, ParticipantNotCheckedInException, ParticipantNotRegisteredException, RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
-import { MatchAlreadyExistsException, MatchNotFoundException, ParticipantNotRegisteredInTournamentException } from '../../../domain/exceptions/MatchExceptions.js';
-import { UnregisterParticipantFromTournament } from '../../../application/services/tournament/registration/UnregisterParticipantFromTournament.js';
-import { DoCheckInParticipant } from '../../../application/services/tournament/registration/DoCheckInParticipant.js';
-import { UndoCheckInParticipant } from '../../../application/services/tournament/registration/UndoCheckInParticipant.js';
-import { GetTournamentById } from '../../../application/services/tournament/GetTournamentById.js';
-import { GetParticipantsByTournamentId } from '../../../application/services/tournament/registration/GetParticipantsByTournamentId.js';
-import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
-import { GetMatchesByTournamentId } from '../../../application/services/tournament/matches/GetMatchesByTournamentId.js';
+import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
+import { InvalidMatchStatusUpdateException, MatchFinishedException, MatchNotFoundException, MatchNotInProgressException, MatchNotPendingException, MatchNotSuspendedException } from '../../../domain/exceptions/MatchExceptions.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
-import { CreateMatch } from '../../../application/services/tournament/matches/CreateMatch.js';
 import { GetMatchById } from '../../../application/services/tournament/matches/GetMatchById.js';
+import { UpdateMatchStatus } from '../../../application/services/tournament/matches/UpdateMatchStatus.js';
 
 
 const matchRepository = new PrismaMatchRepository(prisma);
 
 const getMatchById = new GetMatchById(matchRepository);
+const updateMatchStatus = new UpdateMatchStatus(matchRepository);
 
 /**
  * @swagger
@@ -92,6 +71,17 @@ const getMatchById = new GetMatchById(matchRepository);
  *         tournamentId:
  *           type: string
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ * 
+ *     UpdateMatchStatusRequest:
+ *       type: object
+ *       required:
+ *         - newStatus
+ *       properties:
+ *         newStatus:
+ *           type: string
+ *           enum: [PENDING, IN_PROGRESS, FINISHED, SUSPENDED, ABANDONED]
+ *           example: IN_PROGRESS
+ *
  */
 export class MatchController {
 
@@ -191,6 +181,174 @@ export class MatchController {
         );
       }
 
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/matches/{id}/status:
+   *   put:
+   *     summary: Update match status
+   *     tags: [Matches]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Match ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateMatchStatusRequest'
+   *     responses:
+   *       200:
+   *         description: Status updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Status updated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Match not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Match is not in progress
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async updateMatchStatus(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const { newStatus } = req.body;
+      if (!newStatus) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await updateMatchStatus.execute({
+        id: id,
+        newStatus: newStatus,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(null, 'Status updated successfully')
+      );
+    } catch (error: any) {
+      if (
+        error instanceof MissingRequiredUserFieldsException ||
+        error instanceof InvalidMatchStatusUpdateException
+      ) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof MatchNotPendingException ||
+        error instanceof MatchNotInProgressException ||
+        error instanceof MatchFinishedException ||
+        error instanceof MatchNotSuspendedException
+      ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof MatchNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')
