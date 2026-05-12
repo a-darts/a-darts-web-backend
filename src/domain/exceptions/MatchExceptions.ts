@@ -47,3 +47,9 @@ export class MatchAlreadyExistsException extends Error {
     }
 }
 
+export class MatchNotFoundException extends Error {
+    constructor() {
+        super('Match not found');
+        this.name = 'MatchNotFoundException';
+    }
+}

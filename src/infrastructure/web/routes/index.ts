@@ -6,12 +6,14 @@ import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { PlayerController } from '../controllers/PlayerController.js';
 import { TournamentController } from '../controllers/TournamentController.js';
 import { isAdmin, isSelfOrAdmin } from '../middlewares/authorizer.js';
+import { MatchController } from '../controllers/MatchController.js';
 
 const router = Router();
 const userController = new UserController();
 const authController = new AuthController();
 const playerController = new PlayerController();
 const tournamentController = new TournamentController();
+const matchController = new MatchController();
 
 // Health check route
 router.get('/health', getHealth);
@@ -49,6 +51,9 @@ router.delete('/tournaments/:id/participants/:participantId/checkin', authMiddle
 router.get('/tournaments/:id/participants', tournamentController.getParticipantsByTournamentId);
 router.get('/tournaments/:id/matches', tournamentController.getMatchesByTournamentId);
 router.post('/tournaments/:id/matches', authMiddleware, isAdmin, tournamentController.createMatch);
+
+// Match routes
+router.get('/matches/:id', matchController.getMatchById);
 
 
 export default router;
