@@ -8,4 +8,5 @@ export interface MatchRepository {
   findById(id: string): Promise<Match | null>;
   findManyByIds(ids: string[]): Promise<Match[]>;
   findByParticipantsIdsAndTournamentId(participant1Id: string, participant2Id: string, tournamentId: string): Promise<Match | null>;
+  findManyByTournamentId(tournamentId: string): Promise<any[]>;
 }

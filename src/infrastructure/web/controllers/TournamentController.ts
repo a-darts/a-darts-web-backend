@@ -82,11 +82,6 @@ const createBracket = new CreateBracket(bracketRepository, tournamentRepository,
  *           $ref: '#/components/schemas/TournamentInfo'
  *         registration:
  *           $ref: '#/components/schemas/Registration'
- *         matchesIds:
- *           type: array
- *           items:
- *             type: string
- *           example: ["f11e4b38-9c58-46a3-9852-d4f7f3a56c42"]
  * 
  *     TournamentInfo:
  *       type: object

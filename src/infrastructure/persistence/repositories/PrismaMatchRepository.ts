@@ -62,4 +62,21 @@ export class PrismaMatchRepository implements MatchRepository {
         });
         return matchData ? MatchMapper.toDomain(matchData) : null;
     }
+
+    async findManyByTournamentId(tournamentId: string): Promise<any[]> {
+        const matchesData = await this.prisma.match.findMany({
+            where: { tournamentId: tournamentId },
+            include: {
+                participant1: {
+                    include: { player: { include: { user: true } } }
+                },
+                participant2: {
+                    include: { player: { include: { user: true } } }
+                },
+            },
+        });
+        // MIRAR (CAMBIAR)
+        return matchesData;
+        // return matchesData.map(MatchMapper.toDomain);
+    }
 }

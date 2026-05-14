@@ -142,8 +142,6 @@ model Tournament {
   registrationRegisteredParticipantsIds String[]
   //
 
-  matchesIds String[]
-
   // Integridad referencial
   bracket                Bracket?
   registeredParticipants RegisteredParticipant[]

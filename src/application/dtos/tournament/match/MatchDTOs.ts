@@ -8,7 +8,11 @@ export interface MatchResponseDTO {
     finishedAt: Date | null;
     status: MatchStatus;
     participant1Id: string;
+    participant1Alias: string;
+    participant1Federation: string;
     participant2Id: string;
+    participant2Alias: string;
+    participant2Federation: string;
     matchScore: {
         participant1: {
             setsWon: number;
@@ -19,7 +23,6 @@ export interface MatchResponseDTO {
             legsWon: number;
         },
     };
-    tournamentId: string;
 }
 
 export interface CreateMatchRequestDTO {
