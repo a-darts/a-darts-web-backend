@@ -71,6 +71,13 @@ enum MatchStatus {
   ABANDONED
 }
 
+enum BracketStatus {
+  DRAFT
+  PUBLISHED
+  IN_PROGRESS
+  FINISHED
+}
+
 model User {
   id           String     @id @default(uuid()) @db.Uuid
   email        String     @unique
@@ -96,7 +103,9 @@ model Player {
   seasonEndYear      Int
   //
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Integridad referencial
+  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registrations RegisteredParticipant[]
 
   @@unique([userId, seasonStartYear])
   @@map("players")
@@ -135,6 +144,11 @@ model Tournament {
 
   matchesIds String[]
 
+  // Integridad referencial
+  bracket                Bracket?
+  registeredParticipants RegisteredParticipant[]
+  matches                Match[]
+
   @@map("tournaments")
 }
 
@@ -145,6 +159,13 @@ model RegisteredParticipant {
   checkedInAt  DateTime?
 
   tournamentId String @db.Uuid
+
+  // Integridad referencial
+  player           Player            @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  tournament       Tournament        @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  bracketPositions BracketPosition[]
+  matchesAsP1      Match[]           @relation("MatchParticipant1")
+  matchesAsP2      Match[]           @relation("MatchParticipant2")
 
   @@unique([playerId, tournamentId])
   // Índice para buscar rápido por id del jugador
@@ -169,7 +190,12 @@ model Match {
   matchScoreParticipant2SetsWon Int @default(0)
   matchScoreParticipant2LegsWon Int @default(0)
 
-  tournamentId String @db.Uuid // Para garantizar enfrentamientos únicos en un torneo
+  tournamentId String @db.Uuid
+
+  // Integridad referencial
+  tournament   Tournament            @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  participant1 RegisteredParticipant @relation("MatchParticipant1", fields: [participant1Id], references: [id])
+  participant2 RegisteredParticipant @relation("MatchParticipant2", fields: [participant2Id], references: [id])
 
   // Garantiza partidos únicos en un torneo
   @@unique([tournamentId, participant1Id, participant2Id])
@@ -179,4 +205,32 @@ model Match {
   @@index([tournamentId])
   //
   @@map("matches")
+}
+
+model Bracket {
+  id     String        @id @default(uuid()) @db.Uuid
+  status BracketStatus
+
+  tournamentId String @unique @db.Uuid
+
+  // Integridad referencial
+  tournament Tournament        @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  positions  BracketPosition[]
+
+  @@map("brackets")
+}
+
+model BracketPosition {
+  id            String  @id @default(uuid()) @db.Uuid
+  position      Int
+  participantId String? @db.Uuid // Sólo si es participante real (no Bye)
+
+  bracketId String @db.Uuid
+
+  // Integridad referencial
+  participant RegisteredParticipant? @relation(fields: [participantId], references: [id])
+  bracket     Bracket                @relation(fields: [bracketId], references: [id], onDelete: Cascade)
+
+  @@unique([bracketId, position])
+  @@map("bracketPositions")
 }
