@@ -46,8 +46,8 @@ router.put('/tournaments/:id/registration/status', authMiddleware, isAdmin, tour
 router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationPeriod);
 router.post('/tournaments/:id/participants', authMiddleware, isAdmin, tournamentController.registerParticipant);
 router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isAdmin, tournamentController.unregisterParticipant);
-router.post('/tournaments/:id/participants/:participantId/checkin', authMiddleware, isAdmin, tournamentController.doCheckInParticipant);
-router.delete('/tournaments/:id/participants/:participantId/checkin', authMiddleware, isAdmin, tournamentController.undoCheckInParticipant);
+router.post('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, tournamentController.doCheckInParticipant);
+router.delete('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, tournamentController.undoCheckInParticipant);
 router.get('/tournaments/:id/participants', tournamentController.getParticipantsByTournamentId);
 router.get('/tournaments/:id/matches', tournamentController.getMatchesByTournamentId);
 router.post('/tournaments/:id/matches', authMiddleware, isAdmin, tournamentController.createMatch);

@@ -1768,7 +1768,7 @@ export class TournamentController {
 
   /**
    * @swagger
-   * /api/tournaments/{id}/participants/{participantId}/checkin:
+   * /api/tournaments/{id}/participants/{participantId}/checkIn:
    *   post:
    *     summary: Do check in a participant
    *     tags: [Tournaments]
@@ -1937,7 +1937,7 @@ export class TournamentController {
 
   /**
    * @swagger
-   * /api/tournaments/{id}/participants/{participantId}/checkin:
+   * /api/tournaments/{id}/participants/{participantId}/checkIn:
    *   delete:
    *     summary: Undo check in a participant
    *     tags: [Tournaments]
