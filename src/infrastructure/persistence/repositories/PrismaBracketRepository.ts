@@ -15,7 +15,13 @@ export class PrismaBracketRepository implements BracketRepository {
         const data = BracketMapper.toPersistence(bracket);
         await this.prisma.bracket.update({
             where: { id: bracket.getId() },
-            data,
+            data: {
+                ...data,
+                positions: {
+                    deleteMany: {},
+                    create: data.positions.create
+                }
+            },
         });
     }
 
