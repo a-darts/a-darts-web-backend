@@ -17,7 +17,7 @@ import { RegisterParticipantInTournament } from '../../../application/services/t
 import { PrismaRegisteredParticipantRepository } from '../../persistence/repositories/PrismaRegisteredParticipantRepository.js';
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
 import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
-import { ParticipantAlreadyCheckedInException, ParticipantAlreadyRegisteredException, ParticipantNotCheckedInException, ParticipantNotRegisteredException, RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
+import { ParticipantAlreadyCheckedInException, ParticipantAlreadyRegisteredException, ParticipantNotCheckedInException, ParticipantNotRegisteredException, RegisteredParticipantNotFoundException, RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from '../../../domain/exceptions/ParticipantExceptions.js';
 import { MatchAlreadyExistsException, ParticipantNotRegisteredInTournamentException } from '../../../domain/exceptions/MatchExceptions.js';
 import { UnregisterParticipantFromTournament } from '../../../application/services/tournament/registration/UnregisterParticipantFromTournament.js';
 import { DoCheckInParticipant } from '../../../application/services/tournament/registration/DoCheckInParticipant.js';
@@ -28,6 +28,8 @@ import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserR
 import { GetMatchesByTournamentId } from '../../../application/services/tournament/matches/GetMatchesByTournamentId.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { CreateMatch } from '../../../application/services/tournament/matches/CreateMatch.js';
+import { CreateBracket } from '../../../application/services/bracket/CreateBracket.js';
+import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
 
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
@@ -35,6 +37,8 @@ const registeredParticipantRepository = new PrismaRegisteredParticipantRepositor
 const playerRepository = new PrismaPlayerRepository(prisma);
 const userRepository = new PrismaUserRepository(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
+const bracketRepository = new PrismaBracketRepository(prisma);
+
 
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
 const getTournamentById = new GetTournamentById(tournamentRepository);
@@ -51,6 +55,7 @@ const undoCheckInParticipant = new UndoCheckInParticipant(tournamentRepository, 
 const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
 const getMatchesByTournamentId = new GetMatchesByTournamentId(tournamentRepository, matchRepository);
 const createMatch = new CreateMatch(tournamentRepository, registeredParticipantRepository, matchRepository);
+const createBracket = new CreateBracket(bracketRepository, tournamentRepository);
 
 /**
  * @swagger
@@ -2366,6 +2371,167 @@ export class TournamentController {
       if (
         error instanceof ParticipantNotRegisteredInTournamentException ||
         error instanceof MatchAlreadyExistsException
+      ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/bracket:
+   *   post:
+   *     summary: Create the bracket of a tournament
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       201:
+   *         description: Bracket created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Bracket created successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/Bracket'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Bracket already exists
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async createBracket(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const bracket = await createBracket.execute({
+        id: id,
+      });
+      res.status(201).json(
+        ApiResponseBuilder.success(
+          bracket,
+          'Bracket created successfully',
+        )
+      );
+    } catch (error: any) {
+      if (
+        error instanceof MissingRequiredUserFieldsException
+        // error instanceof InvalidRegisteredPlayerSeasonException
+      ) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotFoundException
+        // error instanceof PlayerNotFoundException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof MatchAlreadyExistsException ||
+        error instanceof RegistratedParticipantsEmptyException ||
+        error instanceof RegistratedParticipantsNotEnoughException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)

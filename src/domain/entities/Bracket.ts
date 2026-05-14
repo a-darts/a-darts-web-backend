@@ -108,6 +108,10 @@ export class Bracket {
         return this.status;
     }
 
+    public getPositions(): BracketPosition[] {
+        return this.positions;
+    }
+
     public getTournamentId(): string {
         return this.tournamentId;
     }
@@ -116,9 +120,19 @@ export class Bracket {
     // --------------------------------------------------------------------
     // REHYDRATE METHOD
     // --------------------------------------------------------------------
-    // static rehydrate(data: any): Bracket {
-    // 
-    // }
+    public static rehydrate(data: {
+        id: string;
+        status: BracketStatus;
+        tournamentId: string;
+        positions: BracketPosition[];
+    }): Bracket {
+        return new Bracket(
+            data.id,
+            data.status,
+            data.positions,
+            data.tournamentId,
+        );
+    }
 }
 
 
@@ -150,6 +164,14 @@ export class BracketPosition {
 
 
     // --------------------------------------------------------------------
+    // HELPER METHODS
+    // --------------------------------------------------------------------
+    public isBye(): boolean {
+        return this.participant instanceof ByeParticipant;
+    }
+
+
+    // --------------------------------------------------------------------
     // GETTERS
     // --------------------------------------------------------------------    
     public getParticipant(): IParticipant {
@@ -158,9 +180,5 @@ export class BracketPosition {
 
     public getPosition(): number {
         return this.position;
-    }
-
-    public isBye(): boolean {
-        return this.participant instanceof ByeParticipant;
     }
 }

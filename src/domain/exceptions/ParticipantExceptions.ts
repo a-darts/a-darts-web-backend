@@ -32,3 +32,17 @@ export class RegisteredParticipantNotFoundException extends Error {
         this.name = 'RegisteredParticipantNotFoundException';
     }
 }
+
+export class RegistratedParticipantsEmptyException extends Error {
+    constructor() {
+        super('No participants registered');
+        this.name = 'RegistratedParticipantsEmptyException';
+    }
+}
+
+export class RegistratedParticipantsNotEnoughException extends Error {
+    constructor(needed: number, available: number) {
+        super(`Not enough participants registered (minimum ${needed} required, ${available} available)`);
+        this.name = 'RegistratedParticipantsNotEnoughException';
+    }
+}

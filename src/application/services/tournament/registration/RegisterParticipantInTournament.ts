@@ -45,17 +45,17 @@ export class RegisterParticipantInTournament {
             throw new ParticipantAlreadyRegisteredException();
         }
 
-        // 5. Register the participant in the tournament
-        tournament.registerParticipant(request.playerId);
-
-        // 6. Persist the changes in the DB
-        // 6.1. Update the tournament registered participants ids
-        await this.tournamentRepository.update(tournament);
-        // 6.2. Create the new registered participant
+        // 5. Create the new registered participant
         const newRegisteredParticipant = RegisteredParticipant.create(
             request.playerId,
             request.id,
         );
+
+        // 6. Register the participant in the tournament
+        tournament.registerParticipant(newRegisteredParticipant.getId());
+
+        // 7. Persist the changes in the DB
+        await this.tournamentRepository.update(tournament);
         await this.registeredParticipantRepository.create(
             newRegisteredParticipant,
         );
