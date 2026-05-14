@@ -3,6 +3,7 @@ import { CreateBracketRequestDTO, BracketResponseDTO } from '../../dtos/bracket/
 import { BracketMapper } from '../../dtos/bracket/BracketMapper.js';
 import { BracketRepository } from '../../../domain/repositories/BracketRepository.js';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
+import { RegisteredParticipantRepository } from '../../../domain/repositories/RegisteredParticipantRepository.js';
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { BracketAlreadyExistsException } from '../../../domain/exceptions/BracketExceptions.js';
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from '../../../domain/exceptions/ParticipantExceptions.js';
@@ -12,6 +13,7 @@ export class CreateBracket {
     constructor(
         private readonly bracketRepository: BracketRepository,
         private readonly tournamentRepository: TournamentRepository,
+        private readonly registeredParticipantRepository: RegisteredParticipantRepository,
     ) { }
 
     public async execute(request: CreateBracketRequestDTO): Promise<BracketResponseDTO> {
@@ -28,14 +30,13 @@ export class CreateBracket {
         }
 
         // 3. Obtain the participants from the tournament
-        const participantsIds = tournament.getRegistration().getRegisteredParticipantsIds();
-        if (participantsIds.length === 0) {
+        const participants = await this.registeredParticipantRepository.findAllByTournamentId(request.id);
+        if (participants.length === 0) {
             throw new RegistratedParticipantsEmptyException();
         }
-        if (participantsIds.length < 2) {
-            throw new RegistratedParticipantsNotEnoughException(2, participantsIds.length);
+        if (participants.length < 2) {
+            throw new RegistratedParticipantsNotEnoughException(2, participants.length);
         }
-        const participants = participantsIds.map(id => RegisteredParticipant.rehydrate({ id }));
 
         // 4. Create the bracket (with the factory method)
         const bracket = Bracket.create(

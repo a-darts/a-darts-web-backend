@@ -27,7 +27,21 @@ export class PrismaBracketRepository implements BracketRepository {
 
     async findAll(): Promise<Bracket[]> {
         const bracketsData = await this.prisma.bracket.findMany({
-            include: { positions: true },
+            include: {
+                positions: {
+                    include: {
+                        participant: {
+                            include: {
+                                player: {
+                                    include: {
+                                        user: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
         });
         return bracketsData.map(BracketMapper.toDomain);
     }
@@ -35,7 +49,21 @@ export class PrismaBracketRepository implements BracketRepository {
     async findById(id: string): Promise<Bracket | null> {
         const bracketsData = await this.prisma.bracket.findUnique({
             where: { id },
-            include: { positions: true },
+            include: {
+                positions: {
+                    include: {
+                        participant: {
+                            include: {
+                                player: {
+                                    include: {
+                                        user: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
         });
         return bracketsData ? BracketMapper.toDomain(bracketsData) : null;
     }
@@ -43,7 +71,21 @@ export class PrismaBracketRepository implements BracketRepository {
     async findByTournamentId(tournamentId: string): Promise<Bracket | null> {
         const bracketsData = await this.prisma.bracket.findUnique({
             where: { tournamentId },
-            include: { positions: true },
+            include: {
+                positions: {
+                    include: {
+                        participant: {
+                            include: {
+                                player: {
+                                    include: {
+                                        user: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
         });
         return bracketsData ? BracketMapper.toDomain(bracketsData) : null;
     }

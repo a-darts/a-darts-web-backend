@@ -5,6 +5,7 @@ import {
 
 export interface IParticipant {
     getId(): string;
+    getAlias(): string;
 }
 
 export class ByeParticipant implements IParticipant {
@@ -25,12 +26,17 @@ export class ByeParticipant implements IParticipant {
     public getId(): string {
         return this.id;
     }
+
+    public getAlias(): string {
+        return 'Bye';
+    }
 }
 
 
 export class RegisteredParticipant implements IParticipant {
     private readonly id: string;
     private readonly playerId: string;
+    private readonly alias: string; // To simplify DB queries
     private readonly registeredAt: Date;
     private checkedInAt: Date | null;
 
@@ -39,12 +45,14 @@ export class RegisteredParticipant implements IParticipant {
     constructor(
         id: string,
         playerId: string,
+        alias: string,
         registeredAt: Date,
         checkedInAt: Date | null,
         tournamentId: string,
     ) {
         this.id = id;
         this.playerId = playerId;
+        this.alias = alias;
         this.registeredAt = registeredAt;
         this.checkedInAt = checkedInAt;
         this.tournamentId = tournamentId;
@@ -56,11 +64,13 @@ export class RegisteredParticipant implements IParticipant {
     // --------------------------------------------------------------------
     public static create(
         playerId: string,
+        alias: string,
         tournamentId: string,
     ): RegisteredParticipant {
         return new RegisteredParticipant(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             playerId,
+            alias,
             new Date(),
             null,
             tournamentId,
@@ -97,6 +107,10 @@ export class RegisteredParticipant implements IParticipant {
         return this.id;
     }
 
+    public getAlias(): string {
+        return this.alias;
+    }
+
     public getPlayerId(): string {
         return this.playerId;
     }
@@ -121,6 +135,7 @@ export class RegisteredParticipant implements IParticipant {
         return new RegisteredParticipant(
             data.id,
             data.playerId,
+            data.alias,
             new Date(data.registeredAt),
             data.checkedInAt ? new Date(data.checkedInAt) : null,
             data.tournamentId,

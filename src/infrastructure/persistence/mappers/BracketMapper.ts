@@ -21,12 +21,15 @@ export class BracketMapper {
     }
 
     // From Prisma Object to Domain Entity
-    static toDomain(prismaBracket: PrismaBracket & { positions: PrismaBracketPosition[] }): Bracket {
-        const domainPositions = prismaBracket.positions.map(p => {
+    static toDomain(prismaBracket: any): Bracket {
+        const domainPositions = prismaBracket.positions.map((p: any) => {
             // Lógica para reconstruir el participante
             // Si participantId es null, es un Bye
             const participant = p.participantId
-                ? RegisteredParticipant.rehydrate({ id: p.participantId })
+                ? RegisteredParticipant.rehydrate({
+                    id: p.participantId,
+                    alias: p.participant?.player?.user?.alias || 'Unknown'
+                })
                 : ByeParticipant.create();
 
             return new BracketPosition(participant, p.position);

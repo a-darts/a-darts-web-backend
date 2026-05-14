@@ -14,10 +14,11 @@ export class RegisteredParticipantMapper {
     }
 
     // From Prisma Object to Domain Entity
-    static toDomain(prismaRegisteredParticipant: PrismaRegisteredParticipant): RegisteredParticipant {
+    static toDomain(prismaRegisteredParticipant: any): RegisteredParticipant {
         return RegisteredParticipant.rehydrate({
             id: prismaRegisteredParticipant.id,
             playerId: prismaRegisteredParticipant.playerId,
+            alias: prismaRegisteredParticipant.player?.user?.alias || 'Unknown',
             registeredAt: prismaRegisteredParticipant.registeredAt,
             checkedInAt: prismaRegisteredParticipant.checkedInAt,
             tournamentId: prismaRegisteredParticipant.tournamentId,

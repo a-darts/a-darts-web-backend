@@ -48,14 +48,14 @@ const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
 const updateTournamentName = new UpdateTournamentName(tournamentRepository);
 const updateTournamentRegistrationStatus = new UpdateTournamentRegistrationStatus(tournamentRepository);
 const updateTournamentRegistrationPeriod = new UpdateTournamentRegistrationPeriod(tournamentRepository);
-const registerParticipantInTournament = new RegisterParticipantInTournament(tournamentRepository, registeredParticipantRepository, playerRepository);
+const registerParticipantInTournament = new RegisterParticipantInTournament(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
 const unregisterParticipantFromTournament = new UnregisterParticipantFromTournament(tournamentRepository, registeredParticipantRepository);
 const doCheckInParticipant = new DoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const undoCheckInParticipant = new UndoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
 const getMatchesByTournamentId = new GetMatchesByTournamentId(tournamentRepository, matchRepository);
 const createMatch = new CreateMatch(tournamentRepository, registeredParticipantRepository, matchRepository);
-const createBracket = new CreateBracket(bracketRepository, tournamentRepository);
+const createBracket = new CreateBracket(bracketRepository, tournamentRepository, registeredParticipantRepository);
 
 /**
  * @swagger

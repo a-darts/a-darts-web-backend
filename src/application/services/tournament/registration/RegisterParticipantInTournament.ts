@@ -5,6 +5,7 @@ import { TournamentNotFoundException } from '../../../../domain/exceptions/Tourn
 import { PlayerRepository } from '../../../../domain/repositories/PlayerRepository.js';
 import { RegisteredParticipantRepository } from '../../../../domain/repositories/RegisteredParticipantRepository.js';
 import { TournamentRepository } from '../../../../domain/repositories/TournamentRepository.js';
+import { UserRepository } from '../../../../domain/repositories/UserRepository.js';
 import { RegisterParticipantInTournamentRequestDTO } from '../../../dtos/tournament/TournamentDTOs.js';
 
 
@@ -13,6 +14,7 @@ export class RegisterParticipantInTournament {
         private readonly tournamentRepository: TournamentRepository,
         private readonly registeredParticipantRepository: RegisteredParticipantRepository,
         private readonly playerRepository: PlayerRepository,
+        private readonly userRepository: UserRepository,
     ) { }
 
     public async execute(request: RegisterParticipantInTournamentRequestDTO): Promise<void> {
@@ -45,16 +47,21 @@ export class RegisterParticipantInTournament {
             throw new ParticipantAlreadyRegisteredException();
         }
 
-        // 5. Create the new registered participant
+        // 5. Get player alias
+        const user = await this.userRepository.findById(player.getUserId());
+        const alias = user?.getAlias() || 'Unknown';
+
+        // 6. Create the new registered participant
         const newRegisteredParticipant = RegisteredParticipant.create(
             request.playerId,
+            alias,
             request.id,
         );
 
-        // 6. Register the participant in the tournament
+        // 7. Register the participant in the tournament
         tournament.registerParticipant(newRegisteredParticipant.getId());
 
-        // 7. Persist the changes in the DB
+        // 8. Persist the changes in the DB
         await this.tournamentRepository.update(tournament);
         await this.registeredParticipantRepository.create(
             newRegisteredParticipant,

@@ -26,12 +26,17 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
     }
 
     async findAll(): Promise<RegisteredParticipant[]> {
-        const registeredParticipantsData = await this.prisma.registeredParticipant.findMany();
+        const registeredParticipantsData = await this.prisma.registeredParticipant.findMany({
+            include: { player: { include: { user: true } } }
+        });
         return registeredParticipantsData.map(RegisteredParticipantMapper.toDomain);
     }
 
     async findById(id: string): Promise<RegisteredParticipant | null> {
-        const registeredParticipantsData = await this.prisma.registeredParticipant.findUnique({ where: { id } });
+        const registeredParticipantsData = await this.prisma.registeredParticipant.findUnique({
+            where: { id },
+            include: { player: { include: { user: true } } }
+        });
         return registeredParticipantsData ? RegisteredParticipantMapper.toDomain(registeredParticipantsData) : null;
     }
 
@@ -43,6 +48,7 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
                     tournamentId: tournamentId,
                 },
             },
+            include: { player: { include: { user: true } } }
         });
         return registeredParticipantData ? RegisteredParticipantMapper.toDomain(registeredParticipantData) : null;
     }
@@ -50,6 +56,7 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
     async findAllByTournamentId(tournamentId: string): Promise<RegisteredParticipant[]> {
         const registeredParticipantsData = await this.prisma.registeredParticipant.findMany({
             where: { tournamentId: tournamentId },
+            include: { player: { include: { user: true } } }
         });
         return registeredParticipantsData.map(RegisteredParticipantMapper.toDomain);
     }
@@ -57,6 +64,7 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
     async findAllByPlayerId(playerId: string): Promise<RegisteredParticipant[]> {
         const registeredParticipantsData = await this.prisma.registeredParticipant.findMany({
             where: { playerId: playerId },
+            include: { player: { include: { user: true } } }
         });
         return registeredParticipantsData.map(RegisteredParticipantMapper.toDomain);
     }
