@@ -1,6 +1,8 @@
 import { ByeParticipant } from "./Participant.js";
 import type { IParticipant } from "./Participant.js";
 
+import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from "../exceptions/ParticipantExceptions.js";
+
 
 export enum BracketStatus {
     DRAFT = 'DRAFT',
@@ -38,6 +40,14 @@ export class Bracket {
         participants: IParticipant[],
     ): Bracket {
         const totalParticipants = participants.length;
+
+        if (totalParticipants === 0) {
+            throw new RegistratedParticipantsEmptyException();
+        }
+        if (totalParticipants < 2) {
+            throw new RegistratedParticipantsNotEnoughException(2, totalParticipants);
+        }
+
         const bracketSize = this.calculateBracketSize(totalParticipants);
 
         // 1. Barajamos los participantes (orden aleatorio) y clonamos
