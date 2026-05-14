@@ -3,7 +3,7 @@ import {
     ParticipantNotCheckedInException,
 } from "../exceptions/ParticipantExceptions.js";
 
-interface IParticipant {
+export interface IParticipant {
     getId(): string;
 }
 
