@@ -30,6 +30,7 @@ import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatc
 import { CreateMatch } from '../../../application/services/tournament/matches/CreateMatch.js';
 import { CreateBracket } from '../../../application/services/bracket/CreateBracket.js';
 import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
+import { BracketAlreadyExistsException } from '../../../domain/exceptions/BracketExceptions.js';
 
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
@@ -152,17 +153,30 @@ const createBracket = new CreateBracket(bracketRepository, tournamentRepository,
  *           example: ["1", "2", "3"]
  * 
  *     RegisteredParticipant:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
- *         alias:
- *           type: string
- *           example: Pepe Pérez
- *         federation:
- *           type: string
- *           example: ARAGON
+ *       type: array
+ *       items:
+ *         type: object
+ *         properties:
+ *           id:
+ *             type: string
+ *             example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *           playerId:
+ *             type: string
+ *             example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *           registeredAt:
+ *             type: string
+ *             format: date-time
+ *             example: 2026-05-02T11:00:00.000Z
+ *           checkedInAt:
+ *             type: string | null
+ *             format: date-time
+ *             example: 2026-05-02T12:00:00.000Z
+ *           alias:
+ *             type: string
+ *             example: Pepe Pérez
+ *           federation:
+ *             type: string
+ *             example: ARAGON
  * 
  *     Match:
  *       type: object
@@ -236,15 +250,20 @@ const createBracket = new CreateBracket(bracketRepository, tournamentRepository,
  *         positions:
  *           type: array
  *           items:
- *             position:
- *               type: number
- *               example: 1
- *             participantId:
- *               type: string
- *               example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
- *             participantAlias:
- *               type: string
- *               example: Pepe
+ *             type: object
+ *             properties:
+ *               position:
+ *                 type: number
+ *                 example: 1
+ *               participantId:
+ *                 type: string
+ *                 example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *               participantAlias:
+ *                 type: string
+ *                 example: Pepe
+ *               participantFederation:
+ *                 type: string
+ *                 example: ARAGON
  * 
  *     CreateTournamentRequest:
  *       type: object
@@ -2550,14 +2569,13 @@ export class TournamentController {
       }
       if (
         error instanceof TournamentNotFoundException
-        // error instanceof PlayerNotFoundException
       ) {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );
       }
       if (
-        error instanceof MatchAlreadyExistsException ||
+        error instanceof BracketAlreadyExistsException ||
         error instanceof RegistratedParticipantsEmptyException ||
         error instanceof RegistratedParticipantsNotEnoughException
       ) {

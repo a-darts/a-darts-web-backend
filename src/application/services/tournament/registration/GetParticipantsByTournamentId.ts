@@ -5,6 +5,7 @@ import { RegisteredParticipantRepository } from '../../../../domain/repositories
 import { TournamentRepository } from '../../../../domain/repositories/TournamentRepository.js';
 import { UserRepository } from '../../../../domain/repositories/UserRepository.js';
 import { RegisteredParticipantsNameFederationDTO } from '../../../dtos/tournament/registeredParticipant/RegisteredParticipantDTOs.js';
+import { RegisteredParticipantMapper } from '../../../dtos/tournament/registeredParticipant/RegisteredParticipantMapper.js';
 
 export class GetParticipantsByTournamentId {
   constructor(
@@ -27,28 +28,7 @@ export class GetParticipantsByTournamentId {
       return [];
     }
 
-    // 3. Fetch players data
-    const playerIds = participants.map(p => p.getPlayerId());
-    const players = await this.playerRepository.findManyByIds(playerIds);
-
-    // 4. Fetch users data to get names
-    const userIds = players.map(p => p.getUserId());
-    const users = await this.userRepository.findManyByIds(userIds);
-
-    // 5. Map everything together
-    // MIRAR (CAMBIAR)
-    // return RegisteredParticipantMapper.toResponse();
-    const mappedParticipants = participants.map(participant => {
-      const player = players.find(p => p.getId() === participant.getPlayerId());
-      const user = player ? users.find(u => u.getId() === player.getUserId()) : null;
-
-      return {
-        id: participant.getId(),
-        alias: user ? user.getAlias() : 'Unknown',
-        federation: player ? player.getFederation() : 'Unknown'
-      };
-    });
-
-    return mappedParticipants;
+    // 3. Map everything together
+    return participants.map(p => RegisteredParticipantMapper.toResponse(p));
   }
 }

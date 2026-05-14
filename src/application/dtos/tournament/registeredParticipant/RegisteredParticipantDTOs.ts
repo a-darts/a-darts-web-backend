@@ -4,6 +4,7 @@ export interface RegisteredParticipantResponseDTO {
     registeredAt: Date;
     checkedInAt: Date | null;
     alias: string;
+    federation: string;
 }
 
 export interface RegisteredParticipantsNameFederationResponseDTO {

@@ -9,6 +9,7 @@ export class RegisteredParticipantMapper {
             registeredAt: registeredParticipant.getRegisteredAt(),
             checkedInAt: registeredParticipant.getCheckedInAt(),
             alias: registeredParticipant.getAlias(),
+            federation: registeredParticipant.getFederation(),
         };
     }
 }
