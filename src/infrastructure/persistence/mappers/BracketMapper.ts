@@ -28,7 +28,8 @@ export class BracketMapper {
             const participant = p.participantId
                 ? RegisteredParticipant.rehydrate({
                     id: p.participantId,
-                    alias: p.participant?.player?.user?.alias || 'Unknown'
+                    alias: p.participant?.player?.user?.alias || 'Unknown',
+                    federation: p.participant?.player?.federation || 'Unknown',
                 })
                 : ByeParticipant.create();
 

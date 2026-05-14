@@ -1,8 +1,9 @@
-export interface RegisteredParticipantsResponseDTO {
+export interface RegisteredParticipantResponseDTO {
     id: string;
     playerId: string;
     registeredAt: Date;
     checkedInAt: Date | null;
+    alias: string;
 }
 
 export interface RegisteredParticipantsNameFederationResponseDTO {

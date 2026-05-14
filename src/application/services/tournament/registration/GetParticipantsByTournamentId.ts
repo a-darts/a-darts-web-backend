@@ -35,8 +35,9 @@ export class GetParticipantsByTournamentId {
     const userIds = players.map(p => p.getUserId());
     const users = await this.userRepository.findManyByIds(userIds);
 
-    // MIRAR: Cambiar a un Mapper
     // 5. Map everything together
+    // MIRAR (CAMBIAR)
+    // return RegisteredParticipantMapper.toResponse();
     const mappedParticipants = participants.map(participant => {
       const player = players.find(p => p.getId() === participant.getPlayerId());
       const user = player ? users.find(u => u.getId() === player.getUserId()) : null;

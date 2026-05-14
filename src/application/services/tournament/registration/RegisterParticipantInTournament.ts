@@ -2,6 +2,7 @@ import { RegisteredParticipant } from '../../../../domain/entities/Participant.j
 import { ParticipantAlreadyRegisteredException } from '../../../../domain/exceptions/ParticipantExceptions.js';
 import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../../domain/exceptions/PlayerExceptions.js';
 import { TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
+import { UserNotFoundException } from '../../../../domain/exceptions/UserExceptions.js';
 import { PlayerRepository } from '../../../../domain/repositories/PlayerRepository.js';
 import { RegisteredParticipantRepository } from '../../../../domain/repositories/RegisteredParticipantRepository.js';
 import { TournamentRepository } from '../../../../domain/repositories/TournamentRepository.js';
@@ -49,13 +50,16 @@ export class RegisterParticipantInTournament {
 
         // 5. Get player alias
         const user = await this.userRepository.findById(player.getUserId());
-        const alias = user?.getAlias() || 'Unknown';
+        if (!user) {
+            throw new UserNotFoundException();
+        }
 
         // 6. Create the new registered participant
         const newRegisteredParticipant = RegisteredParticipant.create(
             request.playerId,
-            alias,
             request.id,
+            user.getAlias(),
+            player.getFederation(),
         );
 
         // 7. Register the participant in the tournament

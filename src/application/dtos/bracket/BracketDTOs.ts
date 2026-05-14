@@ -10,6 +10,7 @@ export interface BracketPositionResponseDTO {
     position: number;
     participantId: string | null;
     participantAlias: string; // "Bye" o el Alias del jugador
+    participantFederation: string;
 }
 
 export interface CreateBracketRequestDTO {

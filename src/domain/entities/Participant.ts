@@ -6,6 +6,7 @@ import {
 export interface IParticipant {
     getId(): string;
     getAlias(): string;
+    getFederation(): string;
 }
 
 export class ByeParticipant implements IParticipant {
@@ -30,32 +31,40 @@ export class ByeParticipant implements IParticipant {
     public getAlias(): string {
         return 'Bye';
     }
+
+    public getFederation(): string {
+        return 'N/A';
+    }
 }
 
 
 export class RegisteredParticipant implements IParticipant {
     private readonly id: string;
     private readonly playerId: string;
-    private readonly alias: string; // To simplify DB queries
     private readonly registeredAt: Date;
     private checkedInAt: Date | null;
 
     private readonly tournamentId: string;
 
+    private readonly alias: string; // To simplify DB queries
+    private readonly federation: string; // To simplify DB queries
+
     constructor(
         id: string,
         playerId: string,
-        alias: string,
         registeredAt: Date,
         checkedInAt: Date | null,
         tournamentId: string,
+        alias: string,
+        federation: string,
     ) {
         this.id = id;
         this.playerId = playerId;
-        this.alias = alias;
         this.registeredAt = registeredAt;
         this.checkedInAt = checkedInAt;
         this.tournamentId = tournamentId;
+        this.alias = alias;
+        this.federation = federation;
     }
 
 
@@ -64,16 +73,18 @@ export class RegisteredParticipant implements IParticipant {
     // --------------------------------------------------------------------
     public static create(
         playerId: string,
-        alias: string,
         tournamentId: string,
+        alias: string,
+        federation: string,
     ): RegisteredParticipant {
         return new RegisteredParticipant(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             playerId,
-            alias,
             new Date(),
             null,
             tournamentId,
+            alias,
+            federation,
         );
     }
 
@@ -107,10 +118,6 @@ export class RegisteredParticipant implements IParticipant {
         return this.id;
     }
 
-    public getAlias(): string {
-        return this.alias;
-    }
-
     public getPlayerId(): string {
         return this.playerId;
     }
@@ -127,6 +134,14 @@ export class RegisteredParticipant implements IParticipant {
         return this.tournamentId;
     }
 
+    public getAlias(): string {
+        return this.alias;
+    }
+
+    public getFederation(): string {
+        return this.federation;
+    }
+
 
     // --------------------------------------------------------------------
     // REHYDRATE METHOD
@@ -135,10 +150,11 @@ export class RegisteredParticipant implements IParticipant {
         return new RegisteredParticipant(
             data.id,
             data.playerId,
-            data.alias,
             new Date(data.registeredAt),
             data.checkedInAt ? new Date(data.checkedInAt) : null,
             data.tournamentId,
+            data.alias,
+            data.federation,
         );
     }
 }

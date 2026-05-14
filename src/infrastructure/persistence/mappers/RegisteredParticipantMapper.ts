@@ -18,10 +18,11 @@ export class RegisteredParticipantMapper {
         return RegisteredParticipant.rehydrate({
             id: prismaRegisteredParticipant.id,
             playerId: prismaRegisteredParticipant.playerId,
-            alias: prismaRegisteredParticipant.player?.user?.alias || 'Unknown',
             registeredAt: prismaRegisteredParticipant.registeredAt,
             checkedInAt: prismaRegisteredParticipant.checkedInAt,
             tournamentId: prismaRegisteredParticipant.tournamentId,
+            alias: prismaRegisteredParticipant.player?.user?.alias || 'Unknown',
+            federation: prismaRegisteredParticipant.player?.federation || 'Unknown',
         });
     }
 }
