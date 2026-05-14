@@ -196,12 +196,30 @@ const createBracket = new CreateBracket(bracketRepository, tournamentRepository,
  *         status:
  *           type: string
  *           example: FINISHED
- *         participant1Id:
- *           type: string
- *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
- *         participant2Id:
- *           type: string
- *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         participant1:
+ *           type: object
+ *           properties:
+ *             id:          
+ *               type: string
+ *               example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *             alias:
+ *               type: string
+ *               example: Jugador 1
+ *             federation:
+ *               type: string
+ *               example: ARAGON
+ *         participant2:
+ *           type: object
+ *           properties:
+ *             id:          
+ *               type: string
+ *               example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *             alias:
+ *               type: string
+ *               example: Jugador 2
+ *             federation:
+ *               type: string
+ *               example: ARAGON
  *         matchScore:
  *           type: object
  *           properties:
@@ -2200,7 +2218,9 @@ export class TournamentController {
    *                   type: string
    *                   example: Matches fetched successfully
    *                 data:
-   *                   $ref: '#/components/schemas/Match'
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/Match'
    *       404:
    *         description: Not Found
    *         content:

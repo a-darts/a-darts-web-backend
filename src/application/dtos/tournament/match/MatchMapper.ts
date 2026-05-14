@@ -18,12 +18,16 @@ export class MatchMapper {
             startedAt: match.getStartedAt(),
             finishedAt: match.getFinishedAt(),
             status: match.getStatus(),
-            participant1Id: participant1.getId(),
-            participant1Alias: participant1.getAlias(),
-            participant1Federation: participant1.getFederation(),
-            participant2Id: participant2.getId(),
-            participant2Alias: participant2.getAlias(),
-            participant2Federation: participant2.getFederation(),
+            participant1: {
+                id: participant1.getId(),
+                alias: participant1.getAlias(),
+                federation: participant1.getFederation(),
+            },
+            participant2: {
+                id: participant2.getId(),
+                alias: participant2.getAlias(),
+                federation: participant2.getFederation(),
+            },
             matchScore: {
                 participant1: {
                     setsWon: participant1Score.getSetsWon(),

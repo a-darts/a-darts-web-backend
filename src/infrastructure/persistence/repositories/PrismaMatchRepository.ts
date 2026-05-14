@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { Match } from '../../../domain/entities/Match.js';
 import { MatchMapper } from '../mappers/MatchMapper.js';
-import { MatchRepository } from '../../../domain/repositories/MatchRepository.js';
+import { RegisteredParticipantMapper } from '../mappers/RegisteredParticipantMapper.js';
+import { MatchRepository, MatchWithParticipants } from '../../../domain/repositories/MatchRepository.js';
 
 export class PrismaMatchRepository implements MatchRepository {
     constructor(private readonly prisma: PrismaClient) { }
@@ -63,7 +64,7 @@ export class PrismaMatchRepository implements MatchRepository {
         return matchData ? MatchMapper.toDomain(matchData) : null;
     }
 
-    async findManyByTournamentId(tournamentId: string): Promise<any[]> {
+    async findManyByTournamentId(tournamentId: string): Promise<MatchWithParticipants[]> {
         const matchesData = await this.prisma.match.findMany({
             where: { tournamentId: tournamentId },
             include: {
@@ -75,8 +76,11 @@ export class PrismaMatchRepository implements MatchRepository {
                 },
             },
         });
-        // MIRAR (CAMBIAR)
-        return matchesData;
-        // return matchesData.map(MatchMapper.toDomain);
+        
+        return matchesData.map(data => ({
+            match: MatchMapper.toDomain(data),
+            participant1: RegisteredParticipantMapper.toDomain(data.participant1),
+            participant2: RegisteredParticipantMapper.toDomain(data.participant2),
+        }));
     }
 }

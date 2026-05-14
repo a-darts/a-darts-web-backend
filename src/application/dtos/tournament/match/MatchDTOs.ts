@@ -7,21 +7,25 @@ export interface MatchResponseDTO {
     startedAt: Date | null;
     finishedAt: Date | null;
     status: MatchStatus;
-    participant1Id: string;
-    participant1Alias: string;
-    participant1Federation: string;
-    participant2Id: string;
-    participant2Alias: string;
-    participant2Federation: string;
-    matchScore: {
-        participant1: {
-            setsWon: number;
-            legsWon: number;
-        },
-        participant2: {
-            setsWon: number;
-            legsWon: number;
-        },
+    participant1: ParticipantResponseDTO;
+    participant2: ParticipantResponseDTO;
+    matchScore: MatchScoreDTO;
+}
+
+export interface ParticipantResponseDTO {
+    id: string;
+    alias: string;
+    federation: string;
+}
+
+export interface MatchScoreDTO {
+    participant1: {
+        setsWon: number;
+        legsWon: number;
+    };
+    participant2: {
+        setsWon: number;
+        legsWon: number;
     };
 }
 

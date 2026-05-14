@@ -38,25 +38,29 @@ export class Bracket {
         participants: IParticipant[],
     ): Bracket {
         const totalParticipants = participants.length;
-        const bracketSize = this.calculatePowerOfTwo(totalParticipants);
+        const bracketSize = this.calculateBracketSize(totalParticipants);
 
-        // Lista de participantes reales + byes
-        const fullParticipantList: IParticipant[] = [...participants];
+        // 1. Barajamos los participantes (orden aleatorio) y clonamos
+        const shuffledParticipants = this.shuffle([...participants]);
+
+        // 2. Creamos la lista de participantes (reales + byes)
+        const fullParticipantList: IParticipant[] = shuffledParticipants;
         const numByes = bracketSize - totalParticipants;
 
-        // Añadimos los byes a la lista
+        // 3. Añadimos los byes a la lista
         for (let i = 0; i < numByes; i++) {
             fullParticipantList.push(ByeParticipant.create());
         }
 
-        // Ordenamos los participantes y los byes ()
+        // 4. Ordenamos los participantes y los byes (Standard Tournament Seeding)
         const interleavedParticipants = this.distributePositions(fullParticipantList);
 
-        // Mapeamos la lista de participantes a posiciones del cuadrante
+        // 5. Mapeamos la lista de participantes a posiciones del cuadrante
         const positions = interleavedParticipants.map((participant, index) =>
             BracketPosition.create(participant, index + 1)
         );
 
+        // 6. Creamos el objeto cuadrante
         return new Bracket(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             BracketStatus.DRAFT,
@@ -70,7 +74,7 @@ export class Bracket {
      * Calcula la potencia de 2 más cercana (hacia arriba)
      * Ejemplo: 5 participantes -> 8 posiciones.
      */
-    private static calculatePowerOfTwo(n: number): number {
+    private static calculateBracketSize(n: number): number {
         if (n <= 2) return 2;
         return Math.pow(2, Math.ceil(Math.log2(n)));
     }
@@ -94,6 +98,18 @@ export class Bracket {
         }
 
         return order.map(index => items[index]);
+    }
+
+
+    /**
+     * Algoritmo Fisher-Yates para barajar un array
+     */
+    private static shuffle<T>(array: T[]): T[] {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
     }
 
 
