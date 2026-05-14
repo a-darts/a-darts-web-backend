@@ -218,6 +218,34 @@ const createBracket = new CreateBracket(bracketRepository, tournamentRepository)
  *           type: string
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  * 
+ *     Bracket:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         tournamentId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         status:
+ *           type: string
+ *           example: DRAFT
+ *         totalPositions:
+ *           type: number
+ *           example: 1
+ *         positions:
+ *           type: array
+ *           items:
+ *             position:
+ *               type: number
+ *               example: 1
+ *             participantId:
+ *               type: string
+ *               example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *             participantAlias:
+ *               type: string
+ *               example: Pepe
+ * 
  *     CreateTournamentRequest:
  *       type: object
  *       properties:

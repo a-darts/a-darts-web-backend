@@ -9,7 +9,7 @@ export interface BracketResponseDTO {
 export interface BracketPositionResponseDTO {
     position: number;
     participantId: string | null;
-    participantName: string; // "Bye" o el Alias del jugador
+    participantAlias: string; // "Bye" o el Alias del jugador
 }
 
 export interface CreateBracketRequestDTO {

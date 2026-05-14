@@ -15,8 +15,8 @@ export class BracketMapper {
                     position: pos.getPosition(),
                     // Si es Bye, el ID es null y el nombre es "Bye"
                     participantId: pos.isBye() ? null : participant.getId(),
-                    // participantName: pos.isBye() ? 'Bye' : (participant as any).getAlias(),
-                    participantName: 'Prueba', // MIRAR CAMBIAR
+                    // participantAlias: pos.isBye() ? 'Bye' : (participant as any).getAlias(),
+                    participantAlias: 'Prueba', // MIRAR CAMBIAR
                 };
             }).sort((a, b) => a.position - b.position) // Ordenado por posicion
         };
