@@ -2,38 +2,47 @@ import { PrismaClient } from '@prisma/client';
 import { RegisteredParticipant } from '../../../domain/entities/Participant.js';
 import { RegisteredParticipantMapper } from '../mappers/RegisteredParticipantMapper.js';
 import { RegisteredParticipantRepository } from '../../../domain/repositories/RegisteredParticipantRepository.js';
+import { transactionStorage } from '../TransactionContext.js';
 
 export class PrismaRegisteredParticipantRepository implements RegisteredParticipantRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
+    private get client() {
+        const tx = transactionStorage.getStore();
+        if (tx) {
+            return tx;
+        }
+        return this.prisma;
+    }
+
     async create(registeredParticipant: RegisteredParticipant): Promise<void> {
         const data = RegisteredParticipantMapper.toPersistence(registeredParticipant);
-        await this.prisma.registeredParticipant.create({ data });
+        await this.client.registeredParticipant.create({ data });
     }
 
     async update(registeredParticipant: RegisteredParticipant): Promise<void> {
         const data = RegisteredParticipantMapper.toPersistence(registeredParticipant);
-        await this.prisma.registeredParticipant.update({
+        await this.client.registeredParticipant.update({
             where: { id: registeredParticipant.getId() },
             data,
         });
     }
 
     async delete(id: string): Promise<void> {
-        await this.prisma.registeredParticipant.delete({
+        await this.client.registeredParticipant.delete({
             where: { id }
         });
     }
 
     async findAll(): Promise<RegisteredParticipant[]> {
-        const registeredParticipantsData = await this.prisma.registeredParticipant.findMany({
+        const registeredParticipantsData = await this.client.registeredParticipant.findMany({
             include: { player: { include: { user: true } } }
         });
         return registeredParticipantsData.map(RegisteredParticipantMapper.toDomain);
     }
 
     async findById(id: string): Promise<RegisteredParticipant | null> {
-        const registeredParticipantsData = await this.prisma.registeredParticipant.findUnique({
+        const registeredParticipantsData = await this.client.registeredParticipant.findUnique({
             where: { id },
             include: { player: { include: { user: true } } }
         });
@@ -41,7 +50,7 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
     }
 
     async findByTournamentIdAndPlayerId(tournamentId: string, playerId: string): Promise<RegisteredParticipant | null> {
-        const registeredParticipantData = await this.prisma.registeredParticipant.findUnique({
+        const registeredParticipantData = await this.client.registeredParticipant.findUnique({
             where: {
                 playerId_tournamentId: {
                     playerId: playerId,
@@ -54,7 +63,7 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
     }
 
     async findAllByTournamentId(tournamentId: string): Promise<RegisteredParticipant[]> {
-        const registeredParticipantsData = await this.prisma.registeredParticipant.findMany({
+        const registeredParticipantsData = await this.client.registeredParticipant.findMany({
             where: { tournamentId: tournamentId },
             include: { player: { include: { user: true } } }
         });
@@ -62,7 +71,7 @@ export class PrismaRegisteredParticipantRepository implements RegisteredParticip
     }
 
     async findAllByPlayerId(playerId: string): Promise<RegisteredParticipant[]> {
-        const registeredParticipantsData = await this.prisma.registeredParticipant.findMany({
+        const registeredParticipantsData = await this.client.registeredParticipant.findMany({
             where: { playerId: playerId },
             include: { player: { include: { user: true } } }
         });

@@ -44,7 +44,6 @@ export interface CreateTournamentRequestDTO {
 
 export interface UpdateTournamentStatusRequestDTO {
     id: string;
-    newStatus: TournamentStatus;
 }
 
 export interface UpdateTournamentInfoRequestDTO {

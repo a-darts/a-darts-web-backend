@@ -3,50 +3,59 @@ import { Match } from '../../../domain/entities/Match.js';
 import { MatchMapper } from '../mappers/MatchMapper.js';
 import { RegisteredParticipantMapper } from '../mappers/RegisteredParticipantMapper.js';
 import { MatchRepository, MatchWithParticipants } from '../../../domain/repositories/MatchRepository.js';
+import { transactionStorage } from '../TransactionContext.js';
 
 export class PrismaMatchRepository implements MatchRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
+    private get client() {
+        const tx = transactionStorage.getStore();
+        if (tx) {
+            return tx;
+        }
+        return this.prisma;
+    }
+
     async create(match: Match): Promise<void> {
         const data = MatchMapper.toPersistence(match);
-        await this.prisma.match.create({ data });
+        await this.client.match.create({ data });
     }
 
     async update(match: Match): Promise<void> {
         const data = MatchMapper.toPersistence(match);
-        await this.prisma.match.update({
+        await this.client.match.update({
             where: { id: match.getId() },
             data,
         });
     }
 
     async delete(id: string): Promise<void> {
-        await this.prisma.match.delete({
+        await this.client.match.delete({
             where: { id }
         });
     }
 
     async findAll(): Promise<Match[]> {
-        const matchesData = await this.prisma.match.findMany();
+        const matchesData = await this.client.match.findMany();
         return matchesData.map(MatchMapper.toDomain);
     }
 
     async findById(id: string): Promise<Match | null> {
-        const matchesData = await this.prisma.match.findUnique({
+        const matchesData = await this.client.match.findUnique({
             where: { id }
         });
         return matchesData ? MatchMapper.toDomain(matchesData) : null;
     }
 
     async findManyByIds(ids: string[]): Promise<Match[]> {
-        const matchesData = await this.prisma.match.findMany({
+        const matchesData = await this.client.match.findMany({
             where: { id: { in: ids } }
         });
         return matchesData.map(MatchMapper.toDomain);
     }
 
     async findByParticipantsIdsAndTournamentId(participant1Id: string, participant2Id: string, tournamentId: string): Promise<Match | null> {
-        const matchData = await this.prisma.match.findFirst({
+        const matchData = await this.client.match.findFirst({
             where: {
                 tournamentId: tournamentId,
                 OR: [
@@ -65,7 +74,7 @@ export class PrismaMatchRepository implements MatchRepository {
     }
 
     async findManyByTournamentId(tournamentId: string): Promise<MatchWithParticipants[]> {
-        const matchesData = await this.prisma.match.findMany({
+        const matchesData = await this.client.match.findMany({
             where: { tournamentId: tournamentId },
             include: {
                 participant1: {
@@ -76,7 +85,7 @@ export class PrismaMatchRepository implements MatchRepository {
                 },
             },
         });
-        
+
         return matchesData.map(data => ({
             match: MatchMapper.toDomain(data),
             participant1: RegisteredParticipantMapper.toDomain(data.participant1),

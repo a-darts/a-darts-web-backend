@@ -3,6 +3,7 @@ import type { IParticipant } from "./Participant.js";
 
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from "../exceptions/ParticipantExceptions.js";
 import { BracketNotInDraftOrPublisedException, BracketNotInProgressException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
+import { Match } from "./Match.js";
 
 
 export enum BracketStatus {
@@ -188,6 +189,38 @@ export class Bracket {
         interleaved.forEach((participant, index) => {
             this.positions.push(BracketPosition.create(participant, index + 1));
         });
+    }
+
+
+    public generateInitialMatches(): Match[] {
+        if (this.status !== BracketStatus.IN_PROGRESS) {
+            throw new BracketNotInProgressException();
+        }
+
+        const matches: Match[] = [];
+        const positions = this.getPositions();
+
+        // Agrupamos de 2 en 2 para crear los partidos
+        for (let i = 0; i < positions.length; i += 2) {
+            const p1 = positions[i].getParticipant();
+            const p2 = positions[i + 1].getParticipant();
+
+            const match = Match.create(
+                this.tournamentId,
+                p1.getId(),
+                p2.getId(),
+                1, // Round 1
+            );
+
+            // MIRAR
+            // Lógica automática para BYES:
+            // Si uno es ByeParticipant, el partido podría marcarse como FINISHED directamente
+            // Pero eso lo puede gestionar un Service para mantener limpia la entidad.
+
+            matches.push(match);
+        }
+
+        return matches;
     }
 
 
