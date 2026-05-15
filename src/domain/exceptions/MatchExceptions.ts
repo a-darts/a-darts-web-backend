@@ -19,10 +19,10 @@ export class MatchNotSuspendedException extends Error {
     }
 }
 
-export class MatchFinishedException extends Error {
+export class MatchAlreadyFinishedException extends Error {
     constructor() {
-        super('Match is finished');
-        this.name = 'MatchFinishedException';
+        super('Match is already finished');
+        this.name = 'MatchAlreadyFinishedException';
     }
 }
 

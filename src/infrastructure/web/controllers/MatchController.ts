@@ -3,7 +3,7 @@ import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
-import { InvalidMatchStatusUpdateException, MatchFinishedException, MatchNotFoundException, MatchNotInProgressException, MatchNotPendingException, MatchNotSuspendedException, ParticipantNotFoundInMatchException } from '../../../domain/exceptions/MatchExceptions.js';
+import { InvalidMatchStatusUpdateException, MatchAlreadyFinishedException, MatchNotFoundException, MatchNotInProgressException, MatchNotPendingException, MatchNotSuspendedException, ParticipantNotFoundInMatchException } from '../../../domain/exceptions/MatchExceptions.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { GetMatchById } from '../../../application/services/tournament/matches/GetMatchById.js';
 import { UpdateMatchStatus } from '../../../application/services/tournament/matches/UpdateMatchStatus.js';
@@ -374,7 +374,7 @@ export class MatchController {
       if (
         error instanceof MatchNotPendingException ||
         error instanceof MatchNotInProgressException ||
-        error instanceof MatchFinishedException ||
+        error instanceof MatchAlreadyFinishedException ||
         error instanceof MatchNotSuspendedException
       ) {
         return res.status(409).json(

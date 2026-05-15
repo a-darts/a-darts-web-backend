@@ -1,5 +1,5 @@
 import { TournamentStatus } from "@prisma/client";
-import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchFinishedException, ParticipantNotFoundInMatchException } from "../exceptions/MatchExceptions.js";
+import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchAlreadyFinishedException, ParticipantNotFoundInMatchException } from "../exceptions/MatchExceptions.js";
 import { RegisteredParticipantNotFoundException } from "../exceptions/ParticipantExceptions.js";
 
 
@@ -130,7 +130,7 @@ export class Match {
 
     public cancel() {
         if (this.status === MatchStatus.FINISHED) {
-            throw new MatchFinishedException();
+            throw new MatchAlreadyFinishedException();
         }
 
         this.status = MatchStatus.CANCELLED;

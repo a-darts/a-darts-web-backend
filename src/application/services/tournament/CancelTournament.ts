@@ -24,16 +24,15 @@ export class CancelTournament {
 
     // 2. Rehydrate the bracket from the DB
     const bracket = await this.bracketRepository.findByTournamentId(id);
-    if (!bracket) {
-      throw new BracketNotFoundException();
-    }
 
     // 3. Rehydrate all the tournament matches from the DB
     const matches = await this.matchRepository.findManyByTournamentId(id);
 
     // 4. Cancel the tournament, the bracket and all not FINISHED matches
     tournament.cancel();
-    bracket.cancel();
+    if (bracket) {
+      bracket.cancel();
+    }
     const matchesToUpdate = matches.filter(m => m.match.getStatus() !== MatchStatus.FINISHED);
     for (const match of matchesToUpdate) {
       match.match.cancel();
@@ -42,7 +41,9 @@ export class CancelTournament {
     // 5. Persist the changes in the DB
     await this.unitOfWork.transaction(async () => {
       await this.tournamentRepository.update(tournament);
-      await this.bracketRepository.update(bracket);
+      if (bracket) {
+        await this.bracketRepository.update(bracket);
+      }
       for (const match of matchesToUpdate) {
         await this.matchRepository.update(match.match);
       }
