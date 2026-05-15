@@ -6,12 +6,14 @@ import { MissingRequiredUserFieldsException } from "../../../domain/exceptions/U
 import { prisma } from "../../persistence/client.js";
 import { PrismaBracketRepository } from "../../persistence/repositories/PrismaBracketRepository.js";
 import { AuthRequest } from "../middlewares/authMiddleware.js";
+import { ReshuffleBracket } from '../../../application/services/bracket/ReshuffleBracket.js';
 
 
 const bracketRepository = new PrismaBracketRepository(prisma);
 
 
 const swapBracketPositions = new SwapBracketPositions(bracketRepository);
+const reshuffleBracket = new ReshuffleBracket(bracketRepository);
 
 /**
  * @swagger
@@ -212,6 +214,158 @@ export class BracketController {
                 error instanceof MissingRequiredUserFieldsException ||
                 error instanceof InvalidPositionsException
             ) {
+                return res.status(400).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            if (error instanceof BracketNotFoundException) {
+                return res.status(404).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            if (error instanceof BracketNotInDraftOrPublisedException) {
+                return res.status(409).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            console.error('[ERROR]:', error);
+            res.status(500).json(
+                ApiResponseBuilder.error('Internal server error')
+            );
+        }
+    }
+
+
+    /**
+     * @swagger
+     * /api/brackets/{id}/reshuffle:
+     *   post:
+     *     summary: Reshuffle positions in the bracket
+     *     tags: [Brackets]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - name: id
+     *         in: path
+     *         required: true
+     *         description: Bracket ID
+     *         schema:
+     *           type: string
+     *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+     *  
+     *     responses:
+     *       200:
+     *         description: Bracket reshuffled successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 message:
+     *                   type: string
+     *                   example: Bracket reshuffled successfully
+     *                 data:
+     *                   $ref: '#/components/schemas/Bracket'
+     *       400:
+     *         description: Bad Request
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: All fields are required
+     *       401:
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: No token provided
+     *       403:
+     *         description: Forbidden
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: You do not have permission to perform this action
+     *       404:
+     *         description: Not Found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Bracket not found
+     *       409:
+     *         description: Conflict
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Bracket not in draft or published
+     *       500:
+     *         description: Internal Server Error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Internal server error
+     */
+    async reshuffleBracket(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id;
+            if (!id || typeof id !== 'string') {
+                throw new MissingRequiredUserFieldsException();
+            }
+
+            await reshuffleBracket.execute({
+                id: id,
+            });
+            res.status(200).json(
+                ApiResponseBuilder.success(
+                    null,
+                    'Bracket reshuffled successfully',
+                )
+            );
+        } catch (error: any) {
+            if (error instanceof MissingRequiredUserFieldsException) {
                 return res.status(400).json(
                     ApiResponseBuilder.error(error.message)
                 );

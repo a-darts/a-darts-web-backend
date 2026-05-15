@@ -17,6 +17,10 @@ export interface CreateBracketRequestDTO {
     id: string; // Tournament ID
 }
 
+export interface ReshuffleBracketRequestDTO {
+    id: string; // Bracket ID
+}
+
 export interface UpdateBracketPositionsRequestDTO {
     id: string; // Bracket ID
     position1: number;

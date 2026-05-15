@@ -64,5 +64,6 @@ router.post('/matches/:id/legs', authMiddleware, isAdmin, matchController.regist
 
 // Match routes
 router.put('/brackets/:id/swapPositions', authMiddleware, isAdmin, bracketController.swapPositions);
+router.post('/brackets/:id/reshuffle', authMiddleware, isAdmin, bracketController.reshuffleBracket);
 
 export default router;

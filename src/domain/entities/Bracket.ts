@@ -2,7 +2,7 @@ import { ByeParticipant } from "./Participant.js";
 import type { IParticipant } from "./Participant.js";
 
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from "../exceptions/ParticipantExceptions.js";
-import { BracketNotInDraftOrPublisedException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
+import { BracketNotInDraftOrPublisedException, BracketNotInProgressException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
 
 
 export enum BracketStatus {
@@ -131,7 +131,7 @@ export class Bracket {
     // DOMAIN METHODS
     // --------------------------------------------------------------------
     public swapPositions(pos1: number, pos2: number): void {
-        // 1. Validar que esté en borrador o publicado (pero no en progreso)
+        // 1. Validar que esté en borrador o publicado
         if (this.status !== BracketStatus.DRAFT && this.status !== BracketStatus.PUBLISHED) {
             throw new BracketNotInDraftOrPublisedException();
         }
@@ -153,6 +153,66 @@ export class Bracket {
         // Mantenemos el número de posición original pero cambiamos el participante
         this.positions[index1] = BracketPosition.create(participant2, pos1);
         this.positions[index2] = BracketPosition.create(participant1, pos2);
+    }
+
+
+    public reshuffle(): void {
+        // 1. Validar que esté en borrador o publicado
+        if (this.status !== BracketStatus.DRAFT && this.status !== BracketStatus.PUBLISHED) {
+            throw new BracketNotInDraftOrPublisedException();
+        }
+
+        // 2. Extraer solo los participantes reales (ignorando los Byes actuales)
+        const realParticipants = this.positions
+            .map(p => p.getParticipant())
+            .filter(participant => !(participant instanceof ByeParticipant));
+
+        // 3. Volver a barajar los participantes reales
+        const shuffled = Bracket.shuffle([...realParticipants]);
+
+        // 4. Calcular cuántos byes necesitamos (basado en el tamaño actual del bracket)
+        const totalSlots = this.positions.length;
+        const numByes = totalSlots - shuffled.length;
+
+        // 5. Re-crear la lista completa con los nuevos Byes
+        const fullList: IParticipant[] = [...shuffled];
+        for (let i = 0; i < numByes; i++) {
+            fullList.push(ByeParticipant.create());
+        }
+
+        // 6. Aplicar de nuevo el algoritmo de distribución (Standard Tournament Seeding)
+        const interleaved = Bracket.distributePositions(fullList);
+
+        // 7. Limpiar y actualizar el array de posiciones
+        this.positions.length = 0;
+        interleaved.forEach((participant, index) => {
+            this.positions.push(BracketPosition.create(participant, index + 1));
+        });
+    }
+
+
+    // --------------------------------------------------------------------
+    // STATUS MANAGEMENT METHODS
+    // --------------------------------------------------------------------
+    public publish(): void {
+        if (this.status !== BracketStatus.DRAFT) {
+            throw new BracketNotInDraftOrPublisedException();
+        }
+        this.status = BracketStatus.PUBLISHED;
+    }
+
+    public start(): void {
+        if (this.status !== BracketStatus.PUBLISHED) {
+            throw new BracketNotInDraftOrPublisedException();
+        }
+        this.status = BracketStatus.IN_PROGRESS;
+    }
+
+    public finish(): void {
+        if (this.status !== BracketStatus.IN_PROGRESS) {
+            throw new BracketNotInProgressException();
+        }
+        this.status = BracketStatus.FINISHED;
     }
 
 
