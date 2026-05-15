@@ -355,12 +355,12 @@ export class BracketController {
                 throw new MissingRequiredUserFieldsException();
             }
 
-            await reshuffleBracket.execute({
+            const bracket = await reshuffleBracket.execute({
                 id: id,
             });
             res.status(200).json(
                 ApiResponseBuilder.success(
-                    null,
+                    bracket,
                     'Bracket reshuffled successfully',
                 )
             );
