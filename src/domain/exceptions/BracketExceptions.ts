@@ -19,6 +19,13 @@ export class BracketNotInDraftOrPublisedException extends Error {
     }
 }
 
+export class BracketNotInDraftException extends Error {
+    constructor() {
+        super('Bracket not in draft');
+        this.name = 'BracketNotInDraftException';
+    }
+}
+
 export class BracketNotInProgressException extends Error {
     constructor() {
         super('Bracket not in progress');

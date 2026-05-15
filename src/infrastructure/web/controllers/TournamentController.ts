@@ -29,7 +29,7 @@ import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatc
 // import { CreateMatch } from '../../../application/services/tournament/matches/CreateMatch.js';
 import { CreateBracket } from '../../../application/services/bracket/CreateBracket.js';
 import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
-import { BracketAlreadyExistsException, BracketNotFoundException, BracketNotInDraftOrPublisedException } from '../../../domain/exceptions/BracketExceptions.js';
+import { BracketAlreadyExistsException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException } from '../../../domain/exceptions/BracketExceptions.js';
 import { StartTournament } from '../../../application/services/tournament/StartTournament.js';
 import { PublishTournament } from '../../../application/services/tournament/PublishTournament.js';
 import { CancelTournament } from '../../../application/services/tournament/CancelTournament.js';
@@ -774,7 +774,7 @@ export class TournamentController {
       }
       if (
         error instanceof TournamentNotInDraftException ||
-        error instanceof BracketNotInDraftOrPublisedException
+        error instanceof BracketNotInDraftException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
