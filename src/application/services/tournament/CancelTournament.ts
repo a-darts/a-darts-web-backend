@@ -33,9 +33,9 @@ export class CancelTournament {
     if (bracket) {
       bracket.cancel();
     }
-    const matchesToUpdate = matches.filter(m => m.match.getStatus() !== MatchStatus.FINISHED);
+    const matchesToUpdate = matches.filter(m => m.getStatus() !== MatchStatus.FINISHED);
     for (const match of matchesToUpdate) {
-      match.match.cancel();
+      match.cancel();
     }
 
     // 5. Persist the changes in the DB
@@ -45,7 +45,7 @@ export class CancelTournament {
         await this.bracketRepository.update(bracket);
       }
       for (const match of matchesToUpdate) {
-        await this.matchRepository.update(match.match);
+        await this.matchRepository.update(match);
       }
     });
   }

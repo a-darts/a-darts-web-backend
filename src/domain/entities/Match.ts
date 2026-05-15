@@ -62,13 +62,17 @@ export class Match {
         round: number,
         boardNumber?: number,
     ): Match {
+        const isByeMatch = participant1Id === null || participant2Id === null;
+        const initialStatus = isByeMatch ? MatchStatus.FINISHED : MatchStatus.PENDING;
+        const finishedAt = isByeMatch ? new Date() : null;
+
         return new Match(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             round,
             boardNumber ?? null,
             null,
-            null,
-            MatchStatus.PENDING,
+            finishedAt,
+            initialStatus,
             participant1Id,
             participant2Id,
             MatchScore.create(),
@@ -88,24 +92,41 @@ export class Match {
         if (this.status !== MatchStatus.IN_PROGRESS) {
             throw new MatchNotInProgressException();
         }
-        if (participantId !== this.participant1Id && participantId !== this.participant2Id) {
-            throw new ParticipantNotFoundInMatchException();
-        }
 
-        const participant = participantId === this.participant1Id ? 'P1' : 'P2';
-        this.matchScore = this.matchScore.addWinSet(participant);
+        const position = this.getParticipantPosition(participantId);
+        this.matchScore = this.matchScore.addWinSet(position);
     }
 
     public addWinLeg(participantId: string): void {
         if (this.status !== MatchStatus.IN_PROGRESS) {
             throw new MatchNotInProgressException();
         }
-        if (participantId !== this.participant1Id && participantId !== this.participant2Id) {
-            throw new ParticipantNotFoundInMatchException();
-        }
 
-        const participant = participantId === this.participant1Id ? 'P1' : 'P2';
-        this.matchScore = this.matchScore.addWinLeg(participant);
+        const position = this.getParticipantPosition(participantId);
+        this.matchScore = this.matchScore.addWinLeg(position);
+    }
+
+    public getParticipantPosition(participantId: string): 'P1' | 'P2' {
+        if (participantId === this.participant1Id) return 'P1';
+        if (participantId === this.participant2Id) return 'P2';
+        throw new ParticipantNotFoundInMatchException();
+    }
+
+    public getWinnerId(): string | null {
+        if (this.status !== MatchStatus.FINISHED) return null;
+
+        // Si el P1 es nulo, el ganador es P2 (y viceversa)
+        if (this.participant1Id === null) return this.participant2Id;
+        if (this.participant2Id === null) return this.participant1Id;
+
+        // Si ambos existen, comparamos el score
+        const s1 = this.matchScore.getParticipant1Score().getSetsWon();
+        const s2 = this.matchScore.getParticipant2Score().getSetsWon();
+
+        if (s1 > s2) return this.participant1Id;
+        if (s2 > s1) return this.participant2Id;
+
+        return null; // Empate o error
     }
 
 

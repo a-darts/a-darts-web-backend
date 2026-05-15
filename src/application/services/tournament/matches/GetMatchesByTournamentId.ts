@@ -18,7 +18,7 @@ export class GetMatchesByTournamentId {
     }
 
     // 2. Fetch the matches in the DB
-    const matches = await this.matchRepository.findManyByTournamentId(id);
+    const matches = await this.matchRepository.findManyByTournamentIdWithParticipants(id);
     if (!matches) {
       return [];
     }

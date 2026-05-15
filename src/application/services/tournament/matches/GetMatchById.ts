@@ -8,7 +8,7 @@ export class GetMatchById {
 
   public async execute(id: string): Promise<MatchResponseDTO> {
     // 1. Rehydrate the match from the DB
-    const match = await this.matchRepository.findById(id);
+    const match = await this.matchRepository.findByIdWithParticipants(id);
     if (!match) {
       throw new MatchNotFoundException();
     }

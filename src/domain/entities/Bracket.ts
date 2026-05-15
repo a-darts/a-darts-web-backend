@@ -239,7 +239,7 @@ export class Bracket {
     }
 
     public start(): void {
-        if (this.status !== BracketStatus.PUBLISHED) {
+        if (this.status !== BracketStatus.PUBLISHED && this.status !== BracketStatus.DRAFT) {
             throw new BracketNotInDraftOrPublisedException();
         }
         this.status = BracketStatus.IN_PROGRESS;

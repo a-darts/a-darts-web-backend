@@ -40,7 +40,14 @@ export class PrismaMatchRepository implements MatchRepository {
         return matchesData.map(MatchMapper.toDomain);
     }
 
-    async findById(id: string): Promise<MatchWithParticipants | null> {
+    async findById(id: string): Promise<Match | null> {
+        const matchData = await this.client.match.findUnique({
+            where: { id },
+        });
+        return matchData ? MatchMapper.toDomain(matchData) : null;
+    }
+
+    async findByIdWithParticipants(id: string): Promise<MatchWithParticipants | null> {
         const matchesData = await this.client.match.findUnique({
             where: { id },
             include: {
@@ -87,7 +94,15 @@ export class PrismaMatchRepository implements MatchRepository {
         return matchData ? MatchMapper.toDomain(matchData) : null;
     }
 
-    async findManyByTournamentId(tournamentId: string): Promise<MatchWithParticipants[]> {
+    async findManyByTournamentId(tournamentId: string): Promise<Match[]> {
+        const matchesData = await this.client.match.findMany({
+            where: { tournamentId: tournamentId },
+        });
+
+        return matchesData.map(data => MatchMapper.toDomain(data));
+    }
+
+    async findManyByTournamentIdWithParticipants(tournamentId: string): Promise<MatchWithParticipants[]> {
         const matchesData = await this.client.match.findMany({
             where: { tournamentId: tournamentId },
             include: {
