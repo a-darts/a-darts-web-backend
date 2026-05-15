@@ -26,6 +26,13 @@ export class BracketNotInProgressException extends Error {
     }
 }
 
+export class BracketAlreadyFinishedException extends Error {
+    constructor() {
+        super('Bracket already finished');
+        this.name = 'BracketAlreadyFinishedException';
+    }
+}
+
 export class InvalidPositionsException extends Error {
     constructor() {
         super('Invalid positions');

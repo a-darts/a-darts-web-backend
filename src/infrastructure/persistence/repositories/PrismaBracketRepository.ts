@@ -84,7 +84,7 @@ export class PrismaBracketRepository implements BracketRepository {
     }
 
     async findByTournamentId(tournamentId: string): Promise<Bracket | null> {
-        const bracketsData = await this.client.bracket.findUnique({
+        const bracketData = await this.client.bracket.findUnique({
             where: { tournamentId },
             include: {
                 positions: {
@@ -102,6 +102,6 @@ export class PrismaBracketRepository implements BracketRepository {
                 }
             },
         });
-        return bracketsData ? BracketMapper.toDomain(bracketsData) : null;
+        return bracketData ? BracketMapper.toDomain(bracketData) : null;
     }
 }

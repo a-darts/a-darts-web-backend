@@ -7,7 +7,6 @@ import { PrismaTournamentRepository } from '../../persistence/repositories/Prism
 import { InvalidTournamentStatusUpdateException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
-import { UpdateTournamentStatus } from '../../../application/services/tournament/UpdateTournamentStatus.js';
 import { InvalidRegistrationPeriodException, InvalidRegistrationStatusException, RegistrationAlreadyClosedException, RegistrationAlreadyOpenException, RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
 import { UpdateTournamentInfo } from '../../../application/services/tournament/UpdateTournamentInfo.js';
 import { UpdateTournamentName } from '../../../application/services/tournament/UpdateTournamentName.js';
@@ -27,10 +26,17 @@ import { GetParticipantsByTournamentId } from '../../../application/services/tou
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 import { GetMatchesByTournamentId } from '../../../application/services/tournament/matches/GetMatchesByTournamentId.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
-import { CreateMatch } from '../../../application/services/tournament/matches/CreateMatch.js';
+// import { CreateMatch } from '../../../application/services/tournament/matches/CreateMatch.js';
 import { CreateBracket } from '../../../application/services/bracket/CreateBracket.js';
 import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
-import { BracketAlreadyExistsException } from '../../../domain/exceptions/BracketExceptions.js';
+import { BracketAlreadyExistsException, BracketNotFoundException, BracketNotInDraftOrPublisedException } from '../../../domain/exceptions/BracketExceptions.js';
+import { StartTournament } from '../../../application/services/tournament/StartTournament.js';
+import { PublishTournament } from '../../../application/services/tournament/PublishTournament.js';
+import { CancelTournament } from '../../../application/services/tournament/CancelTournament.js';
+import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
+
+
+const unitOfWork = new PrismaUnitOfWork(prisma);
 
 
 const tournamentRepository = new PrismaTournamentRepository(prisma);
@@ -44,7 +50,9 @@ const bracketRepository = new PrismaBracketRepository(prisma);
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
 const getTournamentById = new GetTournamentById(tournamentRepository);
 const createTournament = new CreateTournament(tournamentRepository);
-const updateTournamentStatus = new UpdateTournamentStatus(tournamentRepository);
+const publishTournament = new PublishTournament(unitOfWork, tournamentRepository, bracketRepository);
+const startTournament = new StartTournament(unitOfWork, tournamentRepository, bracketRepository, matchRepository);
+const cancelTournament = new CancelTournament(unitOfWork, tournamentRepository, bracketRepository, matchRepository);
 const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
 const updateTournamentName = new UpdateTournamentName(tournamentRepository);
 const updateTournamentRegistrationStatus = new UpdateTournamentRegistrationStatus(tournamentRepository);
@@ -55,7 +63,7 @@ const doCheckInParticipant = new DoCheckInParticipant(tournamentRepository, regi
 const undoCheckInParticipant = new UndoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
 const getMatchesByTournamentId = new GetMatchesByTournamentId(tournamentRepository, matchRepository);
-const createMatch = new CreateMatch(tournamentRepository, registeredParticipantRepository, matchRepository);
+// const createMatch = new CreateMatch(tournamentRepository, registeredParticipantRepository, matchRepository);
 const createBracket = new CreateBracket(bracketRepository, tournamentRepository, registeredParticipantRepository);
 
 /**
@@ -286,16 +294,6 @@ const createBracket = new CreateBracket(bracketRepository, tournamentRepository,
  *           example: Campeonato de España Individual Femenino
  *         info:
  *           $ref: '#/components/schemas/TournamentInfo'
- *
- *     UpdateTournamentStatusRequest:
- *       type: object
- *       required:
- *         - newStatus
- *       properties:
- *         newStatus:
- *           type: string
- *           enum: [DRAFT, PUBLISHED, IN_PROGRESS, FINISHED, CANCELLED]
- *           example: PUBLISHED
  *
  *     UpdateTournamentInfoRequest:
  *       type: object
@@ -639,9 +637,9 @@ export class TournamentController {
 
   /**
    * @swagger
-   * /api/tournaments/{id}/status:
-   *   put:
-   *     summary: Update tournament status
+   * /api/tournaments/{id}/publish:
+   *   post:
+   *     summary: Publish tournament
    *     tags: [Tournaments]
    *     security:
    *       - bearerAuth: []
@@ -653,15 +651,9 @@ export class TournamentController {
    *         schema:
    *           type: string
    *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/UpdateTournamentStatusRequest'
    *     responses:
    *       200:
-   *         description: Status updated successfully
+   *         description: Tournament published successfully
    *         content:
    *           application/json:
    *             schema:
@@ -672,7 +664,7 @@ export class TournamentController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Status updated successfully
+   *                   example: Tournament published successfully
    *                 data:
    *                   type: string
    *                   example: null
@@ -740,7 +732,7 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament is not published
+   *                   example: Tournament is not in draft
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -755,41 +747,23 @@ export class TournamentController {
    *                   type: string
    *                   example: Internal server error
    */
-  async updateTournamentStatus(req: AuthRequest, res: Response) {
+  async publishTournament(req: AuthRequest, res: Response) {
     try {
       const id = req.params.id;
       if (!id || typeof id !== 'string') {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const { newStatus } = req.body;
-      if (!newStatus) {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      await updateTournamentStatus.execute({
-        id: id,
-        newStatus: newStatus,
-      });
+      await publishTournament.execute(id);
       res.status(200).json(
-        ApiResponseBuilder.success(null, 'Status updated successfully')
+        ApiResponseBuilder.success(
+          null,
+          'Tournament published successfully',
+        )
       );
     } catch (error: any) {
-      if (
-        error instanceof MissingRequiredUserFieldsException ||
-        error instanceof InvalidTournamentStatusUpdateException
-      ) {
+      if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (
-        error instanceof TournamentNotInDraftException ||
-        error instanceof TournamentNotPublishedException ||
-        error instanceof TournamentNotInProgressException ||
-        error instanceof RegistrationNotClosedException
-      ) {
-        return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
       }
@@ -798,6 +772,15 @@ export class TournamentController {
           ApiResponseBuilder.error(error.message)
         );
       }
+      if (
+        error instanceof TournamentNotInDraftException ||
+        error instanceof BracketNotInDraftOrPublisedException
+      ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')
@@ -2276,174 +2259,174 @@ export class TournamentController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/tournaments/{id}/matches:
-   *   post:
-   *     summary: Create a match in a tournament
-   *     tags: [Tournaments]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - name: id
-   *         in: path
-   *         required: true
-   *         description: Tournament ID
-   *         schema:
-   *           type: string
-   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/CreateMatchRequest'
-   *     responses:
-   *       201:
-   *         description: Match created successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Match created successfully
-   *                 data:
-   *                   type: string
-   *                   example: null
-   *       400:
-   *         description: Bad Request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: All fields are required
-   *       401:
-   *         description: Unauthorized
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: No token provided
-   *       403:
-   *         description: Forbidden
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: You do not have permission to perform this action
-   *       404:
-   *         description: Not Found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Tournament not found
-   *       409:
-   *         description: Conflict
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Participant 1 is not registered in this tournament
-   *       500:
-   *         description: Internal Server Error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Internal server error
-   */
-  async createMatch(req: AuthRequest, res: Response) {
-    try {
-      const id = req.params.id;
-      if (!id || typeof id !== 'string') {
-        throw new MissingRequiredUserFieldsException();
-      }
+  // /**
+  //  * @swagger
+  //  * /api/tournaments/{id}/matches:
+  //  *   post:
+  //  *     summary: Create a match in a tournament
+  //  *     tags: [Tournaments]
+  //  *     security:
+  //  *       - bearerAuth: []
+  //  *     parameters:
+  //  *       - name: id
+  //  *         in: path
+  //  *         required: true
+  //  *         description: Tournament ID
+  //  *         schema:
+  //  *           type: string
+  //  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+  //  *     requestBody:
+  //  *       required: true
+  //  *       content:
+  //  *         application/json:
+  //  *           schema:
+  //  *             $ref: '#/components/schemas/CreateMatchRequest'
+  //  *     responses:
+  //  *       201:
+  //  *         description: Match created successfully
+  //  *         content:
+  //  *           application/json:
+  //  *             schema:
+  //  *               type: object
+  //  *               properties:
+  //  *                 status:
+  //  *                   type: string
+  //  *                   example: success
+  //  *                 message:
+  //  *                   type: string
+  //  *                   example: Match created successfully
+  //  *                 data:
+  //  *                   type: string
+  //  *                   example: null
+  //  *       400:
+  //  *         description: Bad Request
+  //  *         content:
+  //  *           application/json:
+  //  *             schema:
+  //  *               type: object
+  //  *               properties:
+  //  *                 status:
+  //  *                   type: string
+  //  *                   example: error
+  //  *                 message:
+  //  *                   type: string
+  //  *                   example: All fields are required
+  //  *       401:
+  //  *         description: Unauthorized
+  //  *         content:
+  //  *           application/json:
+  //  *             schema:
+  //  *               type: object
+  //  *               properties:
+  //  *                 status:
+  //  *                   type: string
+  //  *                   example: error
+  //  *                 message:
+  //  *                   type: string
+  //  *                   example: No token provided
+  //  *       403:
+  //  *         description: Forbidden
+  //  *         content:
+  //  *           application/json:
+  //  *             schema:
+  //  *               type: object
+  //  *               properties:
+  //  *                 status:
+  //  *                   type: string
+  //  *                   example: error
+  //  *                 message:
+  //  *                   type: string
+  //  *                   example: You do not have permission to perform this action
+  //  *       404:
+  //  *         description: Not Found
+  //  *         content:
+  //  *           application/json:
+  //  *             schema:
+  //  *               type: object
+  //  *               properties:
+  //  *                 status:
+  //  *                   type: string
+  //  *                   example: error
+  //  *                 message:
+  //  *                   type: string
+  //  *                   example: Tournament not found
+  //  *       409:
+  //  *         description: Conflict
+  //  *         content:
+  //  *           application/json:
+  //  *             schema:
+  //  *               type: object
+  //  *               properties:
+  //  *                 status:
+  //  *                   type: string
+  //  *                   example: error
+  //  *                 message:
+  //  *                   type: string
+  //  *                   example: Participant 1 is not registered in this tournament
+  //  *       500:
+  //  *         description: Internal Server Error
+  //  *         content:
+  //  *           application/json:
+  //  *             schema:
+  //  *               type: object
+  //  *               properties:
+  //  *                 status:
+  //  *                   type: string
+  //  *                   example: error
+  //  *                 message:
+  //  *                   type: string
+  //  *                   example: Internal server error
+  //  */
+  // async createMatch(req: AuthRequest, res: Response) {
+  //   try {
+  //     const id = req.params.id;
+  //     if (!id || typeof id !== 'string') {
+  //       throw new MissingRequiredUserFieldsException();
+  //     }
 
-      const { participant1Id, participant2Id, round, boardNumber } = req.body;
-      if (!participant1Id || !participant2Id || !round) {
-        throw new MissingRequiredUserFieldsException();
-      }
+  //     const { participant1Id, participant2Id, round, boardNumber } = req.body;
+  //     if (!participant1Id || !participant2Id || !round) {
+  //       throw new MissingRequiredUserFieldsException();
+  //     }
 
-      await createMatch.execute({
-        id: id,
-        participant1Id: participant1Id,
-        participant2Id: participant2Id,
-        round: round,
-        boardNumber: boardNumber,
-      });
-      res.status(201).json(
-        ApiResponseBuilder.success(
-          null,
-          'Match created successfully',
-        )
-      );
-    } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
-        return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (error instanceof TournamentNotFoundException) {
-        return res.status(404).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (
-        error instanceof ParticipantNotRegisteredInTournamentException ||
-        error instanceof MatchAlreadyExistsException
-      ) {
-        return res.status(409).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      console.error('[ERROR]:', error);
-      res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
-      );
-    }
-  }
+  //     await createMatch.execute({
+  //       id: id,
+  //       participant1Id: participant1Id,
+  //       participant2Id: participant2Id,
+  //       round: round,
+  //       boardNumber: boardNumber,
+  //     });
+  //     res.status(201).json(
+  //       ApiResponseBuilder.success(
+  //         null,
+  //         'Match created successfully',
+  //       )
+  //     );
+  //   } catch (error: any) {
+  //     if (error instanceof MissingRequiredUserFieldsException) {
+  //       return res.status(400).json(
+  //         ApiResponseBuilder.error(error.message)
+  //       );
+  //     }
+  //     if (error instanceof TournamentNotFoundException) {
+  //       return res.status(404).json(
+  //         ApiResponseBuilder.error(error.message)
+  //       );
+  //     }
+  //     if (
+  //       error instanceof ParticipantNotRegisteredInTournamentException ||
+  //       error instanceof MatchAlreadyExistsException
+  //     ) {
+  //       return res.status(409).json(
+  //         ApiResponseBuilder.error(error.message)
+  //       );
+  //     }
+  //     console.error('[ERROR]:', error);
+  //     res.status(500).json(
+  //       ApiResponseBuilder.error('Internal server error')
+  //     );
+  //   }
+  // }
 
 
   /**

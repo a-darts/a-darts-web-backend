@@ -1,13 +1,11 @@
-import { TournamentStatus } from '../../../domain/entities/Tournament.js';
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
-import { InvalidTournamentStatusUpdateException, TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
+import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { BracketRepository } from '../../../domain/repositories/BracketRepository.js';
+import { MatchRepository } from '../../../domain/repositories/MatchRepository.js';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
 import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
-import { MatchRepository } from '../../../domain/repositories/MatchRepository.js';
-import { MatchStatus } from '../../../domain/entities/Match.js';
 
-export class CancelTournament {
+export class StartTournament {
   constructor(
     private readonly unitOfWork: UnitOfWork,
     private readonly tournamentRepository: TournamentRepository,
@@ -28,23 +26,17 @@ export class CancelTournament {
       throw new BracketNotFoundException();
     }
 
-    // 3. Rehydrate all the tournament matches from the DB
-    const matches = await this.matchRepository.findManyByTournamentId(id);
+    // 3. Start the tournament, the bracket and generate the initial matches
+    tournament.start();
+    bracket.start();
+    const initialMatches = bracket.generateInitialMatches();
 
-    // 4. Cancel the tournament, the bracket and all not FINISHED matches
-    tournament.cancel();
-    bracket.cancel();
-    const matchesToUpdate = matches.filter(m => m.match.getStatus() !== MatchStatus.FINISHED);
-    for (const match of matchesToUpdate) {
-      match.match.cancel();
-    }
-
-    // 5. Persist the changes in the DB
+    // 4. Persist the changes in the DB
     await this.unitOfWork.transaction(async () => {
       await this.tournamentRepository.update(tournament);
       await this.bracketRepository.update(bracket);
-      for (const match of matchesToUpdate) {
-        await this.matchRepository.update(match.match);
+      for (const match of initialMatches) {
+        await this.matchRepository.create(match);
       }
     });
   }

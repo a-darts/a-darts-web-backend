@@ -68,7 +68,7 @@ enum MatchStatus {
   IN_PROGRESS
   FINISHED
   SUSPENDED
-  ABANDONED
+  CANCELLED
 }
 
 enum BracketStatus {
@@ -76,6 +76,7 @@ enum BracketStatus {
   PUBLISHED
   IN_PROGRESS
   FINISHED
+  CANCELLED
 }
 
 model User {

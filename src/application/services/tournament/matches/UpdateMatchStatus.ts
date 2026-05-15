@@ -28,8 +28,8 @@ export class UpdateMatchStatus {
       case MatchStatus.SUSPENDED:
         match.suspend();
         break;
-      case MatchStatus.ABANDONED:
-        match.abandon();
+      case MatchStatus.CANCELLED:
+        match.cancel();
         break;
       default:
         throw new InvalidMatchStatusUpdateException();

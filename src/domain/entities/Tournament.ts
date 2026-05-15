@@ -1,5 +1,6 @@
 import { RegistrationNotClosedException } from "../exceptions/RegistrationExceptions.js";
 import {
+  TournamentAlreadyFinishedException,
   TournamentNotInDraftException,
   TournamentNotInProgressException,
   TournamentNotPublishedException,
@@ -109,6 +110,10 @@ export class Tournament {
   }
 
   public cancel(): void {
+    if (this.status === TournamentStatus.FINISHED) {
+      throw new TournamentAlreadyFinishedException();
+    }
+
     this.status = TournamentStatus.CANCELLED;
   }
 

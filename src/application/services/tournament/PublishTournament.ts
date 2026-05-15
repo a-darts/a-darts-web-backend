@@ -3,7 +3,6 @@ import { TournamentNotFoundException } from '../../../domain/exceptions/Tourname
 import { BracketRepository } from '../../../domain/repositories/BracketRepository.js';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
 import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
-import { UpdateTournamentStatusRequestDTO } from '../../dtos/tournament/TournamentDTOs.js';
 
 export class PublishTournament {
   constructor(
@@ -12,27 +11,28 @@ export class PublishTournament {
     private readonly bracketRepository: BracketRepository,
   ) { }
 
-  public async execute(request: UpdateTournamentStatusRequestDTO): Promise<void> {
+  public async execute(id: string): Promise<void> {
     // 1. Rehydrate the tournament from the DB
-    const tournament = await this.tournamentRepository.findById(request.id);
+    const tournament = await this.tournamentRepository.findById(id);
     if (!tournament) {
       throw new TournamentNotFoundException();
     }
 
     // 2. Rehydrate the bracket from the DB
-    const bracket = await this.bracketRepository.findByTournamentId(request.id);
-    if (!bracket) {
-      throw new BracketNotFoundException();
-    }
+    const bracket = await this.bracketRepository.findByTournamentId(id);
 
     // 3. Update the status in the tournament and bracket
     tournament.publish();
-    bracket.publish();
+    if (bracket) {
+      bracket.publish();
+    }
 
     // 4. Persist the changes in the DB
     await this.unitOfWork.transaction(async () => {
       await this.tournamentRepository.update(tournament);
-      await this.bracketRepository.update(bracket);
+      if (bracket) {
+        await this.bracketRepository.update(bracket);
+      }
     });
   }
 }

@@ -26,6 +26,13 @@ export class TournamentNotPublishedException extends Error {
     }
 }
 
+export class TournamentAlreadyFinishedException extends Error {
+    constructor() {
+        super('Tournament is already finished');
+        this.name = 'TournamentAlreadyFinishedException';
+    }
+}
+
 export class TournamentRegistrationNotOpenException extends Error {
     constructor() {
         super('Tournament registration is not open');

@@ -2,7 +2,7 @@ import { ByeParticipant } from "./Participant.js";
 import type { IParticipant } from "./Participant.js";
 
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from "../exceptions/ParticipantExceptions.js";
-import { BracketNotInDraftOrPublisedException, BracketNotInProgressException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
+import { BracketAlreadyFinishedException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
 import { Match } from "./Match.js";
 
 
@@ -11,6 +11,7 @@ export enum BracketStatus {
     PUBLISHED = 'PUBLISHED',
     IN_PROGRESS = 'IN_PROGRESS',
     FINISHED = 'FINISHED',
+    CANCELLED = 'CANCELLED',
 }
 
 export class Bracket {
@@ -246,6 +247,14 @@ export class Bracket {
             throw new BracketNotInProgressException();
         }
         this.status = BracketStatus.FINISHED;
+    }
+
+    public cancel(): void {
+        if (this.status === BracketStatus.FINISHED) {
+            throw new BracketAlreadyFinishedException();
+        }
+
+        this.status = BracketStatus.CANCELLED;
     }
 
 

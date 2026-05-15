@@ -85,7 +85,7 @@ const registerSetWin = new RegisterSetWin(matchRepository);
  *       properties:
  *         newStatus:
  *           type: string
- *           enum: [PENDING, IN_PROGRESS, FINISHED, SUSPENDED, ABANDONED]
+ *           enum: [PENDING, IN_PROGRESS, FINISHED, SUSPENDED, CANCELLED]
  *           example: IN_PROGRESS
  * 
  *     UpdateMatchBoardNumberRequest:

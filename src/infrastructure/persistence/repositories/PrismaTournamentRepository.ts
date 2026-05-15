@@ -40,9 +40,9 @@ export class PrismaTournamentRepository implements TournamentRepository {
     }
 
     async findById(id: string): Promise<Tournament | null> {
-        const tournamentsData = await this.client.tournament.findUnique({
+        const tournamentData = await this.client.tournament.findUnique({
             where: { id }
         });
-        return tournamentsData ? TournamentMapper.toDomain(tournamentsData) : null;
+        return tournamentData ? TournamentMapper.toDomain(tournamentData) : null;
     }
 }

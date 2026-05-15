@@ -8,7 +8,7 @@ export enum MatchStatus {
     IN_PROGRESS = 'IN_PROGRESS',
     FINISHED = 'FINISHED',
     SUSPENDED = 'SUSPENDED',
-    ABANDONED = 'ABANDONED',
+    CANCELLED = 'CANCELLED',
 }
 
 export class Match {
@@ -128,12 +128,12 @@ export class Match {
         this.finishedAt = new Date();
     }
 
-    public abandon() {
+    public cancel() {
         if (this.status === MatchStatus.FINISHED) {
             throw new MatchFinishedException();
         }
 
-        this.status = MatchStatus.ABANDONED;
+        this.status = MatchStatus.CANCELLED;
     }
 
     public suspend() {
