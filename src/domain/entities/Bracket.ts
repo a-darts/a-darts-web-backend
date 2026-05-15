@@ -206,10 +206,13 @@ export class Bracket {
             const p1 = positions[i].getParticipant();
             const p2 = positions[i + 1].getParticipant();
 
+            const p1Id = p1 instanceof ByeParticipant ? null : p1.getId();
+            const p2Id = p2 instanceof ByeParticipant ? null : p2.getId();
+
             const match = Match.create(
                 this.tournamentId,
-                p1.getId(),
-                p2.getId(),
+                p1Id,
+                p2Id,
                 1, // Round 1
             );
 

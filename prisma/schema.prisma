@@ -180,8 +180,8 @@ model Match {
   finishedAt  DateTime?
   status      MatchStatus @default(PENDING)
 
-  participant1Id String @db.Uuid
-  participant2Id String @db.Uuid
+  participant1Id String? @db.Uuid
+  participant2Id String? @db.Uuid
 
   matchScoreParticipant1SetsWon Int @default(0)
   matchScoreParticipant1LegsWon Int @default(0)
@@ -192,12 +192,10 @@ model Match {
   tournamentId String @db.Uuid
 
   // Integridad referencial
-  tournament   Tournament            @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  participant1 RegisteredParticipant @relation("MatchParticipant1", fields: [participant1Id], references: [id])
-  participant2 RegisteredParticipant @relation("MatchParticipant2", fields: [participant2Id], references: [id])
+  tournament   Tournament             @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  participant1 RegisteredParticipant? @relation("MatchParticipant1", fields: [participant1Id], references: [id])
+  participant2 RegisteredParticipant? @relation("MatchParticipant2", fields: [participant2Id], references: [id])
 
-  // Garantiza partidos únicos en un torneo
-  @@unique([tournamentId, participant1Id, participant2Id])
   // Índices para consultas más rápidas
   @@index([participant1Id])
   @@index([participant2Id])

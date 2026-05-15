@@ -19,8 +19,8 @@ export class Match {
     private finishedAt: Date | null;
     private status: MatchStatus;
 
-    private readonly participant1Id: string;
-    private readonly participant2Id: string;
+    private readonly participant1Id: string | null;
+    private readonly participant2Id: string | null;
 
     private matchScore: MatchScore;
 
@@ -34,8 +34,8 @@ export class Match {
         startedAt: Date | null,
         finishedAt: Date | null,
         status: MatchStatus,
-        participant1Id: string,
-        participant2Id: string,
+        participant1Id: string | null,
+        participant2Id: string | null,
         matchScore: MatchScore,
         tournamentId: string,
     ) {
@@ -57,8 +57,8 @@ export class Match {
     // --------------------------------------------------------------------
     public static create(
         tournamentId: string,
-        participant1Id: string,
-        participant2Id: string,
+        participant1Id: string | null,
+        participant2Id: string | null,
         round: number,
         boardNumber?: number,
     ): Match {
@@ -71,7 +71,7 @@ export class Match {
             MatchStatus.PENDING,
             participant1Id,
             participant2Id,
-            MatchScore.create(participant1Id, participant2Id),
+            MatchScore.create(),
             tournamentId,
         );
     }
@@ -92,7 +92,8 @@ export class Match {
             throw new ParticipantNotFoundInMatchException();
         }
 
-        this.matchScore = this.matchScore.addWinSet(participantId);
+        const participant = participantId === this.participant1Id ? 'P1' : 'P2';
+        this.matchScore = this.matchScore.addWinSet(participant);
     }
 
     public addWinLeg(participantId: string): void {
@@ -103,7 +104,8 @@ export class Match {
             throw new ParticipantNotFoundInMatchException();
         }
 
-        this.matchScore = this.matchScore.addWinLeg(participantId);
+        const participant = participantId === this.participant1Id ? 'P1' : 'P2';
+        this.matchScore = this.matchScore.addWinLeg(participant);
     }
 
 
@@ -180,11 +182,11 @@ export class Match {
         return this.status;
     }
 
-    public getParticipant1Id(): string {
+    public getParticipant1Id(): string | null {
         return this.participant1Id;
     }
 
-    public getParticipant2Id(): string {
+    public getParticipant2Id(): string | null {
         return this.participant2Id;
     }
 
@@ -201,17 +203,11 @@ export class Match {
     // REHYDRATE METHOD
     // --------------------------------------------------------------------
     static rehydrate(data: any): Match {
-        const scoreData = {
-            [data.participant1Id]: {
-                setsWon: data.matchScore.participant1.setsWon,
-                legsWon: data.matchScore.participant1.legsWon,
-            },
-            [data.participant2Id]: {
-                setsWon: data.matchScore.participant2.setsWon,
-                legsWon: data.matchScore.participant2.legsWon,
-            }
-        };
-        const matchScore = MatchScore.rehydrate(scoreData);
+        const matchScore = MatchScore.rehydrate(
+            data.matchScore.participant1,
+            data.matchScore.participant2
+        );
+
         return new Match(
             data.id,
             data.round,
@@ -291,83 +287,67 @@ export class ParticipantScore {
 
 
 export class MatchScore {
-    private readonly scores: Record<string, ParticipantScore>;
+    private readonly scores: Record<'P1' | 'P2', ParticipantScore>;
 
-    constructor(
-        scores: Record<string, ParticipantScore>,
-    ) {
-        this.scores = { ...scores };
+    constructor(p1Score: ParticipantScore, p2Score: ParticipantScore) {
+        this.scores = {
+            P1: p1Score,
+            P2: p2Score
+        };
     }
 
 
     // --------------------------------------------------------------------
     // FACTORY METHOD
     // --------------------------------------------------------------------
-    public static create(
-        participant1Id: string,
-        participant2Id: string,
-    ): MatchScore {
-        return new MatchScore({
-            [participant1Id]: ParticipantScore.create(),
-            [participant2Id]: ParticipantScore.create(),
-        });
+    public static create(): MatchScore {
+        return new MatchScore(
+            ParticipantScore.create(),
+            ParticipantScore.create(),
+        );
     }
 
 
     // --------------------------------------------------------------------
     // HELPER METHODS
     // --------------------------------------------------------------------
-    public addWinLeg(participantId: string): MatchScore {
-        if (!this.scores[participantId]) {
-            throw new ParticipantNotFoundInMatchException();
-        }
-        const newScores = {
-            ...this.scores,
-            [participantId]: this.scores[participantId].winLeg(),
-        }
-        return new MatchScore(newScores);
+    public addWinLeg(position: 'P1' | 'P2'): MatchScore {
+        return new MatchScore(
+            position === 'P1' ? this.scores.P1.winLeg() : this.scores.P1,
+            position === 'P2' ? this.scores.P2.winLeg() : this.scores.P2
+        );
     }
 
-    public addWinSet(participantId: string): MatchScore {
-        if (!this.scores[participantId]) {
-            throw new ParticipantNotFoundInMatchException();
-        }
-
-        const newScores: Record<string, ParticipantScore> = {};
-        for (const id in this.scores) {
-            if (id === participantId) {
-                // Al ganador le sumamos el set
-                newScores[id] = this.scores[id].winSet();
-            } else {
-                // A los demás les reseteamos los legs a 0 manteniendo sus sets
-                newScores[id] = this.scores[id].newSet();
-            }
-        }
-
-        return new MatchScore(newScores);
+    public addWinSet(position: 'P1' | 'P2'): MatchScore {
+        return new MatchScore(
+            position === 'P1' ? this.scores.P1.winSet() : this.scores.P1.newSet(),
+            position === 'P2' ? this.scores.P2.winSet() : this.scores.P2.newSet()
+        );
     }
 
 
     // --------------------------------------------------------------------
     // GETTERS
     // --------------------------------------------------------------------
-    public getScoreForParticipant(participantId: string): ParticipantScore {
-        return this.scores[participantId];
+    public getParticipant1Score(): ParticipantScore {
+        return this.scores.P1;
     }
 
-    public getScores(): Record<string, ParticipantScore> {
-        return { ...this.scores };
+    public getParticipant2Score(): ParticipantScore {
+        return this.scores.P2;
     }
 
 
     // --------------------------------------------------------------------
     // REHYDRATE METHOD
     // --------------------------------------------------------------------
-    static rehydrate(data: Record<string, { setsWon: number, legsWon: number }>): MatchScore {
-        const scores: Record<string, ParticipantScore> = {};
-        for (const [id, value] of Object.entries(data)) {
-            scores[id] = new ParticipantScore(value.setsWon, value.legsWon);
-        }
-        return new MatchScore(scores);
+    static rehydrate(
+        p1Data: { setsWon: number; legsWon: number },
+        p2Data: { setsWon: number; legsWon: number }
+    ): MatchScore {
+        return new MatchScore(
+            new ParticipantScore(p1Data.setsWon, p1Data.legsWon),
+            new ParticipantScore(p2Data.setsWon, p2Data.legsWon)
+        );
     }
 }

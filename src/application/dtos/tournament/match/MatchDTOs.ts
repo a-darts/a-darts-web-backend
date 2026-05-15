@@ -13,7 +13,7 @@ export interface MatchResponseDTO {
 }
 
 export interface ParticipantResponseDTO {
-    id: string;
+    id: string | null;
     alias: string;
     federation: string;
 }

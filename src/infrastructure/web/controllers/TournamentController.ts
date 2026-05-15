@@ -29,7 +29,7 @@ import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatc
 // import { CreateMatch } from '../../../application/services/tournament/matches/CreateMatch.js';
 import { CreateBracket } from '../../../application/services/bracket/CreateBracket.js';
 import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
-import { BracketAlreadyExistsException, BracketAlreadyFinishedException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException } from '../../../domain/exceptions/BracketExceptions.js';
+import { BracketAlreadyExistsException, BracketAlreadyFinishedException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException } from '../../../domain/exceptions/BracketExceptions.js';
 import { StartTournament } from '../../../application/services/tournament/StartTournament.js';
 import { PublishTournament } from '../../../application/services/tournament/PublishTournament.js';
 import { CancelTournament } from '../../../application/services/tournament/CancelTournament.js';
@@ -943,6 +943,164 @@ export class TournamentController {
     }
   }
 
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/start:
+   *   post:
+   *     summary: Start tournament
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Tournament started successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Tournament started successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament is not published
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async startTournament(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await startTournament.execute(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Tournament started successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotFoundException ||
+        error instanceof BracketNotFoundException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotPublishedException ||
+        error instanceof RegistrationNotClosedException ||
+        error instanceof BracketNotInDraftOrPublisedException ||
+        error instanceof BracketNotInProgressException
+      ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
 
 
   /**

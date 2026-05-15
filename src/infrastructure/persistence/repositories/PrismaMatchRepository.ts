@@ -40,11 +40,25 @@ export class PrismaMatchRepository implements MatchRepository {
         return matchesData.map(MatchMapper.toDomain);
     }
 
-    async findById(id: string): Promise<Match | null> {
+    async findById(id: string): Promise<MatchWithParticipants | null> {
         const matchesData = await this.client.match.findUnique({
-            where: { id }
+            where: { id },
+            include: {
+                participant1: {
+                    include: { player: { include: { user: true } } }
+                },
+                participant2: {
+                    include: { player: { include: { user: true } } }
+                },
+            },
         });
-        return matchesData ? MatchMapper.toDomain(matchesData) : null;
+        if (!matchesData) return null;
+
+        return {
+            match: MatchMapper.toDomain(matchesData),
+            participant1: matchesData.participant1 ? RegisteredParticipantMapper.toDomain(matchesData.participant1) : null,
+            participant2: matchesData.participant2 ? RegisteredParticipantMapper.toDomain(matchesData.participant2) : null,
+        };
     }
 
     async findManyByIds(ids: string[]): Promise<Match[]> {
@@ -88,8 +102,8 @@ export class PrismaMatchRepository implements MatchRepository {
 
         return matchesData.map(data => ({
             match: MatchMapper.toDomain(data),
-            participant1: RegisteredParticipantMapper.toDomain(data.participant1),
-            participant2: RegisteredParticipantMapper.toDomain(data.participant2),
+            participant1: data.participant1 ? RegisteredParticipantMapper.toDomain(data.participant1) : null,
+            participant2: data.participant2 ? RegisteredParticipantMapper.toDomain(data.participant2) : null,
         }));
     }
 }
