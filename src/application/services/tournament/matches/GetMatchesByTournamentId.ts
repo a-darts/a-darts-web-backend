@@ -24,8 +24,8 @@ export class GetMatchesByTournamentId {
     }
 
     // 4. Return the matches data
-    return matches.map(item => {
-      return MatchMapper.toResponse(item.match, item.participant1, item.participant2);
+    return matches.map(match => {
+      return MatchMapper.toResponse(match);
     });
   }
 }
