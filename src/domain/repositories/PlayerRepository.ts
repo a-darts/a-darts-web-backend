@@ -6,8 +6,7 @@ export interface PlayerRepository {
   delete(id: string): Promise<void>;
   findAll(): Promise<Player[]>;
   findById(id: string): Promise<Player | null>;
-  findByUserId(id: string): Promise<Player | null>;
   findManyByIds(ids: string[]): Promise<Player[]>;
-  // findByUserIdAndSeason(userId: string, seasonStartYear: number): Promise<Player | null>;
+  findByUserIdAndSeason(userId: string, seasonStartYear: number): Promise<Player | null>;
   findAllByUserId(userId: string): Promise<Player[]>;
 }
