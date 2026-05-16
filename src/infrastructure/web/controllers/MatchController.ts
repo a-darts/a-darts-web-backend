@@ -6,16 +6,20 @@ import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/U
 import { InvalidMatchStatusUpdateException, MatchAlreadyFinishedException, MatchNotFoundException, MatchNotInProgressException, MatchNotPendingException, MatchNotSuspendedException, ParticipantNotFoundInMatchException } from '../../../domain/exceptions/MatchExceptions.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { GetMatchById } from '../../../application/services/tournament/matches/GetMatchById.js';
-import { UpdateMatchStatus } from '../../../application/services/tournament/matches/UpdateMatchStatus.js';
+import { StartMatch } from '../../../application/services/tournament/matches/status/StartMatch.js';
 import { UpdateMatchBoardNumber } from '../../../application/services/tournament/matches/UpdateMatchBoardNumber.js';
 import { RegisterLegWin } from '../../../application/services/tournament/matches/RegisterLegWin.js';
 import { RegisterSetWin } from '../../../application/services/tournament/matches/RegisterSetWin.js';
+import { FinishMatch } from '../../../application/services/tournament/matches/status/FinishMatch.js';
+import { CancelMatch } from '../../../application/services/tournament/matches/status/CancelMatch.js';
 
 
 const matchRepository = new PrismaMatchRepository(prisma);
 
 const getMatchById = new GetMatchById(matchRepository);
-const updateMatchStatus = new UpdateMatchStatus(matchRepository);
+const startMatch = new StartMatch(matchRepository);
+const finishMatch = new FinishMatch(matchRepository);
+const cancelMatch = new CancelMatch(matchRepository);
 const updateMatchBoardNumber = new UpdateMatchBoardNumber(matchRepository);
 const registerLegWin = new RegisterLegWin(matchRepository);
 const registerSetWin = new RegisterSetWin(matchRepository);
@@ -77,16 +81,6 @@ const registerSetWin = new RegisterSetWin(matchRepository);
  *         tournamentId:
  *           type: string
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
- * 
- *     UpdateMatchStatusRequest:
- *       type: object
- *       required:
- *         - newStatus
- *       properties:
- *         newStatus:
- *           type: string
- *           enum: [PENDING, IN_PROGRESS, FINISHED, SUSPENDED, CANCELLED]
- *           example: IN_PROGRESS
  * 
  *     UpdateMatchBoardNumberRequest:
  *       type: object
@@ -222,9 +216,9 @@ export class MatchController {
 
   /**
    * @swagger
-   * /api/matches/{id}/status:
-   *   put:
-   *     summary: Update match status
+   * /api/matches/{id}/start:
+   *   post:
+   *     summary: Start match
    *     tags: [Matches]
    *     security:
    *       - bearerAuth: []
@@ -236,15 +230,9 @@ export class MatchController {
    *         schema:
    *           type: string
    *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/UpdateMatchStatusRequest'
    *     responses:
    *       200:
-   *         description: Status updated successfully
+   *         description: Match started successfully
    *         content:
    *           application/json:
    *             schema:
@@ -255,7 +243,157 @@ export class MatchController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Status updated successfully
+   *                   example: Match started successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Match not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Match is not pending
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async startMatch(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await startMatch.execute(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Match started successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof MatchNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof MatchNotPendingException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/matches/{id}/finish:
+   *   post:
+   *     summary: Finish match
+   *     tags: [Matches]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Match ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Match finished successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Match finished successfully
    *                 data:
    *                   type: string
    *                   example: null
@@ -338,30 +476,22 @@ export class MatchController {
    *                   type: string
    *                   example: Internal server error
    */
-  async updateMatchStatus(req: AuthRequest, res: Response) {
+  async finishMatch(req: AuthRequest, res: Response) {
     try {
       const id = req.params.id;
       if (!id || typeof id !== 'string') {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const { newStatus } = req.body;
-      if (!newStatus) {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      await updateMatchStatus.execute({
-        id: id,
-        newStatus: newStatus,
-      });
+      await finishMatch.execute(id);
       res.status(200).json(
-        ApiResponseBuilder.success(null, 'Status updated successfully')
+        ApiResponseBuilder.success(
+          null,
+          'Match finished successfully',
+        )
       );
     } catch (error: any) {
-      if (
-        error instanceof MissingRequiredUserFieldsException ||
-        error instanceof InvalidMatchStatusUpdateException
-      ) {
+      if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -371,12 +501,157 @@ export class MatchController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (
-        error instanceof MatchNotPendingException ||
-        error instanceof MatchNotInProgressException ||
-        error instanceof MatchAlreadyFinishedException ||
-        error instanceof MatchNotSuspendedException
-      ) {
+      if (error instanceof MatchNotInProgressException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/matches/{id}/cancel:
+   *   post:
+   *     summary: Cancel match
+   *     tags: [Matches]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Match ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Match cancelled successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Match cancelled successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Match not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Match is already finished
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async cancelMatch(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await cancelMatch.execute(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Match cancelled successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof MatchNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof MatchAlreadyFinishedException) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );

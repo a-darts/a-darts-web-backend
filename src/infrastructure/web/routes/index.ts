@@ -67,7 +67,9 @@ router.get('/tournaments/:id/bracket', tournamentController.getTournamentBracket
 
 // Match routes
 router.get('/matches/:id', matchController.getMatchById);
-router.put('/matches/:id/status', authMiddleware, isAdmin, matchController.updateMatchStatus);
+router.post('/matches/:id/start', authMiddleware, isAdmin, matchController.startMatch);
+router.post('/matches/:id/finish', authMiddleware, isAdmin, matchController.finishMatch);
+router.post('/matches/:id/cancel', authMiddleware, isAdmin, matchController.cancelMatch);
 router.put('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.updateMatchBoardNumber);
 router.post('/matches/:id/sets', authMiddleware, isAdmin, matchController.registerSetWin);
 router.post('/matches/:id/legs', authMiddleware, isAdmin, matchController.registerLegWin);
