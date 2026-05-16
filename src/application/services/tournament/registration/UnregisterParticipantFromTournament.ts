@@ -25,7 +25,7 @@ export class UnregisterParticipantFromTournament {
         }
 
         // 3. Unregister the participant from the tournament
-        tournament.unregisterParticipant(registeredParticipant.getPlayerId());
+        tournament.unregisterParticipant(request.participantId);
 
         // 4. Persist the changes in the DB
         // 4.1. Update the tournament registered participants ids

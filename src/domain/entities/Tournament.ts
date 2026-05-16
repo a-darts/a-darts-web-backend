@@ -156,12 +156,12 @@ export class Tournament {
     this.registration = this.registration.schedule(open, close);
   }
 
-  public registerParticipant(playerId: string) {
-    this.registration = this.registration.registerParticipant(playerId);
+  public registerParticipant(participantId: string) {
+    this.registration = this.registration.registerParticipant(participantId);
   }
 
-  public unregisterParticipant(playerId: string) {
-    this.registration = this.registration.unregisterParticipant(playerId);
+  public unregisterParticipant(participantId: string) {
+    this.registration = this.registration.unregisterParticipant(participantId);
   }
 
 

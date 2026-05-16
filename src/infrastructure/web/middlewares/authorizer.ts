@@ -23,7 +23,7 @@ export const isSelfOrAdmin = async (req: AuthRequest, res: Response, next: NextF
     }
 
     // Check by playerId in body (for registration)
-    const playerId = req.body.playerId as string | undefined;
+    const playerId = req.body?.playerId as string | undefined;
     if (playerId && typeof playerId === 'string') {
         const player = await prisma.player.findFirst({
             where: {

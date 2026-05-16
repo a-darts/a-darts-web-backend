@@ -94,8 +94,8 @@ export class Registration {
     // --------------------------------------------------------------------
     // REGISTRATION PARTICIPANTS MANAGEMENT
     // --------------------------------------------------------------------
-    public registerParticipant(registrationId: string): Registration {
-        if (this.isParticipantRegistered(registrationId)) {
+    public registerParticipant(participantId: string): Registration {
+        if (this.isParticipantRegistered(participantId)) {
             throw new ParticipantAlreadyRegisteredException();
         }
 
@@ -107,17 +107,17 @@ export class Registration {
             this.hasCheckIn,
             this.status,
             this.registrationPeriod,
-            [...this.registeredParticipantsIds, registrationId],
+            [...this.registeredParticipantsIds, participantId],
         );
     }
 
-    public unregisterParticipant(registrationId: string): Registration {
-        if (!this.isParticipantRegistered(registrationId)) {
+    public unregisterParticipant(participantId: string): Registration {
+        if (!this.isParticipantRegistered(participantId)) {
             throw new ParticipantNotRegisteredException();
         }
 
         const updatedParticipants = this.registeredParticipantsIds.filter(
-            r => r !== registrationId
+            r => r !== participantId
         );
 
         return new Registration(
@@ -128,8 +128,8 @@ export class Registration {
         );
     }
 
-    public isParticipantRegistered(registrationId: string): boolean {
-        return this.registeredParticipantsIds.some(r => r === registrationId);
+    public isParticipantRegistered(participantId: string): boolean {
+        return this.registeredParticipantsIds.some(r => r === participantId);
     }
 
 
