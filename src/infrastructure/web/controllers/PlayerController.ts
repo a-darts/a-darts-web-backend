@@ -10,12 +10,14 @@ import { InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNot
 import { CreatePlayer } from '../../../application/services/player/CreatePlayer.js';
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 import { UpdatePlayerFederation } from '../../../application/services/player/UpdatePlayerFederation.js';
+import { GetPlayerByUserIdAndSeason } from '../../../application/services/player/GetPlayerByUserIdAndSeason.js';
 
 const playerRepository = new PrismaPlayerRepository(prisma);
 const userRepository = new PrismaUserRepository(prisma);
 
 const getAllPlayers = new GetAllPlayers(playerRepository);
 const getPlayerData = new GetPlayerData(playerRepository);
+const getPlayerByUserIdAndSeason = new GetPlayerByUserIdAndSeason(playerRepository);
 const createPlayer = new CreatePlayer(playerRepository, userRepository);
 const updatePlayerFederation = new UpdatePlayerFederation(playerRepository);
 
@@ -145,7 +147,7 @@ export class PlayerController {
    * @swagger
    * /api/players/{id}:
    *   get:
-   *     summary: Get player data by user ID
+   *     summary: Get player data
    *     tags: [Players]
    *     security:
    *       - bearerAuth: []
@@ -155,7 +157,7 @@ export class PlayerController {
    *         required: true
    *         schema:
    *           type: string
-   *         description: The user ID associated with the player
+   *         description: Player ID
    *     responses:
    *       200:
    *         description: Player data retrieved successfully
@@ -259,6 +261,136 @@ export class PlayerController {
       );
     }
   }
+
+
+  /**
+   * @swagger
+   * /api/players/user/{userId}/season/{seasonStartYear}:
+   *   get:
+   *     summary: Get player data by user ID and season
+   *     tags: [Players]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: User ID
+   *       - in: path
+   *         name: seasonStartYear
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: Season start year
+   *     responses:
+   *       200:
+   *         description: Player data retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Player data retrieved successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/Player'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Player not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getPlayerByUserIdAndSeason(req: AuthRequest, res: Response) {
+    try {
+      const { userId, seasonStartYear } = req.params;
+      if (!userId || !seasonStartYear) {
+        throw new MissingRequiredUserFieldsException();
+      }
+      if (typeof userId !== 'string' || typeof seasonStartYear !== 'string') {
+        throw new InvalidUserFieldsException();
+      }
+
+      const player = await getPlayerByUserIdAndSeason.execute({
+        userId: userId,
+        seasonStartYear: parseInt(seasonStartYear, 10),
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          player,
+          'Player data retrieved successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof PlayerNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
 
   /**
    * @swagger
