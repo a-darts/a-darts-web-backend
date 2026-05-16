@@ -37,6 +37,7 @@ import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
 import { UnpublishTournament } from '../../../application/services/tournament/UnpublishTournament.js';
 import { OpenRegistration } from '../../../application/services/tournament/registration/OpenRegistration.js';
 import { CloseRegistration } from '../../../application/services/tournament/registration/CloseRegistration.js';
+import { GetTournamentBracket } from '../../../application/services/tournament/GetTournamentBracket.js';
 
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
@@ -70,6 +71,7 @@ const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tourname
 const getMatchesByTournamentId = new GetMatchesByTournamentId(tournamentRepository, matchRepository);
 // const createMatch = new CreateMatch(tournamentRepository, registeredParticipantRepository, matchRepository);
 const createBracket = new CreateBracket(bracketRepository, tournamentRepository, registeredParticipantRepository);
+const getTournamentBracket = new GetTournamentBracket(tournamentRepository, bracketRepository);
 
 /**
  * @swagger
@@ -2728,6 +2730,19 @@ export class TournamentController {
    *                   example: Participants fetched successfully
    *                 data:
    *                   $ref: '#/components/schemas/RegisteredParticipant'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
    *       404:
    *         description: Not Found
    *         content:
@@ -2770,6 +2785,11 @@ export class TournamentController {
         )
       );
     } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
       if (error instanceof TournamentNotFoundException) {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)
@@ -2816,6 +2836,19 @@ export class TournamentController {
    *                   type: array
    *                   items:
    *                     $ref: '#/components/schemas/Match'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
    *       404:
    *         description: Not Found
    *         content:
@@ -2858,6 +2891,11 @@ export class TournamentController {
         )
       );
     } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
       if (error instanceof TournamentNotFoundException) {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)
@@ -3193,6 +3231,113 @@ export class TournamentController {
           ApiResponseBuilder.error(error.message)
         );
       }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+ * @swagger
+ * /api/tournaments/{id}/bracket:
+ *   get:
+ *     summary: Get tournament bracket
+ *     tags: [Tournaments]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: Tournament ID
+ *         schema:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *     responses:
+ *       200:
+ *         description: Bracket fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Bracket fetched successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/Bracket'
+ *       400:
+ *         description: Bad Request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: All fields are required
+ *       404:
+ *         description: Not Found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Tournament not found
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ */
+  async getTournamentBracket(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const bracket = await getTournamentBracket.execute(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          bracket,
+          'Bracket fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotFoundException ||
+        error instanceof BracketNotFoundException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')
