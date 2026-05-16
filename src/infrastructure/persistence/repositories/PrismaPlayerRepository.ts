@@ -54,8 +54,11 @@ export class PrismaPlayerRepository implements PlayerRepository {
     }
 
     async findByUserIdAndSeason(userId: string, seasonStartYear: number): Promise<Player | null> {
-        const playersData = await this.client.player.findUnique({
-            where: { userId_seasonStartYear: { userId, seasonStartYear } },
+        const playersData = await this.client.player.findFirst({
+            where: {
+                userId,
+                seasonStartYear,
+            },
         });
         return playersData ? PlayerMapper.toDomain(playersData) : null;
     }
