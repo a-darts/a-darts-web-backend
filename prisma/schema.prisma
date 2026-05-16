@@ -108,7 +108,10 @@ model Player {
   user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   registrations RegisteredParticipant[]
 
-  @@unique([userId, seasonStartYear])
+  @@unique([userId])
+  // MIRAR: lo correcto es esto, pero hay que gestionar tmb las season de los torneos
+  // @@unique([userId, seasonStartYear])
+  //
   @@map("players")
 }
 
