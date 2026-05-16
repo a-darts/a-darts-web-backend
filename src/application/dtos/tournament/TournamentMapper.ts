@@ -27,6 +27,7 @@ export class TournamentMapper {
             },
             registration: {
                 hasCheckIn: registration.getHasCheckIn(),
+                status: registration.getStatus(),
                 registrationPeriod: {
                     startsAt: registration.getRegistrationPeriod().getStartsAt(),
                     endsAt: registration.getRegistrationPeriod().getEndsAt(),

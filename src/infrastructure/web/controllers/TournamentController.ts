@@ -143,6 +143,9 @@ const createBracket = new CreateBracket(bracketRepository, tournamentRepository,
  *         hasCheckIn:
  *           type: boolean
  *           example: true
+ *         status:
+ *           type: string
+ *           example: CLOSED
  *         registrationPeriod:
  *           type: object
  *           properties:
