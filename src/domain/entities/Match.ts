@@ -1,10 +1,9 @@
-import { TournamentStatus } from "@prisma/client";
-import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchAlreadyFinishedException, ParticipantNotFoundInMatchException } from "../exceptions/MatchExceptions.js";
-import { RegisteredParticipantNotFoundException } from "../exceptions/ParticipantExceptions.js";
+import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchAlreadyFinishedException, ParticipantNotFoundInMatchException, MatchNotReadyException } from "../exceptions/MatchExceptions.js";
 
 
 export enum MatchStatus {
     PENDING = 'PENDING',
+    READY = 'READY',
     IN_PROGRESS = 'IN_PROGRESS',
     FINISHED = 'FINISHED',
     SUSPENDED = 'SUSPENDED',
@@ -19,8 +18,11 @@ export class Match {
     private finishedAt: Date | null;
     private status: MatchStatus;
 
-    private readonly participant1Id: string | null;
-    private readonly participant2Id: string | null;
+    private participant1Id: string | null;
+    private participant2Id: string | null;
+
+    private readonly isParticipant1Bye: boolean;
+    private readonly isParticipant2Bye: boolean;
 
     private matchScore: MatchScore;
 
@@ -36,6 +38,8 @@ export class Match {
         status: MatchStatus,
         participant1Id: string | null,
         participant2Id: string | null,
+        isParticipant1Bye: boolean,
+        isParticipant2Bye: boolean,
         matchScore: MatchScore,
         tournamentId: string,
     ) {
@@ -47,6 +51,8 @@ export class Match {
         this.status = status;
         this.participant1Id = participant1Id;
         this.participant2Id = participant2Id;
+        this.isParticipant1Bye = isParticipant1Bye;
+        this.isParticipant2Bye = isParticipant2Bye;
         this.matchScore = matchScore;
         this.tournamentId = tournamentId;
     }
@@ -59,11 +65,16 @@ export class Match {
         tournamentId: string,
         participant1Id: string | null,
         participant2Id: string | null,
+        isParticipant1Bye: boolean,
+        isParticipant2Bye: boolean,
         round: number,
         boardNumber?: number,
     ): Match {
-        const isByeMatch = participant1Id === null || participant2Id === null;
-        const initialStatus = isByeMatch ? MatchStatus.FINISHED : MatchStatus.PENDING;
+        const isByeMatch = isParticipant1Bye || isParticipant2Bye;
+        const isReady = participant1Id !== null && participant2Id !== null;
+        const initialStatus = isByeMatch
+            ? MatchStatus.FINISHED
+            : (isReady ? MatchStatus.READY : MatchStatus.PENDING);
         const finishedAt = isByeMatch ? new Date() : null;
 
         return new Match(
@@ -75,6 +86,8 @@ export class Match {
             initialStatus,
             participant1Id,
             participant2Id,
+            isParticipant1Bye,
+            isParticipant2Bye,
             MatchScore.create(),
             tournamentId,
         );
@@ -115,11 +128,11 @@ export class Match {
     public getWinnerId(): string | null {
         if (this.status !== MatchStatus.FINISHED) return null;
 
-        // Si el P1 es nulo, el ganador es P2 (y viceversa)
-        if (this.participant1Id === null) return this.participant2Id;
-        if (this.participant2Id === null) return this.participant1Id;
+        // Si uno de los dos jugadores es bye, el otro gana
+        if (this.isParticipant1Bye) return this.participant2Id;
+        if (this.isParticipant2Bye) return this.participant1Id;
 
-        // Si ambos existen, comparamos el score
+        // Si ambos jugadores son reales, comparamos el score
         const s1 = this.matchScore.getParticipant1Score().getSetsWon();
         const s2 = this.matchScore.getParticipant2Score().getSetsWon();
 
@@ -130,12 +143,29 @@ export class Match {
     }
 
 
+    public promoteWinner(participantId: string, slot: 'P1' | 'P2'): void {
+        if (this.status !== MatchStatus.PENDING) {
+            throw new Error("Cannot assign participants to a match that is not PENDING");
+        }
+
+        if (slot === 'P1') {
+            this.participant1Id = participantId;
+        } else {
+            this.participant2Id = participantId;
+        }
+
+        if (this.participant1Id !== null && this.participant2Id !== null) {
+            this.status = MatchStatus.READY;
+        }
+    }
+
+
     // --------------------------------------------------------------------
     // STATUS MANAGEMENT
     // --------------------------------------------------------------------
     public start() {
-        if (this.status !== MatchStatus.PENDING) {
-            throw new MatchNotPendingException();
+        if (this.status !== MatchStatus.READY) {
+            throw new MatchNotReadyException();
         }
 
         this.status = MatchStatus.IN_PROGRESS;
@@ -211,6 +241,14 @@ export class Match {
         return this.participant2Id;
     }
 
+    public getIsParticipant1Bye(): boolean {
+        return this.isParticipant1Bye;
+    }
+
+    public getIsParticipant2Bye(): boolean {
+        return this.isParticipant2Bye;
+    }
+
     public getMatchScore(): MatchScore {
         return this.matchScore;
     }
@@ -238,6 +276,8 @@ export class Match {
             data.status as MatchStatus,
             data.participant1Id,
             data.participant2Id,
+            data.isParticipant1Bye,
+            data.isParticipant2Bye,
             matchScore,
             data.tournamentId,
         );

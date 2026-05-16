@@ -198,33 +198,88 @@ export class Bracket {
             throw new BracketNotInProgressException();
         }
 
-        const matches: Match[] = [];
+        const N = this.positions.length;
+        const totalMatches = N - 1;
         const positions = this.getPositions();
+        const round1Size = N / 2;
 
-        // Agrupamos de 2 en 2 para crear los partidos
-        for (let i = 0; i < positions.length; i += 2) {
-            const p1 = positions[i].getParticipant();
-            const p2 = positions[i + 1].getParticipant();
+        // 1. Estructura temporal rica para calcular flujos de BYEs
+        const matchesData = new Array(totalMatches).fill(null).map(() => ({
+            p1Id: null as string | null,
+            p2Id: null as string | null,
+            isP1Bye: false,
+            isP2Bye: false,
+            round: 0
+        }));
 
-            const p1Id = p1 instanceof ByeParticipant ? null : p1.getId();
-            const p2Id = p2 instanceof ByeParticipant ? null : p2.getId();
+        // 2. Población inicial estricta de la Ronda 1
+        for (let i = 0; i < round1Size; i++) {
+            const p1 = positions[i * 2].getParticipant();
+            const p2 = positions[i * 2 + 1].getParticipant();
 
-            const match = Match.create(
-                this.tournamentId,
-                p1Id,
-                p2Id,
-                1, // Round 1
-            );
+            const p1IsBye = p1 instanceof ByeParticipant;
+            const p2IsBye = p2 instanceof ByeParticipant;
 
-            // MIRAR
-            // Lógica automática para BYES:
-            // Si uno es ByeParticipant, el partido podría marcarse como FINISHED directamente
-            // Pero eso lo puede gestionar un Service para mantener limpia la entidad.
-
-            matches.push(match);
+            matchesData[i].p1Id = p1IsBye ? null : p1.getId();
+            matchesData[i].p2Id = p2IsBye ? null : p2.getId();
+            matchesData[i].isP1Bye = p1IsBye;
+            matchesData[i].isP2Bye = p2IsBye;
+            matchesData[i].round = 1;
         }
 
-        return matches;
+        // 3. Calcular iterativamente el esqueleto de las siguientes rondas e inyectar BYEs automáticos
+        let currentRoundStartIdx = 0;
+        let currentRoundSize = round1Size;
+        let currentRound = 1;
+
+        // Recorremos el árbol de rondas hacia adelante (Ronda 1 -> Ronda 2 -> Ronda 3...)
+        while (currentRoundSize > 1) {
+            const nextRoundSize = currentRoundSize / 2;
+            const nextRoundStartIdx = currentRoundStartIdx + currentRoundSize;
+
+            for (let i = 0; i < currentRoundSize; i++) {
+                const currentMatchIdx = currentRoundStartIdx + i;
+                const currentMatch = matchesData[currentMatchIdx];
+
+                // Si el partido de la ronda actual tiene un BYE, calculamos quién promociona
+                if (currentMatch.isP1Bye || currentMatch.isP2Bye) {
+                    // El ganador del BYE es el jugador real. Si ambos fuesen byes (caso raro), sería null.
+                    const advancingWinnerId = currentMatch.isP1Bye ? currentMatch.p2Id : currentMatch.p1Id;
+
+                    if (advancingWinnerId) {
+                        const nextMatchIdx = nextRoundStartIdx + Math.floor(i / 2);
+                        const isSlotP1 = i % 2 === 0;
+
+                        if (isSlotP1) {
+                            matchesData[nextMatchIdx].p1Id = advancingWinnerId;
+                        } else {
+                            matchesData[nextMatchIdx].p2Id = advancingWinnerId;
+                        }
+                    }
+                }
+
+                // Asignamos el número de ronda correcto a los partidos del bloque de la siguiente ronda
+                for (let j = 0; j < nextRoundSize; j++) {
+                    matchesData[nextRoundStartIdx + j].round = currentRound + 1;
+                }
+            }
+
+            currentRoundStartIdx = nextRoundStartIdx;
+            currentRoundSize = nextRoundSize;
+            currentRound++;
+        }
+
+        // 4. Mapear la estructura completa a instancias reales de la entidad Match
+        return matchesData.map(m =>
+            Match.create(
+                this.tournamentId,
+                m.p1Id,
+                m.p2Id,
+                m.isP1Bye,
+                m.isP2Bye,
+                m.round
+            )
+        );
     }
 
 

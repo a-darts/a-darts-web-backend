@@ -15,6 +15,8 @@ export class MatchMapper {
             status: match.getStatus() as PrismaMatchStatus,
             participant1Id: match.getParticipant1Id(),
             participant2Id: match.getParticipant2Id(),
+            isParticipant1Bye: match.getIsParticipant1Bye(),
+            isParticipant2Bye: match.getIsParticipant2Bye(),
             matchScoreParticipant1SetsWon: score.getParticipant1Score().getSetsWon(),
             matchScoreParticipant1LegsWon: score.getParticipant1Score().getLegsWon(),
             matchScoreParticipant2SetsWon: score.getParticipant2Score().getSetsWon(),
@@ -34,6 +36,8 @@ export class MatchMapper {
             status: prismaMatch.status as MatchStatus,
             participant1Id: prismaMatch.participant1Id,
             participant2Id: prismaMatch.participant2Id,
+            isParticipant1Bye: prismaMatch.isParticipant1Bye,
+            isParticipant2Bye: prismaMatch.isParticipant2Bye,
             matchScore: {
                 participant1: {
                     setsWon: prismaMatch.matchScoreParticipant1SetsWon,

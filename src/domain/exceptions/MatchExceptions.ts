@@ -1,3 +1,10 @@
+export class MatchNotReadyException extends Error {
+    constructor() {
+        super('Match is not ready');
+        this.name = 'MatchNotReadyException';
+    }
+}
+
 export class MatchNotPendingException extends Error {
     constructor() {
         super('Match is not pending');

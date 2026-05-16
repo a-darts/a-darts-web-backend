@@ -65,6 +65,7 @@ enum RegistrationStatus {
 
 enum MatchStatus {
   PENDING
+  READY
   IN_PROGRESS
   FINISHED
   SUSPENDED
@@ -185,6 +186,9 @@ model Match {
 
   participant1Id String? @db.Uuid
   participant2Id String? @db.Uuid
+
+  isParticipant1Bye Boolean
+  isParticipant2Bye Boolean
 
   matchScoreParticipant1SetsWon Int @default(0)
   matchScoreParticipant1LegsWon Int @default(0)

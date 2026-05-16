@@ -5,36 +5,28 @@ import { MatchResponseDTO } from './MatchDTOs.js';
 
 export class MatchMapper {
     public static toResponse(
-        match: MatchWithParticipants,
+        matchData: MatchWithParticipants,
     ): MatchResponseDTO {
-        const participant1Score = match.match.getMatchScore().getParticipant1Score();
-        const participant2Score = match.match.getMatchScore().getParticipant2Score();
+        const { match, participant1, participant2 } = matchData;
 
-        const matchData = {
-            id: match.match.getId(),
-            round: match.match.getRound(),
-            boardNumber: match.match.getBoardNumber(),
-            startedAt: match.match.getStartedAt(),
-            finishedAt: match.match.getFinishedAt(),
-            status: match.match.getStatus(),
-            participant1: match.participant1 ? {
-                id: match.participant1.getId(),
-                alias: match.participant1.getAlias(),
-                federation: match.participant1.getFederation(),
-            } : {
-                id: null,
-                alias: 'Bye',
-                federation: 'N/A',
-            },
-            participant2: match.participant2 ? {
-                id: match.participant2.getId(),
-                alias: match.participant2.getAlias(),
-                federation: match.participant2.getFederation(),
-            } : {
-                id: null,
-                alias: 'Bye',
-                federation: 'N/A',
-            },
+        const participant1Score = match.getMatchScore().getParticipant1Score();
+        const participant2Score = match.getMatchScore().getParticipant2Score();
+
+        return {
+            id: match.getId(),
+            round: match.getRound(),
+            boardNumber: match.getBoardNumber(),
+            startedAt: match.getStartedAt(),
+            finishedAt: match.getFinishedAt(),
+            status: match.getStatus(),
+            participant1: this.mapParticipant(
+                participant1,
+                match.getIsParticipant1Bye()
+            ),
+            participant2: this.mapParticipant(
+                participant2,
+                match.getIsParticipant2Bye()
+            ),
             matchScore: {
                 participant1: {
                     setsWon: participant1Score.getSetsWon(),
@@ -46,7 +38,40 @@ export class MatchMapper {
                 },
             },
         };
+    }
 
-        return matchData;
+
+    /**
+     * Helper encargado de discernir si el espacio vacío de la BD 
+     * representa un Bye confirmado o un hueco que espera rival.
+     */
+    private static mapParticipant(
+        participant: RegisteredParticipant | null,
+        isBye: boolean
+    ) {
+        // Escenario A: Es un participante real
+        if (participant) {
+            return {
+                id: participant.getId(),
+                alias: participant.getAlias(),
+                federation: participant.getFederation(),
+            };
+        }
+
+        // Escenario B: Es un BYE
+        if (isBye) {
+            return {
+                id: null,
+                alias: 'Bye',
+                federation: 'N/A',
+            };
+        }
+
+        // Escenario C: Es NULL en la BD y NO es un Bye (pendiente de asignar)
+        return {
+            id: null,
+            alias: 'Por determinar',
+            federation: 'N/A',
+        };
     }
 }
