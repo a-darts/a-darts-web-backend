@@ -47,7 +47,8 @@ router.post('/tournaments/:id/cancel', authMiddleware, isAdmin, tournamentContro
 router.post('/tournaments/:id/start', authMiddleware, isAdmin, tournamentController.startTournament);
 router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
 router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
-router.put('/tournaments/:id/registration/status', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationStatus);
+router.post('/tournaments/:id/registration/open', authMiddleware, isAdmin, tournamentController.openRegistration);
+router.post('/tournaments/:id/registration/close', authMiddleware, isAdmin, tournamentController.closeRegistration);
 router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationPeriod);
 router.post('/tournaments/:id/participants', authMiddleware, isAdmin, tournamentController.registerParticipant);
 router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isAdmin, tournamentController.unregisterParticipant);
