@@ -145,7 +145,7 @@ export class PlayerController {
    * @swagger
    * /api/players/{id}:
    *   get:
-   *     summary: Get player data by user ID
+   *     summary: Get player data
    *     tags: [Players]
    *     security:
    *       - bearerAuth: []
@@ -155,7 +155,7 @@ export class PlayerController {
    *         required: true
    *         schema:
    *           type: string
-   *         description: The user ID associated with the player
+   *         description: Player ID
    *     responses:
    *       200:
    *         description: Player data retrieved successfully

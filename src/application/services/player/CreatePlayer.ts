@@ -13,8 +13,15 @@ export class CreatePlayer {
   ) { }
 
   public async execute(request: CreatePlayerRequestDTO): Promise<PlayerResponseDTO> {
-    // 1. Check if the player already exists in that season
-    const existingPlayer = await this.playerRepository.findByUserIdAndSeason(request.userId, request.season.startYear);
+    // MIRAR: Debería ser así
+    // // 1. Check if the player already exists in that season
+    // const existingPlayer = await this.playerRepository.findByUserIdAndSeason(request.userId, request.season.startYear);
+    // if (existingPlayer) {
+    //   throw new PlayerAlreadyExistsException();
+    // }
+    //
+    // 1. Check if the player already exists
+    const existingPlayer = await this.playerRepository.findByUserId(request.userId);
     if (existingPlayer) {
       throw new PlayerAlreadyExistsException();
     }
