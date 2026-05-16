@@ -84,6 +84,13 @@ export class Tournament {
   // --------------------------------------------------------------------
   // STATUS MANAGEMENT
   // --------------------------------------------------------------------
+  public unpublish(): void {
+    if (this.status !== TournamentStatus.PUBLISHED) {
+      throw new TournamentNotPublishedException();
+    }
+    this.status = TournamentStatus.DRAFT;
+  }
+
   public publish(): void {
     if (this.status !== TournamentStatus.DRAFT) {
       throw new TournamentNotInDraftException();

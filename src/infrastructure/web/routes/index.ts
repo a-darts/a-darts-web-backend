@@ -41,6 +41,7 @@ router.put('/players/:id/federation', authMiddleware, isAdmin, playerController.
 router.get('/tournaments', tournamentController.getAllTournaments);
 router.get('/tournaments/:id', tournamentController.getTournamentById);
 router.post('/tournaments', authMiddleware, isAdmin, tournamentController.createTournament);
+router.post('/tournaments/:id/unpublish', authMiddleware, isAdmin, tournamentController.unpublishTournament);
 router.post('/tournaments/:id/publish', authMiddleware, isAdmin, tournamentController.publishTournament);
 router.post('/tournaments/:id/cancel', authMiddleware, isAdmin, tournamentController.cancelTournament);
 router.post('/tournaments/:id/start', authMiddleware, isAdmin, tournamentController.startTournament);
