@@ -42,17 +42,20 @@ router.put('/players/:id/federation', authMiddleware, isAdmin, playerController.
 router.get('/tournaments', tournamentController.getAllTournaments);
 router.get('/tournaments/:id', tournamentController.getTournamentById);
 router.post('/tournaments', authMiddleware, isAdmin, tournamentController.createTournament);
+
 router.post('/tournaments/:id/unpublish', authMiddleware, isAdmin, tournamentController.unpublishTournament);
 router.post('/tournaments/:id/publish', authMiddleware, isAdmin, tournamentController.publishTournament);
 router.post('/tournaments/:id/cancel', authMiddleware, isAdmin, tournamentController.cancelTournament);
 router.post('/tournaments/:id/start', authMiddleware, isAdmin, tournamentController.startTournament);
-router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
-router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
+
 router.post('/tournaments/:id/registration/open', authMiddleware, isAdmin, tournamentController.openRegistration);
 router.post('/tournaments/:id/registration/close', authMiddleware, isAdmin, tournamentController.closeRegistration);
 router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationPeriod);
-router.post('/tournaments/:id/participants', authMiddleware, isAdmin, tournamentController.registerParticipant);
-router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isAdmin, tournamentController.unregisterParticipant);
+
+router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
+router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
+router.post('/tournaments/:id/participants', authMiddleware, isSelfOrAdmin, tournamentController.registerParticipant);
+router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isSelfOrAdmin, tournamentController.unregisterParticipant);
 router.post('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, tournamentController.doCheckInParticipant);
 router.delete('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, tournamentController.undoCheckInParticipant);
 router.get('/tournaments/:id/participants', tournamentController.getParticipantsByTournamentId);
