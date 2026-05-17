@@ -1,8 +1,9 @@
 import { PrismaClient } from '@prisma/client';
-import { PlayerRepository } from '../../../domain/repositories/PlayerRepository.js';
+import { PlayerRepository, PlayerWithUser } from '../../../domain/repositories/PlayerRepository.js';
 import { Player } from '../../../domain/entities/Player.js';
 import { PlayerMapper } from '../mappers/PlayerMapper.js';
 import { transactionStorage } from '../TransactionContext.js';
+import { UserMapper } from '../mappers/UserMapper.js';
 
 export class PrismaPlayerRepository implements PlayerRepository {
     constructor(private readonly prisma: PrismaClient) { }
@@ -68,5 +69,20 @@ export class PrismaPlayerRepository implements PlayerRepository {
             where: { userId }
         });
         return playersData.map(PlayerMapper.toDomain);
+    }
+
+    async findAllBySeasonWithUser(seasonStartYear: number): Promise<PlayerWithUser[]> {
+        const playersData = await this.client.player.findMany({
+            where: {
+                seasonStartYear,
+            },
+            include: {
+                user: true,
+            },
+        });
+        return playersData.map(data => ({
+            player: PlayerMapper.toDomain(data),
+            user: UserMapper.toDomain(data.user),
+        }));
     }
 }

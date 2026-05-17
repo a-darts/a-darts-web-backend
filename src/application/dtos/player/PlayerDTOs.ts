@@ -8,6 +8,16 @@ export interface PlayerResponseDTO {
     seasonEndYear: number;
 }
 
+export interface PlayerWithUserResponseDTO {
+    id: string;
+    userId: string;
+    registrationNumber: string;
+    federation: string;
+    seasonStartYear: number;
+    seasonEndYear: number;
+    userAlias: string;
+}
+
 export interface CreatePlayerRequestDTO {
     userId: string;
     registrationNumber: string;
