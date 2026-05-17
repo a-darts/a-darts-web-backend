@@ -388,6 +388,8 @@ export class TournamentController {
    *   get:
    *     summary: Get all tournaments
    *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
    *     responses:
    *       200:
    *         description: Tournaments fetched successfully
@@ -422,6 +424,7 @@ export class TournamentController {
     try {
       let tournaments = await getAllTournaments.execute();
 
+      // Filter DRAFT tournaments if not ADMIN
       const isAdmin = req.user?.role === UserRoles.ADMIN;
       if (!isAdmin) {
         tournaments = tournaments.filter(t => t.status !== TournamentStatus.DRAFT);
@@ -448,6 +451,8 @@ export class TournamentController {
    *   get:
    *     summary: Get tournament by id
    *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - name: id
    *         in: path
@@ -519,10 +524,17 @@ export class TournamentController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const tournaments = await getTournamentById.execute(id);
+      let tournament = await getTournamentById.execute(id);
+
+      // Filter DRAFT tournament if not ADMIN
+      const isAdmin = req.user?.role === UserRoles.ADMIN;
+      if (!isAdmin && tournament.status === TournamentStatus.DRAFT) {
+        throw new TournamentNotFoundException();
+      }
+
       res.status(200).json(
         ApiResponseBuilder.success(
-          tournaments,
+          tournament,
           'Tournament fetched successfully',
         )
       );
