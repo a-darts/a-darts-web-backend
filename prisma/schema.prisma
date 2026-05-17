@@ -120,6 +120,7 @@ model Tournament {
   //
   createdAt       DateTime
   status          TournamentStatus
+  hasBracket      Boolean
 
   // Value object TournamentInfo fields
   infoPlace      String

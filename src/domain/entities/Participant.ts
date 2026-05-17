@@ -9,12 +9,38 @@ export interface IParticipant {
     getFederation(): string;
 }
 
+
+export class EmptyParticipant implements IParticipant {
+    private readonly id: string;
+
+    constructor(id: string) {
+        this.id = id;
+    }
+
+    public static create(): EmptyParticipant {
+        return new EmptyParticipant(
+            crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
+        );
+    }
+
+    public getId(): string {
+        return this.id;
+    }
+
+    public getAlias(): string {
+        return 'Por determinar';
+    }
+
+    public getFederation(): string {
+        return 'N/A';
+    }
+}
+
+
 export class ByeParticipant implements IParticipant {
     private readonly id: string;
 
-    constructor(
-        id: string,
-    ) {
+    constructor(id: string) {
         this.id = id;
     }
 

@@ -1,6 +1,9 @@
+import { BracketAlreadyExistsException } from "../exceptions/BracketExceptions.js";
 import { RegistrationNotClosedException } from "../exceptions/RegistrationExceptions.js";
 import {
   TournamentAlreadyFinishedException,
+  TournamentAlreadyHasBracketException,
+  TournamentDoesNotHaveBracketException,
   TournamentMaxPlayersExceededException,
   TournamentNotInDraftException,
   TournamentNotInProgressException,
@@ -30,6 +33,8 @@ export class Tournament {
   private info: TournamentInfo;
   private registration: Registration;
 
+  private hasBracket: boolean;
+
   constructor(
     id: string,
     name: string,
@@ -38,6 +43,7 @@ export class Tournament {
     status: TournamentStatus,
     info: TournamentInfo,
     registration: Registration,
+    hasBracket: boolean,
   ) {
     this.id = id;
     this.name = name;
@@ -46,6 +52,7 @@ export class Tournament {
     this.status = status;
     this.info = info;
     this.registration = registration;
+    this.hasBracket = hasBracket;
   }
 
 
@@ -69,6 +76,7 @@ export class Tournament {
       TournamentStatus.DRAFT,
       info,
       Registration.create(),
+      false,
     );
   }
 
@@ -113,10 +121,13 @@ export class Tournament {
     if (this.status !== TournamentStatus.PUBLISHED) {
       throw new TournamentNotPublishedException();
     }
-
     if (this.registration.isOpen()) {
       throw new RegistrationNotClosedException();
     }
+    if (!this.hasBracket) {
+      throw new TournamentDoesNotHaveBracketException();
+    }
+
     this.status = TournamentStatus.IN_PROGRESS;
   }
 
@@ -147,6 +158,9 @@ export class Tournament {
     if (!this.isPublished()) {
       throw new TournamentNotPublishedException();
     }
+    if (this.hasBracket) {
+      throw new TournamentAlreadyHasBracketException();
+    }
 
     this.registration = this.registration.open();
   }
@@ -163,11 +177,17 @@ export class Tournament {
     if (!this.isPublished()) {
       throw new TournamentNotPublishedException();
     }
+    if (this.hasBracket) {
+      throw new TournamentAlreadyHasBracketException();
+    }
 
     this.registration = this.registration.schedule(open, close);
   }
 
   public registerParticipant(participantId: string) {
+    if (this.hasBracket) {
+      throw new TournamentAlreadyHasBracketException();
+    }
     const maxPlayers = this.getInfo().getMaxPlayers();
     if (maxPlayers && this.registration.getRegisteredParticipantsCount() >= maxPlayers) {
       throw new TournamentMaxPlayersExceededException();
@@ -177,9 +197,30 @@ export class Tournament {
   }
 
   public unregisterParticipant(participantId: string) {
+    if (this.hasBracket) {
+      throw new TournamentAlreadyHasBracketException();
+    }
+
     this.registration = this.registration.unregisterParticipant(participantId);
   }
 
+
+  // --------------------------------------------------------------------
+  // BRACKET METHODS
+  // --------------------------------------------------------------------
+  public bracketGenerated() {
+    if (!this.isPublished()) {
+      throw new TournamentNotPublishedException();
+    }
+    if (this.registration.isOpen()) {
+      throw new RegistrationNotClosedException();
+    }
+    if (this.hasBracket) {
+      throw new TournamentAlreadyHasBracketException();
+    }
+
+    this.hasBracket = true;
+  }
 
   // --------------------------------------------------------------------
   // GETTERS
@@ -210,6 +251,10 @@ export class Tournament {
 
   public getRegistration(): Registration {
     return this.registration;
+  }
+
+  public getHasBracket(): boolean {
+    return this.hasBracket;
   }
 
 
@@ -246,6 +291,7 @@ export class Tournament {
         ),
         data.registration.registeredParticipantsIds,
       ),
+      data.hasBracket,
     );
   }
 }

@@ -67,3 +67,17 @@ export class InvalidSeasonStartYearException extends Error {
         this.name = 'InvalidSeasonStartYearException';
     }
 }
+
+export class TournamentAlreadyHasBracketException extends Error {
+    constructor() {
+        super('Tournament already has a bracket');
+        this.name = 'TournamentAlreadyHasBracketException';
+    }
+}
+
+export class TournamentDoesNotHaveBracketException extends Error {
+    constructor() {
+        super('Tournament does not have a bracket');
+        this.name = 'TournamentDoesNotHaveBracketException';
+    }
+}

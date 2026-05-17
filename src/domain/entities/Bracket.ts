@@ -1,4 +1,4 @@
-import { ByeParticipant } from "./Participant.js";
+import { ByeParticipant, EmptyParticipant, RegisteredParticipant } from "./Participant.js";
 import type { IParticipant } from "./Participant.js";
 
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from "../exceptions/ParticipantExceptions.js";
@@ -38,42 +38,75 @@ export class Bracket {
     // --------------------------------------------------------------------
     // FACTORY METHOD
     // --------------------------------------------------------------------
-    public static create(
+    /**
+     * OPCIÓN A: Generación Automática
+     * Crea el cuadrante barajando e intercalando los participantes automáticamente
+     */
+    public static createAutomatically(
         tournamentId: string,
         participants: IParticipant[],
     ): Bracket {
         const totalParticipants = participants.length;
+        this.validateParticipantsCount(totalParticipants);
 
-        if (totalParticipants === 0) {
-            throw new RegistratedParticipantsEmptyException();
-        }
-        if (totalParticipants < 2) {
-            throw new RegistratedParticipantsNotEnoughException(2, totalParticipants);
-        }
-
+        // 1. Calculamos el tamaño del cuadrante (participantes + byes)
         const bracketSize = this.calculateBracketSize(totalParticipants);
 
-        // 1. Barajamos los participantes (orden aleatorio) y clonamos
+        // 2. Barajamos los participantes (orden aleatorio) y clonamos
         const shuffledParticipants = this.shuffle([...participants]);
 
-        // 2. Creamos la lista de participantes (reales + byes)
+        // 3. Creamos la lista de participantes (reales + byes)
         const fullParticipantList: IParticipant[] = shuffledParticipants;
         const numByes = bracketSize - totalParticipants;
 
-        // 3. Añadimos los byes a la lista
+        // 4. Añadimos los byes a la lista
         for (let i = 0; i < numByes; i++) {
             fullParticipantList.push(ByeParticipant.create());
         }
 
-        // 4. Ordenamos los participantes y los byes (Standard Tournament Seeding)
+        // 5. Ordenamos los participantes y los byes (Standard Tournament Seeding)
         const interleavedParticipants = this.distributePositions(fullParticipantList);
 
-        // 5. Mapeamos la lista de participantes a posiciones del cuadrante
+        // 6. Mapeamos la lista de participantes a posiciones del cuadrante
         const positions = interleavedParticipants.map((participant, index) =>
             BracketPosition.create(participant, index + 1)
         );
 
-        // 6. Creamos el objeto cuadrante
+        // 7. Creamos el objeto cuadrante
+        return new Bracket(
+            crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
+            BracketStatus.DRAFT,
+            positions,
+            tournamentId,
+        );
+    }
+
+    /**
+     * OPCIÓN B: Generación Manual Vacía
+     * Crea la estructura de posiciones (potencia de 2) pero todas llenas de Vacías
+     * para que el usuario las asigne a mano.
+     */
+    public static createManualEmpty(
+        tournamentId: string,
+        participantsCount: number
+    ): Bracket {
+        this.validateParticipantsCount(participantsCount);
+
+        // 1. Calculamos el tamaño del cuadrante (participantes + byes)
+        const bracketSize = this.calculateBracketSize(participantsCount);
+        const positions: BracketPosition[] = [];
+
+        // 2. Creamos posiciones Vacías hasta completar el tamaño del cuadrante
+        for (let i = 0; i < bracketSize; i++) {
+            positions.push(
+                BracketPosition.create(
+                    EmptyParticipant.create(),
+                    i + 1,
+                )
+            );
+        }
+
+        // 3. Creamos el objeto cuadrante
         return new Bracket(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             BracketStatus.DRAFT,
@@ -86,6 +119,15 @@ export class Bracket {
     // --------------------------------------------------------------------
     // HELPER METHODS
     // --------------------------------------------------------------------
+    private static validateParticipantsCount(count: number): void {
+        if (count === 0) {
+            throw new RegistratedParticipantsEmptyException();
+        }
+        if (count < 2) {
+            throw new RegistratedParticipantsNotEnoughException(2, count);
+        }
+    }
+
     /**
      * Calcula la potencia de 2 más cercana (hacia arriba)
      * Ejemplo: 5 participantes -> 8 posiciones.

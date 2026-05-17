@@ -8,6 +8,7 @@ export interface TournamentResponseDTO {
     seasonStartYear: number;
     createdAt: Date;
     status: TournamentStatus;
+    hasBracket: boolean;
     info: TournamentInfoDTO;
     registration: RegistrationDTO;
 }

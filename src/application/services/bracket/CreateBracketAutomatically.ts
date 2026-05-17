@@ -5,12 +5,11 @@ import { BracketRepository } from '../../../domain/repositories/BracketRepositor
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
 import { RegisteredParticipantRepository } from '../../../domain/repositories/RegisteredParticipantRepository.js';
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
-import { BracketAlreadyExistsException } from '../../../domain/exceptions/BracketExceptions.js';
-import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from '../../../domain/exceptions/ParticipantExceptions.js';
-import { RegisteredParticipant } from '../../../domain/entities/Participant.js';
+import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
 
-export class CreateBracket {
+export class CreateBracketAutomatically {
     constructor(
+        private readonly unitOfWork: UnitOfWork,
         private readonly bracketRepository: BracketRepository,
         private readonly tournamentRepository: TournamentRepository,
         private readonly registeredParticipantRepository: RegisteredParticipantRepository,
@@ -23,31 +22,23 @@ export class CreateBracket {
             throw new TournamentNotFoundException();
         }
 
-        // 2. Check if the tournament already has a bracket
-        const existingBracket = await this.bracketRepository.findByTournamentId(request.id);
-        if (existingBracket) {
-            throw new BracketAlreadyExistsException();
-        }
-
-        // 3. Obtain the participants from the tournament
+        // 2. Obtain the participants from the tournament
         const participants = await this.registeredParticipantRepository.findAllByTournamentId(request.id);
-        if (participants.length === 0) {
-            throw new RegistratedParticipantsEmptyException();
-        }
-        if (participants.length < 2) {
-            throw new RegistratedParticipantsNotEnoughException(2, participants.length);
-        }
 
-        // 4. Create the bracket (with the factory method)
-        const bracket = Bracket.create(
+        // 3. Create the bracket (with auto factory method)
+        const bracket = Bracket.createAutomatically(
             request.id,
             participants,
         );
+        tournament.bracketGenerated();
 
-        // 5. Persist the bracket in the DB
-        await this.bracketRepository.create(bracket);
+        // 4. Persist the changes in the DB
+        await this.unitOfWork.transaction(async () => {
+            await this.bracketRepository.create(bracket);
+            await this.tournamentRepository.update(tournament);
+        });
 
-        // 6. Return the bracket data
+        // 5. Return the bracket data
         return BracketMapper.toResponse(bracket);
     }
 }
