@@ -438,6 +438,10 @@ export class BracketPosition {
         return this.participant instanceof ByeParticipant;
     }
 
+    public isEmpty(): boolean {
+        return this.participant instanceof EmptyParticipant;
+    }
+
 
     // --------------------------------------------------------------------
     // GETTERS

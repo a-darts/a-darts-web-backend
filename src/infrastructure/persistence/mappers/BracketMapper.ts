@@ -1,7 +1,6 @@
-import { BracketStatus as PrismaBracketStatus, Bracket as PrismaBracket, BracketPosition as PrismaBracketPosition } from '@prisma/client';
+import { BracketStatus as PrismaBracketStatus } from '@prisma/client';
 import { Bracket, BracketPosition, BracketStatus } from '../../../domain/entities/Bracket.js';
-import { prisma } from '../client.js';
-import { ByeParticipant, RegisteredParticipant } from '../../../domain/entities/Participant.js';
+import { ByeParticipant, EmptyParticipant, RegisteredParticipant } from '../../../domain/entities/Participant.js';
 
 export class BracketMapper {
     // From Domain Entity to Prisma Object
@@ -13,8 +12,9 @@ export class BracketMapper {
             positions: {
                 create: bracket.getPositions().map(pos => ({
                     position: pos.getPosition(),
-                    // Si es un Bye, guardamos null
-                    participantId: pos.isBye() ? null : pos.getParticipant().getId()
+                    isBye: pos.isBye(),
+                    // Si es un Bye o un Vacío (Empty), guardamos null
+                    participantId: (pos.isBye() || pos.isEmpty()) ? null : pos.getParticipant().getId()
                 })),
             }
         };
@@ -24,14 +24,14 @@ export class BracketMapper {
     static toDomain(prismaBracket: any): Bracket {
         const domainPositions = prismaBracket.positions.map((p: any) => {
             // Lógica para reconstruir el participante
-            // Si participantId es null, es un Bye
+            // Si participantId es null: si p.isBye es true es un Bye, sino es un Vacío (Empty)
             const participant = p.participantId
                 ? RegisteredParticipant.rehydrate({
                     id: p.participantId,
                     alias: p.participant?.player?.user?.alias || 'Unknown',
                     federation: p.participant?.player?.federation || 'Unknown',
                 })
-                : ByeParticipant.create();
+                : (p.isBye ? ByeParticipant.create() : EmptyParticipant.create());
 
             return new BracketPosition(participant, p.position);
         });

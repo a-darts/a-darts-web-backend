@@ -228,6 +228,7 @@ model BracketPosition {
   id            String  @id @default(uuid()) @db.Uuid
   position      Int
   participantId String? @db.Uuid // Sólo si es participante real (no Bye)
+  isBye         Boolean
 
   bracketId String @db.Uuid
 
