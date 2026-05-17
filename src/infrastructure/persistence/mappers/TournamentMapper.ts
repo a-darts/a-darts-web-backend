@@ -26,6 +26,7 @@ export class TournamentMapper {
         const tournamentData = {
             id: tournament.getId(),
             name: tournament.getName(),
+            seasonStartYear: tournament.getSeason().getStartYear(),
             createdAt: tournament.getCreatedAt(),
             status: tournament.getStatus() as PrismaTournamentStatus,
             // TournamentInfo fields
@@ -59,6 +60,7 @@ export class TournamentMapper {
         return Tournament.rehydrate({
             id: prismaTournament.id,
             name: prismaTournament.name,
+            seasonStartYear: prismaTournament.seasonStartYear,
             createdAt: prismaTournament.createdAt,
             status: prismaTournament.status as TournamentStatus,
 

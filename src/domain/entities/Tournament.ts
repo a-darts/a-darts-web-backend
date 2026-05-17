@@ -7,6 +7,7 @@ import {
 } from "../exceptions/TournamentExceptions.js";
 import { MissingRequiredUserFieldsException } from "../exceptions/UserExceptions.js";
 import { Registration, RegistrationPeriod, RegistrationStatus } from "./Registration.js";
+import { Season } from "./Season.js";
 import { TournamentInfo } from "./TournamentInfo.js";
 
 export enum TournamentStatus {
@@ -17,10 +18,11 @@ export enum TournamentStatus {
   CANCELLED = 'CANCELLED',
 }
 
+
 export class Tournament {
   private readonly id: string;
   private name: string;
-
+  private season: Season;
   private readonly createdAt: Date;
   private status: TournamentStatus;
 
@@ -30,6 +32,7 @@ export class Tournament {
   constructor(
     id: string,
     name: string,
+    season: Season,
     createdAt: Date,
     status: TournamentStatus,
     info: TournamentInfo,
@@ -37,6 +40,7 @@ export class Tournament {
   ) {
     this.id = id;
     this.name = name;
+    this.season = season;
     this.createdAt = createdAt;
     this.status = status;
     this.info = info;
@@ -49,6 +53,7 @@ export class Tournament {
   // --------------------------------------------------------------------
   public static create(
     name: string,
+    season: Season,
     info: TournamentInfo,
   ): Tournament {
     if (!name || name.trim() === '' || !info) {
@@ -58,6 +63,7 @@ export class Tournament {
     return new Tournament(
       crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
       name,
+      season,
       new Date(),
       TournamentStatus.DRAFT,
       info,
@@ -78,6 +84,10 @@ export class Tournament {
 
   public updateInfo(info: TournamentInfo): void {
     this.info = info;
+  }
+
+  public updateSeason(season: Season): void {
+    this.season = season;
   }
 
 
@@ -176,6 +186,10 @@ export class Tournament {
     return this.name;
   }
 
+  public getSeason(): Season {
+    return this.season;
+  }
+
   public getCreatedAt(): Date {
     return this.createdAt;
   }
@@ -200,6 +214,7 @@ export class Tournament {
     return new Tournament(
       data.id,
       data.name,
+      new Season(data.seasonStartYear),
       new Date(data.createdAt),
       data.status as TournamentStatus,
       new TournamentInfo(

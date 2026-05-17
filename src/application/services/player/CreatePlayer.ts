@@ -1,10 +1,11 @@
-import { Player, Season } from '../../../domain/entities/Player.js';
+import { Player } from '../../../domain/entities/Player.js';
 import { PlayerAlreadyExistsException } from '../../../domain/exceptions/PlayerExceptions.js';
 import { UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { PlayerRepository } from '../../../domain/repositories/PlayerRepository.js';
 import { CreatePlayerRequestDTO, PlayerResponseDTO } from '../../dtos/player/PlayerDTOs.js';
 import { PlayerMapper } from '../../dtos/player/PlayerMapper.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
+import { Season } from '../../../domain/entities/Season.js';
 
 export class CreatePlayer {
   constructor(
@@ -13,15 +14,11 @@ export class CreatePlayer {
   ) { }
 
   public async execute(request: CreatePlayerRequestDTO): Promise<PlayerResponseDTO> {
-    // MIRAR: Debería ser así
-    // // 1. Check if the player already exists in that season
-    // const existingPlayer = await this.playerRepository.findByUserIdAndSeason(request.userId, request.season.startYear);
-    // if (existingPlayer) {
-    //   throw new PlayerAlreadyExistsException();
-    // }
-    //
-    // 1. Check if the player already exists
-    const existingPlayer = await this.playerRepository.findByUserId(request.userId);
+    // 1. Check if the player already exists in that season
+    const existingPlayer = await this.playerRepository.findByUserIdAndSeason(
+      request.userId,
+      request.season.startYear,
+    );
     if (existingPlayer) {
       throw new PlayerAlreadyExistsException();
     }
@@ -37,7 +34,7 @@ export class CreatePlayer {
       request.userId,
       request.registrationNumber,
       request.federation,
-      new Season(request.season.startYear, request.season.endYear),
+      new Season(request.season.startYear),
     );
 
     // 4. Persist the player in the DB

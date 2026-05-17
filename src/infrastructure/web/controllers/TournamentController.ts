@@ -40,7 +40,7 @@ import { OpenRegistration } from '../../../application/services/tournament/regis
 import { CloseRegistration } from '../../../application/services/tournament/registration/CloseRegistration.js';
 import { GetTournamentBracket } from '../../../application/services/tournament/GetTournamentBracket.js';
 import { UserRoles } from '../../../domain/entities/User.js';
-import { GetElegiblePlayersByTournamentId } from '../../../application/services/tournament/GetElegiblePlayersByTournamentId.js';
+import { GetUnregisteredPlayersByTournamentId } from '../../../application/services/tournament/GetUnregisteredPlayersByTournamentId.js';
 
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
@@ -75,7 +75,7 @@ const getMatchesByTournamentId = new GetMatchesByTournamentId(tournamentReposito
 // const createMatch = new CreateMatch(tournamentRepository, registeredParticipantRepository, matchRepository);
 const createBracket = new CreateBracket(bracketRepository, tournamentRepository, registeredParticipantRepository);
 const getTournamentBracket = new GetTournamentBracket(tournamentRepository, bracketRepository);
-const getElegiblePlayersByTournamentId = new GetElegiblePlayersByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository);
+const getUnregisteredPlayersByTournamentId = new GetUnregisteredPlayersByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository);
 
 /**
  * @swagger
@@ -90,6 +90,9 @@ const getElegiblePlayersByTournamentId = new GetElegiblePlayersByTournamentId(to
  *         name:
  *           type: string
  *           example: Campeonato de España Individual Femenino
+ *         seasonStartYear:
+ *           type: number
+ *           example: 2026
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -299,6 +302,28 @@ const getElegiblePlayersByTournamentId = new GetElegiblePlayersByTournamentId(to
  *               participantFederation:
  *                 type: string
  *                 example: ARAGON
+ * 
+ *     UnregisteredPlayer:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         userId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         registrationNumber:
+ *           type: string
+ *           example: 5441068146
+ *         federation:
+ *           type: string
+ *           example: ARAGON
+ *         seasonStartYear:
+ *           type: number
+ *           example: 2026
+ *         userAlias:
+ *           type: string
+ *           example: Pepe
  * 
  *     CreateTournamentRequest:
  *       type: object
@@ -2722,6 +2747,116 @@ export class TournamentController {
     }
   }
 
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/unregisteredPlayers:
+   *   get:
+   *     summary: Get unregistered players in tournament
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Unregistered players fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Unregistered players fetched successfully
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/UnregisteredPlayer'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getUnregisteredPlayersByTournamentId(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      let tournament = await getUnregisteredPlayersByTournamentId.execute(id);
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          tournament,
+          'Unregistered players fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof TournamentNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
   /**
    * @swagger
    * /api/tournaments/{id}/participants:
@@ -2930,175 +3065,6 @@ export class TournamentController {
       );
     }
   }
-
-  // /**
-  //  * @swagger
-  //  * /api/tournaments/{id}/matches:
-  //  *   post:
-  //  *     summary: Create a match in a tournament
-  //  *     tags: [Tournaments]
-  //  *     security:
-  //  *       - bearerAuth: []
-  //  *     parameters:
-  //  *       - name: id
-  //  *         in: path
-  //  *         required: true
-  //  *         description: Tournament ID
-  //  *         schema:
-  //  *           type: string
-  //  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-  //  *     requestBody:
-  //  *       required: true
-  //  *       content:
-  //  *         application/json:
-  //  *           schema:
-  //  *             $ref: '#/components/schemas/CreateMatchRequest'
-  //  *     responses:
-  //  *       201:
-  //  *         description: Match created successfully
-  //  *         content:
-  //  *           application/json:
-  //  *             schema:
-  //  *               type: object
-  //  *               properties:
-  //  *                 status:
-  //  *                   type: string
-  //  *                   example: success
-  //  *                 message:
-  //  *                   type: string
-  //  *                   example: Match created successfully
-  //  *                 data:
-  //  *                   type: string
-  //  *                   example: null
-  //  *       400:
-  //  *         description: Bad Request
-  //  *         content:
-  //  *           application/json:
-  //  *             schema:
-  //  *               type: object
-  //  *               properties:
-  //  *                 status:
-  //  *                   type: string
-  //  *                   example: error
-  //  *                 message:
-  //  *                   type: string
-  //  *                   example: All fields are required
-  //  *       401:
-  //  *         description: Unauthorized
-  //  *         content:
-  //  *           application/json:
-  //  *             schema:
-  //  *               type: object
-  //  *               properties:
-  //  *                 status:
-  //  *                   type: string
-  //  *                   example: error
-  //  *                 message:
-  //  *                   type: string
-  //  *                   example: No token provided
-  //  *       403:
-  //  *         description: Forbidden
-  //  *         content:
-  //  *           application/json:
-  //  *             schema:
-  //  *               type: object
-  //  *               properties:
-  //  *                 status:
-  //  *                   type: string
-  //  *                   example: error
-  //  *                 message:
-  //  *                   type: string
-  //  *                   example: You do not have permission to perform this action
-  //  *       404:
-  //  *         description: Not Found
-  //  *         content:
-  //  *           application/json:
-  //  *             schema:
-  //  *               type: object
-  //  *               properties:
-  //  *                 status:
-  //  *                   type: string
-  //  *                   example: error
-  //  *                 message:
-  //  *                   type: string
-  //  *                   example: Tournament not found
-  //  *       409:
-  //  *         description: Conflict
-  //  *         content:
-  //  *           application/json:
-  //  *             schema:
-  //  *               type: object
-  //  *               properties:
-  //  *                 status:
-  //  *                   type: string
-  //  *                   example: error
-  //  *                 message:
-  //  *                   type: string
-  //  *                   example: Participant 1 is not registered in this tournament
-  //  *       500:
-  //  *         description: Internal Server Error
-  //  *         content:
-  //  *           application/json:
-  //  *             schema:
-  //  *               type: object
-  //  *               properties:
-  //  *                 status:
-  //  *                   type: string
-  //  *                   example: error
-  //  *                 message:
-  //  *                   type: string
-  //  *                   example: Internal server error
-  //  */
-  // async createMatch(req: AuthRequest, res: Response) {
-  //   try {
-  //     const id = req.params.id;
-  //     if (!id || typeof id !== 'string') {
-  //       throw new MissingRequiredUserFieldsException();
-  //     }
-
-  //     const { participant1Id, participant2Id, round, boardNumber } = req.body;
-  //     if (!participant1Id || !participant2Id || !round) {
-  //       throw new MissingRequiredUserFieldsException();
-  //     }
-
-  //     await createMatch.execute({
-  //       id: id,
-  //       participant1Id: participant1Id,
-  //       participant2Id: participant2Id,
-  //       round: round,
-  //       boardNumber: boardNumber,
-  //     });
-  //     res.status(201).json(
-  //       ApiResponseBuilder.success(
-  //         null,
-  //         'Match created successfully',
-  //       )
-  //     );
-  //   } catch (error: any) {
-  //     if (error instanceof MissingRequiredUserFieldsException) {
-  //       return res.status(400).json(
-  //         ApiResponseBuilder.error(error.message)
-  //       );
-  //     }
-  //     if (error instanceof TournamentNotFoundException) {
-  //       return res.status(404).json(
-  //         ApiResponseBuilder.error(error.message)
-  //       );
-  //     }
-  //     if (
-  //       error instanceof ParticipantNotRegisteredInTournamentException ||
-  //       error instanceof MatchAlreadyExistsException
-  //     ) {
-  //       return res.status(409).json(
-  //         ApiResponseBuilder.error(error.message)
-  //       );
-  //     }
-  //     console.error('[ERROR]:', error);
-  //     res.status(500).json(
-  //       ApiResponseBuilder.error('Internal server error')
-  //     );
-  //   }
-  // }
 
 
   /**
@@ -3355,113 +3321,6 @@ export class TournamentController {
         error instanceof TournamentNotFoundException ||
         error instanceof BracketNotFoundException
       ) {
-        return res.status(404).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-
-      console.error('[ERROR]:', error);
-      res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
-      );
-    }
-  }
-
-
-  /**
-   * @swagger
-   * /api/tournaments/{id}/elegiblePlayers:
-   *   get:
-   *     summary: Get not registered players in tournament
-   *     tags: [Tournaments]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - name: id
-   *         in: path
-   *         required: true
-   *         description: Tournament ID
-   *         schema:
-   *           type: string
-   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *     responses:
-   *       200:
-   *         description: Players fetched successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Players fetched successfully
-   *                 data:
-   *                   $ref: '#/components/schemas/Player'
-   *       400:
-   *         description: Bad Request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: All fields are required
-   *       404:
-   *         description: Not Found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Tournament not found
-   *       500:
-   *         description: Internal Server Error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Internal server error
-   */
-  async getElegiblePlayersByTournamentId(req: AuthRequest, res: Response) {
-    try {
-      const id = req.params.id;
-      if (!id || typeof id !== 'string') {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      let tournament = await getElegiblePlayersByTournamentId.execute(id);
-
-      res.status(200).json(
-        ApiResponseBuilder.success(
-          tournament,
-          'Players fetched successfully',
-        )
-      );
-    } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
-        return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (error instanceof TournamentNotFoundException) {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );

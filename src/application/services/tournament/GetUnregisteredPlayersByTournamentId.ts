@@ -5,7 +5,7 @@ import { TournamentRepository } from '../../../domain/repositories/TournamentRep
 import { PlayerWithUserResponseDTO } from '../../dtos/player/PlayerDTOs.js';
 import { PlayerMapper } from '../../dtos/player/PlayerMapper.js';
 
-export class GetElegiblePlayersByTournamentId {
+export class GetUnregisteredPlayersByTournamentId {
   constructor(
     private readonly tournamentRepository: TournamentRepository,
     private readonly registeredParticipantRepository: RegisteredParticipantRepository,
@@ -33,9 +33,9 @@ export class GetElegiblePlayersByTournamentId {
 
     // 4. Filter players that are not registered in the tournament
     const registeredPlayerIds = registeredParticipants.map(participant => participant.getPlayerId());
-    const elegiblePlayers = allPlayers.filter(player => !registeredPlayerIds.includes(player.player.getId()));
+    const unregisteredPlayers = allPlayers.filter(player => !registeredPlayerIds.includes(player.player.getId()));
 
     // 5. Return the players data
-    return elegiblePlayers.map(player => PlayerMapper.toResponseWithUser(player));
+    return unregisteredPlayers.map(player => PlayerMapper.toResponseWithUser(player));
   }
 }

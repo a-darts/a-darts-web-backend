@@ -53,3 +53,10 @@ export class InvalidTournamentStatusUpdateException extends Error {
         this.name = 'InvalidTournamentStatusUpdateException';
     }
 }
+
+export class InvalidSeasonStartYearException extends Error {
+    constructor() {
+        super('Invalid season start year');
+        this.name = 'InvalidSeasonStartYearException';
+    }
+}

@@ -5,7 +5,6 @@ export interface PlayerResponseDTO {
     registrationNumber: string;
     federation: string;
     seasonStartYear: number;
-    seasonEndYear: number;
 }
 
 export interface PlayerWithUserResponseDTO {
@@ -14,7 +13,6 @@ export interface PlayerWithUserResponseDTO {
     registrationNumber: string;
     federation: string;
     seasonStartYear: number;
-    seasonEndYear: number;
     userAlias: string;
 }
 
@@ -37,5 +35,4 @@ export interface UpdatePlayerFederationRequestDTO {
 
 export interface SeasonDTO {
     startYear: number;
-    endYear: number;
 }

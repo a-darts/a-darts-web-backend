@@ -102,25 +102,24 @@ model Player {
   federation         String
   // Value object Season fields
   seasonStartYear    Int
-  seasonEndYear      Int
   //
 
   // Integridad referencial
   user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   registrations RegisteredParticipant[]
 
-  @@unique([userId])
-  // MIRAR: lo correcto es esto, pero hay que gestionar tmb las season de los torneos
-  // @@unique([userId, seasonStartYear])
-  //
+  @@unique([userId, seasonStartYear])
   @@map("players")
 }
 
 model Tournament {
-  id        String           @id @default(uuid()) @db.Uuid
-  name      String
-  createdAt DateTime
-  status    TournamentStatus
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String
+  // Value object Season fields
+  seasonStartYear Int
+  //
+  createdAt       DateTime
+  status          TournamentStatus
 
   // Value object TournamentInfo fields
   infoPlace      String

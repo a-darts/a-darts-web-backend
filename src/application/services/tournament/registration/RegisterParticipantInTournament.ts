@@ -32,10 +32,7 @@ export class RegisterParticipantInTournament {
         }
 
         // 3. Check if the player is registrated in the same season as the tournament
-        if (
-            player.getSeason().getStartYear() !== tournament.getInfo().getDateTime().getFullYear() &&
-            player.getSeason().getEndYear() !== tournament.getInfo().getDateTime().getFullYear()
-        ) {
+        if (!player.getSeason().equals(tournament.getSeason())) {
             throw new InvalidRegisteredPlayerSeasonException();
         }
 

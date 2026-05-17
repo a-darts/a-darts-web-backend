@@ -43,9 +43,7 @@ const updatePlayerFederation = new UpdatePlayerFederation(playerRepository);
  *         seasonStartYear:
  *           type: number
  *           example: 2026
- *         seasonEndYear:
- *           type: number
- *           example: 2027
+ * 
  *     CreatePlayerRequest:
  *       type: object
  *       properties:
@@ -64,9 +62,6 @@ const updatePlayerFederation = new UpdatePlayerFederation(playerRepository);
  *             startYear:
  *               type: number
  *               example: 2026
- *             endYear:
- *               type: number
- *               example: 2027
  *     UpdateFederationRequest:
  *       type: object
  *       required:

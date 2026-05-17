@@ -5,6 +5,7 @@ import { GameModes, GameTypes, ScheduleTypes } from "../../../domain/entities/To
 export interface TournamentResponseDTO {
     id: string;
     name: string;
+    seasonStartYear: number;
     createdAt: Date;
     status: TournamentStatus;
     info: TournamentInfoDTO;

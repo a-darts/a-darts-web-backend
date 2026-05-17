@@ -9,6 +9,7 @@ export class TournamentMapper {
         const tournamentData = {
             id: tournament.getId(),
             name: tournament.getName(),
+            seasonStartYear: tournament.getSeason().getStartYear(),
             createdAt: tournament.getCreatedAt(),
             status: tournament.getStatus(),
             info: {
