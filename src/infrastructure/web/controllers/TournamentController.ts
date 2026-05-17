@@ -4,6 +4,7 @@ import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { GetAllTournaments } from '../../../application/services/tournament/GetAllTournaments.js';
 import { PrismaTournamentRepository } from '../../persistence/repositories/PrismaTournamentRepository.js';
+import { TournamentStatus } from '../../../domain/entities/Tournament.js';
 import { InvalidTournamentStatusUpdateException, TournamentAlreadyFinishedException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
@@ -38,6 +39,7 @@ import { UnpublishTournament } from '../../../application/services/tournament/Un
 import { OpenRegistration } from '../../../application/services/tournament/registration/OpenRegistration.js';
 import { CloseRegistration } from '../../../application/services/tournament/registration/CloseRegistration.js';
 import { GetTournamentBracket } from '../../../application/services/tournament/GetTournamentBracket.js';
+import { UserRoles } from '../../../domain/entities/User.js';
 
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
@@ -418,7 +420,13 @@ export class TournamentController {
    */
   async getAllTournaments(req: AuthRequest, res: Response) {
     try {
-      const tournaments = await getAllTournaments.execute();
+      let tournaments = await getAllTournaments.execute();
+
+      const isAdmin = req.user?.role === UserRoles.ADMIN;
+      if (!isAdmin) {
+        tournaments = tournaments.filter(t => t.status !== TournamentStatus.DRAFT);
+      }
+
       res.status(200).json(
         ApiResponseBuilder.success(
           tournaments,

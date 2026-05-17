@@ -3,6 +3,7 @@ import { getHealth } from '../controllers/healthController.js';
 import { UserController } from '../controllers/UserController.js';
 import { AuthController } from '../controllers/AuthController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { optionalAuthMiddleware } from '../middlewares/optionalAuthMiddleware.js';
 import { PlayerController } from '../controllers/PlayerController.js';
 import { TournamentController } from '../controllers/TournamentController.js';
 import { isAdmin, isSelfOrAdmin } from '../middlewares/authorizer.js';
@@ -39,7 +40,7 @@ router.post('/players', authMiddleware, isAdmin, playerController.createPlayer);
 router.put('/players/:id/federation', authMiddleware, isAdmin, playerController.updatePlayerFederation);
 
 // Tournament routes
-router.get('/tournaments', tournamentController.getAllTournaments);
+router.get('/tournaments', optionalAuthMiddleware, tournamentController.getAllTournaments);
 router.get('/tournaments/:id', tournamentController.getTournamentById);
 router.post('/tournaments', authMiddleware, isAdmin, tournamentController.createTournament);
 
