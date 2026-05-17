@@ -47,6 +47,13 @@ export class TournamentNotFoundException extends Error {
     }
 }
 
+export class TournamentMaxPlayersExceededException extends Error {
+    constructor() {
+        super('Tournament max players exceeded');
+        this.name = 'TournamentMaxPlayersExceededException';
+    }
+}
+
 export class InvalidTournamentStatusUpdateException extends Error {
     constructor() {
         super('Invalid tournament status update');

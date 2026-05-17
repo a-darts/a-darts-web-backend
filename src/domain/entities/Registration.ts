@@ -132,6 +132,10 @@ export class Registration {
         return this.registeredParticipantsIds.some(r => r === participantId);
     }
 
+    public getRegisteredParticipantsCount(): number {
+        return this.registeredParticipantsIds.length;
+    }
+
 
     // --------------------------------------------------------------------
     // GETTERS

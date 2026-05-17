@@ -5,7 +5,7 @@ import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse
 import { GetAllTournaments } from '../../../application/services/tournament/GetAllTournaments.js';
 import { PrismaTournamentRepository } from '../../persistence/repositories/PrismaTournamentRepository.js';
 import { TournamentStatus } from '../../../domain/entities/Tournament.js';
-import { InvalidTournamentStatusUpdateException, TournamentAlreadyFinishedException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
+import { InvalidTournamentStatusUpdateException, TournamentAlreadyFinishedException, TournamentMaxPlayersExceededException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
 import { InvalidRegistrationPeriodException, InvalidRegistrationStatusException, RegistrationAlreadyClosedException, RegistrationAlreadyOpenException, RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
@@ -2230,7 +2230,8 @@ export class TournamentController {
       }
       if (
         error instanceof ParticipantAlreadyRegisteredException ||
-        error instanceof RegistrationAlreadyClosedException
+        error instanceof RegistrationAlreadyClosedException ||
+        error instanceof TournamentMaxPlayersExceededException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)

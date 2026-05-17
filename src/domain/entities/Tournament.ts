@@ -1,6 +1,7 @@
 import { RegistrationNotClosedException } from "../exceptions/RegistrationExceptions.js";
 import {
   TournamentAlreadyFinishedException,
+  TournamentMaxPlayersExceededException,
   TournamentNotInDraftException,
   TournamentNotInProgressException,
   TournamentNotPublishedException,
@@ -167,6 +168,11 @@ export class Tournament {
   }
 
   public registerParticipant(participantId: string) {
+    const maxPlayers = this.getInfo().getMaxPlayers();
+    if (maxPlayers && this.registration.getRegisteredParticipantsCount() >= maxPlayers) {
+      throw new TournamentMaxPlayersExceededException();
+    }
+
     this.registration = this.registration.registerParticipant(participantId);
   }
 
