@@ -26,7 +26,7 @@ export class GetUnregisteredPlayersByTournamentId {
     }
 
     // 3. Rehydrate the players registered in the same season from the DB
-    const allPlayers = await this.playerRepository.findAllBySeasonWithUser(tournament.getInfo().getDateTime().getFullYear());
+    const allPlayers = await this.playerRepository.findAllBySeasonWithUser(tournament.getSeason().getStartYear());
     if (!allPlayers) {
       return [];
     }
