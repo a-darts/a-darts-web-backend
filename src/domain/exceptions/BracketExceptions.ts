@@ -60,3 +60,11 @@ export class DuplicateParticipantsException extends Error {
         this.name = 'DuplicateParticipantsException';
     }
 }
+
+export class BracketUnfinishedException extends Error {
+    constructor() {
+        super('Bracket is not completely finished or filled');
+        this.name = 'BracketUnfinishedException';
+    }
+}
+

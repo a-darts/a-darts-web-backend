@@ -1,4 +1,4 @@
-import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
+import { BracketNotFoundException, BracketUnfinishedException } from '../../../domain/exceptions/BracketExceptions.js';
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { BracketRepository } from '../../../domain/repositories/BracketRepository.js';
 import { MatchRepository } from '../../../domain/repositories/MatchRepository.js';
@@ -26,9 +26,23 @@ export class StartTournament {
       throw new BracketNotFoundException();
     }
 
+    // 2.5. Check that all bracket positions are occupied by real participants
+    const realParticipantsInBracket = bracket
+      .getPositions()
+      .filter((position) => !position.isBye() && !position.isEmpty()).length;
+
+    const registeredParticipantsInTournament = tournament
+      .getRegistration()
+      .getRegisteredParticipantsCount();
+
+    if (realParticipantsInBracket !== registeredParticipantsInTournament) {
+      throw new BracketUnfinishedException();
+    }
+
     // 3. Start the tournament, the bracket and generate the initial matches
     tournament.start();
     bracket.start();
+
     const initialMatches = bracket.generateInitialMatches();
 
     // 4. Persist the changes in the DB

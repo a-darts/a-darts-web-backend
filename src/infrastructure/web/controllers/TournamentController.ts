@@ -28,7 +28,7 @@ import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserR
 import { GetMatchesByTournamentId } from '../../../application/services/tournament/matches/GetMatchesByTournamentId.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
-import { BracketAlreadyExistsException, BracketAlreadyFinishedException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException } from '../../../domain/exceptions/BracketExceptions.js';
+import { BracketAlreadyExistsException, BracketAlreadyFinishedException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, BracketUnfinishedException } from '../../../domain/exceptions/BracketExceptions.js';
 import { StartTournament } from '../../../application/services/tournament/StartTournament.js';
 import { PublishTournament } from '../../../application/services/tournament/PublishTournament.js';
 import { CancelTournament } from '../../../application/services/tournament/CancelTournament.js';
@@ -1304,7 +1304,8 @@ export class TournamentController {
         error instanceof RegistrationNotClosedException ||
         error instanceof BracketNotInDraftOrPublisedException ||
         error instanceof BracketNotInProgressException ||
-        error instanceof TournamentDoesNotHaveBracketException
+        error instanceof TournamentDoesNotHaveBracketException ||
+        error instanceof BracketUnfinishedException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
