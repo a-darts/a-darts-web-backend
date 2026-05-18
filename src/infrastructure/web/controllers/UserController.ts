@@ -14,10 +14,12 @@ import {
   UserDeletedException,
   UserNotFoundException
 } from '../../../domain/exceptions/UserExceptions.js';
+import { GetAllUsers } from '../../../application/services/user/GetAllUsers.js';
 
 const userRepository = new PrismaUserRepository(prisma);
 const passwordHasher = new BcryptPasswordHasher();
 
+const getAllUsers = new GetAllUsers(userRepository);
 const updateUserAlias = new UpdateUserAlias(userRepository);
 const updateUserEmail = new UpdateUserEmail(userRepository);
 const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher);
@@ -114,6 +116,76 @@ const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher
  */
 
 export class UserController {
+
+  /**
+   * @swagger
+   * /api/users:
+   *   get:
+   *     summary: Get all users
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Users fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Users fetched successfully
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/User'
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getAllUsers(req: AuthRequest, res: Response) {
+    try {
+      const users = await getAllUsers.execute();
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          users,
+          'Users fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
 
   /**
    * @swagger

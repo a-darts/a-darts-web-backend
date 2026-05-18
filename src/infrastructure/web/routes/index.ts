@@ -28,6 +28,7 @@ router.post('/auth/logout', authMiddleware, authController.logout);
 router.get('/auth/me', authMiddleware, authController.getMe);
 
 // User routes
+router.get('/users', authMiddleware, isAdmin, userController.getAllUsers);
 router.put('/users/:id/email', authMiddleware, isSelfOrAdmin, userController.updateEmail);
 router.put('/users/:id/password', authMiddleware, isSelfOrAdmin, userController.updatePassword);
 router.put('/users/:id/alias', authMiddleware, isSelfOrAdmin, userController.updateAlias);
