@@ -260,7 +260,6 @@ export class Bracket {
 
         // 2. Validar que no nos manden más o menos posiciones de las que el cuadrante soporta
         if (newPositionsData.length !== this.positions.length) {
-            console.log("AQUI");
             throw new InvalidPositionsException();
         }
 

@@ -1,4 +1,4 @@
-import { EmptyParticipant, IParticipant } from '../../../domain/entities/Participant.js';
+import { EmptyParticipant, ByeParticipant, IParticipant } from '../../../domain/entities/Participant.js';
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
 import { RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
 import { BracketRepository } from '../../../domain/repositories/BracketRepository.js';
@@ -18,9 +18,25 @@ export class AssignParticipantsToBracketPositions {
             throw new BracketNotFoundException();
         }
 
+        // 2. Fetch all registered participants for the tournament
+        const allTournamentParticipants = await this.registeredParticipantRepository.findAllByTournamentId(bracket.getTournamentId());
+
+        // Count how many unique real registered participants are assigned in the payload
+        const assignedParticipantIds = new Set(
+            request.newPositions
+                .map(p => p.participantId)
+                .filter(Boolean)
+        );
+
+        // If all registered participants have been placed in the bracket,
+        // any remaining empty positions become Byes. Otherwise they remain empty.
+        const allParticipantsAssigned = assignedParticipantIds.size === allTournamentParticipants.length;
+
         const newPositionsData = await Promise.all(
             request.newPositions.map(async (positionData) => {
-                let participant: IParticipant = EmptyParticipant.create();
+                let participant: IParticipant = allParticipantsAssigned
+                    ? ByeParticipant.create()
+                    : EmptyParticipant.create();
                 if (positionData.participantId) {
                     const registeredParticipant = await this.registeredParticipantRepository.findById(
                         positionData.participantId,
