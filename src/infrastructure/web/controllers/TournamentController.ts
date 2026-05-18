@@ -3480,7 +3480,7 @@ export class TournamentController {
 
       const bracket = await getTournamentBracket.execute(id);
 
-      // Filter DRAFT tournaments if not ADMIN
+      // Filter DRAFT brackets if not ADMIN
       const isAdmin = req.user?.role === UserRoles.ADMIN;
       if (!isAdmin) {
         if (bracket.status === BracketStatus.DRAFT) {
