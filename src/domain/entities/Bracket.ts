@@ -371,16 +371,21 @@ export class Bracket {
         }
 
         // 5. Mapear la estructura completa a instancias reales de la entidad Match
-        return matchesData.map(m =>
-            Match.create(
+        const roundMatchCounts: Record<number, number> = {};
+        return matchesData.map(m => {
+            const currentCount = (roundMatchCounts[m.round] || 0) + 1;
+            roundMatchCounts[m.round] = currentCount;
+
+            return Match.create(
                 this.tournamentId,
                 m.p1Id,
                 m.p2Id,
                 m.isP1Bye,
                 m.isP2Bye,
-                m.round
-            )
-        );
+                m.round,
+                currentCount
+            );
+        });
     }
 
 
