@@ -41,6 +41,7 @@ import { UserRoles } from '../../../domain/entities/User.js';
 import { GetUnregisteredPlayersByTournamentId } from '../../../application/services/tournament/GetUnregisteredPlayersByTournamentId.js';
 import { CreateBracketAutomatically } from '../../../application/services/bracket/CreateBracketAutomatically.js';
 import { CreateBracketManually } from '../../../application/services/bracket/CreateBracketManually.js';
+import { BracketStatus } from '@prisma/client';
 
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
@@ -3404,6 +3405,8 @@ export class TournamentController {
    *   get:
    *     summary: Get tournament bracket
    *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - name: id
    *         in: path
@@ -3476,6 +3479,15 @@ export class TournamentController {
       }
 
       const bracket = await getTournamentBracket.execute(id);
+
+      // Filter DRAFT tournaments if not ADMIN
+      const isAdmin = req.user?.role === UserRoles.ADMIN;
+      if (!isAdmin) {
+        if (bracket.status === BracketStatus.DRAFT) {
+          throw new BracketNotFoundException();
+        }
+      }
+
       res.status(200).json(
         ApiResponseBuilder.success(
           bracket,

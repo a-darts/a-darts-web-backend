@@ -64,7 +64,7 @@ router.get('/tournaments/:id/participants', tournamentController.getParticipants
 router.get('/tournaments/:id/matches', tournamentController.getMatchesByTournamentId);
 router.post('/tournaments/:id/bracket/automatic', authMiddleware, isAdmin, tournamentController.createBracketAutomatically);
 router.post('/tournaments/:id/bracket/manual', authMiddleware, isAdmin, tournamentController.createBracketManually);
-router.get('/tournaments/:id/bracket', tournamentController.getTournamentBracket);
+router.get('/tournaments/:id/bracket', optionalAuthMiddleware, tournamentController.getTournamentBracket);
 
 
 // Match routes
