@@ -26,3 +26,13 @@ export interface UpdateBracketPositionsRequestDTO {
     position1: number;
     position2: number;
 }
+
+export interface AssignParticipantToBracketPositionRequestDTO {
+    id: string; // Bracket ID
+    newPositions: PositionRequestDTO[];
+}
+
+export interface PositionRequestDTO {
+    position: number;
+    participantId: string | null;
+}

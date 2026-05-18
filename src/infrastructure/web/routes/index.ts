@@ -80,6 +80,7 @@ router.post('/matches/:id/legs', authMiddleware, isAdmin, matchController.regist
 
 // Bracket routes
 router.put('/brackets/:id/swapPositions', authMiddleware, isAdmin, bracketController.swapPositions);
+router.put('/brackets/:id/setupPositions', authMiddleware, isAdmin, bracketController.setupPositions);
 router.post('/brackets/:id/reshuffle', authMiddleware, isAdmin, bracketController.reshuffleBracket);
 router.post('/brackets/:id/unpublish', authMiddleware, isAdmin, bracketController.unpublishBracket);
 router.post('/brackets/:id/publish', authMiddleware, isAdmin, bracketController.publishBracket);

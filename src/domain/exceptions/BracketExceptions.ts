@@ -53,3 +53,10 @@ export class InvalidPositionsException extends Error {
         this.name = 'InvalidPositionsException';
     }
 }
+
+export class DuplicateParticipantsException extends Error {
+    constructor() {
+        super('Duplicate participants in bracket');
+        this.name = 'DuplicateParticipantsException';
+    }
+}

@@ -2,7 +2,7 @@ import { ByeParticipant, EmptyParticipant, RegisteredParticipant } from "./Parti
 import type { IParticipant } from "./Participant.js";
 
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from "../exceptions/ParticipantExceptions.js";
-import { BracketAlreadyFinishedException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
+import { BracketAlreadyFinishedException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, DuplicateParticipantsException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
 import { Match } from "./Match.js";
 
 
@@ -46,33 +46,12 @@ export class Bracket {
         tournamentId: string,
         participants: IParticipant[],
     ): Bracket {
-        const totalParticipants = participants.length;
-        this.validateParticipantsCount(totalParticipants);
+        this.validateParticipantsCount(participants.length);
 
-        // 1. Calculamos el tamaño del cuadrante (participantes + byes)
-        const bracketSize = this.calculateBracketSize(totalParticipants);
+        // 1. Obtenemos las posiciones ya sorteadas
+        const positions = this.generateSeededPositions(participants);
 
-        // 2. Barajamos los participantes (orden aleatorio) y clonamos
-        const shuffledParticipants = this.shuffle([...participants]);
-
-        // 3. Creamos la lista de participantes (reales + byes)
-        const fullParticipantList: IParticipant[] = shuffledParticipants;
-        const numByes = bracketSize - totalParticipants;
-
-        // 4. Añadimos los byes a la lista
-        for (let i = 0; i < numByes; i++) {
-            fullParticipantList.push(ByeParticipant.create());
-        }
-
-        // 5. Ordenamos los participantes y los byes (Standard Tournament Seeding)
-        const interleavedParticipants = this.distributePositions(fullParticipantList);
-
-        // 6. Mapeamos la lista de participantes a posiciones del cuadrante
-        const positions = interleavedParticipants.map((participant, index) =>
-            BracketPosition.create(participant, index + 1)
-        );
-
-        // 7. Creamos el objeto cuadrante
+        // 2. Creamos el objeto cuadrante
         return new Bracket(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             BracketStatus.DRAFT,
@@ -170,6 +149,30 @@ export class Bracket {
         return array;
     }
 
+    private static generateSeededPositions(participants: IParticipant[]): BracketPosition[] {
+        const totalParticipants = participants.length;
+        const bracketSize = this.calculateBracketSize(totalParticipants);
+
+        // 1. Barajamos los participantes (orden aleatorio) y clonamos
+        const shuffledParticipants = this.shuffle([...participants]);
+
+        // 2. Creamos la lista completa agregando los Byes necesarios
+        const fullParticipantList: IParticipant[] = shuffledParticipants;
+        const numByes = bracketSize - totalParticipants;
+
+        for (let i = 0; i < numByes; i++) {
+            fullParticipantList.push(ByeParticipant.create());
+        }
+
+        // 3. Ordenamos usando Standard Tournament Seeding
+        const interleavedParticipants = this.distributePositions(fullParticipantList);
+
+        // 4. Mapeamos a las posiciones del cuadrante
+        return interleavedParticipants.map((participant, index) =>
+            BracketPosition.create(participant, index + 1)
+        );
+    }
+
 
     // --------------------------------------------------------------------
     // DOMAIN METHODS
@@ -197,6 +200,88 @@ export class Bracket {
         // Mantenemos el número de posición original pero cambiamos el participante
         this.positions[index1] = BracketPosition.create(participant2, pos1);
         this.positions[index2] = BracketPosition.create(participant1, pos2);
+    }
+
+    public assignParticipant(position: number, participant: IParticipant): void {
+        // 1. Validar que esté en borrador o publicado
+        if (this.status !== BracketStatus.DRAFT && this.status !== BracketStatus.PUBLISHED) {
+            throw new BracketNotInDraftOrPublisedException();
+        }
+
+        // 2. Encontrar los índices en el array
+        const index1 = this.positions.findIndex(p => p.getPosition() === position);
+        if (index1 === -1) {
+            throw new InvalidPositionsException();
+        }
+
+        // 3. Validar que la posición esté Vacía (EmptyParticipant)
+        const participant1 = this.positions[index1].getParticipant();
+        if (!(participant1 instanceof EmptyParticipant)) {
+            throw new InvalidPositionsException();
+        }
+
+        // 4. Asignar el nuevo participante a la posición
+        this.positions[index1] = BracketPosition.create(
+            participant,
+            position,
+        );
+    }
+
+    public reshuffle(): void {
+        // 1. Validar que esté en borrador o publicado
+        if (this.status !== BracketStatus.DRAFT && this.status !== BracketStatus.PUBLISHED) {
+            throw new BracketNotInDraftOrPublisedException();
+        }
+
+        // 2. Filtrar únicamente los participantes reales (ignoramos Byes y Empties)
+        const realParticipants = this.positions
+            .map(p => p.getParticipant())
+            .filter(participant =>
+                !(participant instanceof ByeParticipant) &&
+                !(participant instanceof EmptyParticipant)
+            );
+
+        // 3. Validar de nuevo que el total de participantes rescatados siga siendo válido
+        Bracket.validateParticipantsCount(realParticipants.length);
+
+        // 4. Obtenemos las posiciones ya sorteadas
+        const newPositions = Bracket.generateSeededPositions(realParticipants);
+
+        // 5. Guardamos las nuevas posiciones
+        this.positions.length = 0;
+        this.positions.push(...newPositions);
+    }
+
+    public setupPositions(newPositionsData: { position: number; participant: IParticipant }[]): void {
+        // 1. Validar que esté en borrador o publicado
+        if (this.status !== BracketStatus.DRAFT && this.status !== BracketStatus.PUBLISHED) {
+            throw new BracketNotInDraftOrPublisedException();
+        }
+
+        // 2. Validar que no nos manden más o menos posiciones de las que el cuadrante soporta
+        if (newPositionsData.length !== this.positions.length) {
+            console.log("AQUI");
+            throw new InvalidPositionsException();
+        }
+
+        // 3. Opcional: Validar que no haya participantes duplicados en el lote recibido
+        const participantIds = newPositionsData
+            .filter(d => !(d.participant instanceof EmptyParticipant) && !(d.participant instanceof ByeParticipant))
+            .map(d => d.participant.getId());
+
+        const hasDuplicates = new Set(participantIds).size !== participantIds.length;
+        if (hasDuplicates) {
+            throw new DuplicateParticipantsException();
+        }
+
+        // 4. Mapear y sobreescribir el array interno
+        const updatedPositions = newPositionsData.map(data =>
+            BracketPosition.create(data.participant, data.position)
+        );
+
+        // 5. Guardamos las nuevas posiciones
+        this.positions.length = 0;
+        this.positions.push(...updatedPositions);
     }
 
     public generateInitialMatches(): Match[] {
