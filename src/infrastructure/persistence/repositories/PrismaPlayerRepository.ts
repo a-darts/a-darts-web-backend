@@ -35,9 +35,16 @@ export class PrismaPlayerRepository implements PlayerRepository {
         });
     }
 
-    async findAll(): Promise<Player[]> {
-        const playersData = await this.client.player.findMany();
+    async findAll(skip?: number, take?: number): Promise<Player[]> {
+        const playersData = await this.client.player.findMany({
+            skip,
+            take,
+        });
         return playersData.map(PlayerMapper.toDomain);
+    }
+
+    async count(): Promise<number> {
+        return this.client.player.count();
     }
 
     async findById(id: string): Promise<Player | null> {

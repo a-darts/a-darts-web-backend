@@ -77,10 +77,21 @@ export class PlayerController {
    * @swagger
    * /api/players:
    *   get:
-   *     summary: Get all players
+   *     summary: Get all players (supports optional pagination)
    *     tags: [Players]
    *     security:
    *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *         description: Page number (1-based)
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *         description: Maximum number of players to return
    *     responses:
    *       200:
    *         description: Players fetched successfully
@@ -96,7 +107,27 @@ export class PlayerController {
    *                   type: string
    *                   example: Players fetched successfully
    *                 data:
-   *                   $ref: '#/components/schemas/Player'
+   *                   oneOf:
+   *                     - type: array
+   *                       items:
+   *                         $ref: '#/components/schemas/Player'
+   *                     - type: object
+   *                       properties:
+   *                         players:
+   *                           type: array
+   *                           items:
+   *                             $ref: '#/components/schemas/Player'
+   *                         pagination:
+   *                           type: object
+   *                           properties:
+   *                             total:
+   *                               type: integer
+   *                             page:
+   *                               type: integer
+   *                             limit:
+   *                               type: integer
+   *                             totalPages:
+   *                               type: integer
    *       401:
    *         description: Unauthorized
    *         content:
@@ -126,7 +157,17 @@ export class PlayerController {
    */
   async getAllPlayers(req: AuthRequest, res: Response) {
     try {
-      const players = await getAllPlayers.execute();
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+
+      if (page !== undefined && (isNaN(page) || page <= 0)) {
+        return res.status(400).json(ApiResponseBuilder.error('Invalid page number'));
+      }
+      if (limit !== undefined && (isNaN(limit) || limit <= 0)) {
+        return res.status(400).json(ApiResponseBuilder.error('Invalid limit number'));
+      }
+
+      const players = await getAllPlayers.execute(page, limit);
       res.status(200).json(
         ApiResponseBuilder.success(players, 'Players fetched successfully')
       );
