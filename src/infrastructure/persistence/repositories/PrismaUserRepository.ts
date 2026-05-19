@@ -34,9 +34,16 @@ export class PrismaUserRepository implements UserRepository {
         });
     }
 
-    async findAll(): Promise<User[]> {
-        const usersData = await this.client.user.findMany();
+    async findAll(skip?: number, take?: number): Promise<User[]> {
+        const usersData = await this.client.user.findMany({
+            skip,
+            take,
+        });
         return usersData.map(UserMapper.toDomain);
+    }
+
+    async count(): Promise<number> {
+        return this.client.user.count();
     }
 
     async findByEmail(email: string): Promise<User | null> {

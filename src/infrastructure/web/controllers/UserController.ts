@@ -119,10 +119,21 @@ export class UserController {
    * @swagger
    * /api/users:
    *   get:
-   *     summary: Get all users
+   *     summary: Get all users (supports optional pagination)
    *     tags: [Users]
    *     security:
    *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *         description: Page number (1-based)
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *         description: Maximum number of users to return
    *     responses:
    *       200:
    *         description: Users fetched successfully
@@ -138,9 +149,27 @@ export class UserController {
    *                   type: string
    *                   example: Users fetched successfully
    *                 data:
-   *                   type: array
-   *                   items:
-   *                     $ref: '#/components/schemas/User'
+   *                   oneOf:
+   *                     - type: array
+   *                       items:
+   *                         $ref: '#/components/schemas/User'
+   *                     - type: object
+   *                       properties:
+   *                         users:
+   *                           type: array
+   *                           items:
+   *                             $ref: '#/components/schemas/User'
+   *                         pagination:
+   *                           type: object
+   *                           properties:
+   *                             total:
+   *                               type: integer
+   *                             page:
+   *                               type: integer
+   *                             limit:
+   *                               type: integer
+   *                             totalPages:
+   *                               type: integer
    *       401:
    *         description: Unauthorized
    *         content:
@@ -170,7 +199,17 @@ export class UserController {
    */
   async getAllUsers(req: AuthRequest, res: Response) {
     try {
-      const users = await getAllUsers.execute();
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+
+      if (page !== undefined && (isNaN(page) || page <= 0)) {
+        return res.status(400).json(ApiResponseBuilder.error('Invalid page number'));
+      }
+      if (limit !== undefined && (isNaN(limit) || limit <= 0)) {
+        return res.status(400).json(ApiResponseBuilder.error('Invalid limit number'));
+      }
+
+      const users = await getAllUsers.execute(page, limit);
       res.status(200).json(
         ApiResponseBuilder.success(
           users,
