@@ -24,18 +24,20 @@ export class NodemailerMailer implements Mailer {
             to: to,
             subject: '¡Te han invitado a A-Darts! Tu contraseña temporal',
             html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>¡Hola, ${alias}!</h2>
-          <p>Un administrador ha creado tu cuenta en nuestra plataforma.</p>
-          <p>Para poder acceder por primera vez, utiliza la siguiente contraseña temporal:</p>
-          <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 2px;">
-            ${temporaryPassword}
-          </div>
-          <p>Al iniciar sesión, el sistema te pedirá obligatoriamente que la cambies por una de tu elección.</p>
-          <hr />
-          <small>Este enlace y contraseña son de un solo uso.</small>
-        </div>
-      `,
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                <h2>¡Te damos la bienvenida a A-Darts, ${alias}!</h2>
+                <p>Nos alegra informarte que tu cuenta ya está lista para ser utilizada en nuestra plataforma.</p>
+                <p>Para tu primer inicio de sesión seguro, el sistema ha generado una clave de acceso provisional. Podrás modificarla por una contraseña personal en cuanto accedas a tu perfil:</p>
+                
+                <div style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 20px; text-align: center; margin: 20px 0;">
+                    <code style="font-size: 22px; font-weight: bold; color: #007bff; letter-spacing: 1px;">${temporaryPassword}</code>
+                </div>
+                
+                <p>Si tienes cualquier duda o no has solicitado este registro, por favor ponte en contacto con el administrador.</p>
+                <br />
+                <p>El equipo de soporte de A-Darts.</p>
+                </div>
+            `,
         };
 
         try {
