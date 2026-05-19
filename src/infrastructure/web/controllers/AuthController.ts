@@ -54,6 +54,41 @@ const loginUser = new LoginUser(userRepository, passwordHasher);
  *           type: string
  *           format: date-time
  *           example: 2026-05-04T13:10:16.841Z
+ * 
+ *     RegisterRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *         - alias
+ *         - role
+ *       properties:
+ *         email:
+ *           type: string
+ *           example: prueba@gmail.com
+ *         password:
+ *           type: string
+ *           example: 123456
+ *         alias:
+ *           type: string
+ *           example: prueba
+ *         role:
+ *           type: string
+ *           enum: [PLAYER, ADMIN]
+ *           example: ADMIN
+ * 
+ *     LoginRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           example: prueba@gmail.com
+ *         password:
+ *           type: string
+ *           example: 123456
  */
 export class AuthController {
   /**

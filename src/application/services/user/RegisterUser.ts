@@ -22,7 +22,7 @@ export class RegisterUser {
     const hashedPassword = await this.passwordHasher.hash(request.password);
 
     // 3. Create the user (with the factory method)
-    const user = User.create(
+    const user = User.createSelf(
       request.email,
       hashedPassword,
       request.alias,

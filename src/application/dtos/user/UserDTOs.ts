@@ -16,6 +16,12 @@ export interface RegisterUserRequestDTO {
     role: UserRoles;
 }
 
+export interface RegisterUserByAdminRequestDTO {
+    email: string;
+    alias: string;
+    role: UserRoles;
+}
+
 export interface LoginUserRequestDTO {
     email: string;
     password: string;

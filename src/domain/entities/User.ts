@@ -49,12 +49,13 @@ export class User {
   // --------------------------------------------------------------------
   public static createByAdmin(
     email: string,
+    temporaryPassword: string,
     alias: string,
     role: UserRoles,
   ): User {
     if (
-      !email || !alias || !role ||
-      email.trim() === '' || alias.trim() === ''
+      !email || !alias || !temporaryPassword || !role ||
+      email.trim() === '' || temporaryPassword.trim() === '' || alias.trim() === ''
     ) {
       throw new MissingRequiredUserFieldsException();
     }
@@ -67,7 +68,7 @@ export class User {
       new Date(),
       null,
       UserStatus.INACTIVE,
-      undefined,
+      temporaryPassword,
     );
   }
 
@@ -170,16 +171,9 @@ export class User {
     this.status = UserStatus.ACTIVE;
   }
 
-  public deactivate(): void {
+  public block(): void {
     if (this.status !== UserStatus.ACTIVE) {
       throw new UserNotActiveException();
-    }
-    this.status = UserStatus.INACTIVE;
-  }
-
-  public block(): void {
-    if (this.status === UserStatus.DELETED) {
-      throw new UserDeletedException();
     }
     this.status = UserStatus.BLOCKED;
   }

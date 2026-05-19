@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { UpdateUserAlias } from '../../../application/services/user/UpdateUserAlias.js';
 import { UpdateUserEmail } from '../../../application/services/user/UpdateUserEmail.js';
 import { UpdateUserPassword } from '../../../application/services/user/UpdateUserPassword.js';
@@ -15,11 +15,20 @@ import {
   UserNotFoundException
 } from '../../../domain/exceptions/UserExceptions.js';
 import { GetAllUsers } from '../../../application/services/user/GetAllUsers.js';
+import { RegisterUserByAdmin } from '../../../application/services/user/RegisterUserByAdmin.js';
+import { NodemailerMailer } from '../../adapters/NodemailerMailer.js';
+import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
+import { MailerSendTemporaryPasswordException } from '../../../domain/exceptions/MailerExceptions.js';
+
+
 
 const userRepository = new PrismaUserRepository(prisma);
+
 const passwordHasher = new BcryptPasswordHasher();
+const mailer = new NodemailerMailer();
 
 const getAllUsers = new GetAllUsers(userRepository);
+const createUser = new RegisterUserByAdmin(userRepository, passwordHasher, mailer);
 const updateUserAlias = new UpdateUserAlias(userRepository);
 const updateUserEmail = new UpdateUserEmail(userRepository);
 const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher);
@@ -52,7 +61,8 @@ const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher
  *           type: string
  *           format: date-time
  *           example: 2026-05-04T13:10:16.841Z
- *     RegisterRequest:
+ *
+ *     CreateUserRequest:
  *       type: object
  *       required:
  *         - email
@@ -63,9 +73,6 @@ const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher
  *         email:
  *           type: string
  *           example: prueba@gmail.com
- *         password:
- *           type: string
- *           example: 123456
  *         alias:
  *           type: string
  *           example: prueba
@@ -73,18 +80,7 @@ const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher
  *           type: string
  *           enum: [PLAYER, ADMIN]
  *           example: ADMIN
- *     LoginRequest:
- *       type: object
- *       required:
- *         - email
- *         - password
- *       properties:
- *         email:
- *           type: string
- *           example: prueba@gmail.com
- *         password:
- *           type: string
- *           example: 123456
+ *
  *     UpdateEmailRequest:
  *       type: object
  *       required:
@@ -93,6 +89,7 @@ const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher
  *         newEmail:
  *           type: string
  *           example: nuevo@gmail.com
+ * 
  *     UpdatePasswordRequest:
  *       type: object
  *       required:
@@ -105,6 +102,7 @@ const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher
  *         newPassword:
  *           type: string
  *           example: nueva_password_123
+ * 
  *     UpdateAliasRequest:
  *       type: object
  *       required:
@@ -186,6 +184,123 @@ export class UserController {
       );
     }
   }
+
+
+  /**
+   * @swagger
+   * /api/users:
+   *   post:
+   *     summary: Create a new user (Admin only)
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/CreateUserRequest'
+   *     responses:
+   *       201:
+   *         description: User created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: User created successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/User'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Email already in use
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   *       502:
+   *         description: Bad Gateway
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Error while sending the temporary password
+   */
+  async createUser(req: Request, res: Response) {
+    try {
+      const user = await createUser.execute(req.body);
+      return res.status(201).json(
+        ApiResponseBuilder.success(
+          user,
+          "User created successfully",
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof EmailAlreadyInUseException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof MailerSendTemporaryPasswordException) {
+        return res.status(502).json(
+          ApiResponseBuilder.error(error.message)
+        )
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
 
   /**
    * @swagger
