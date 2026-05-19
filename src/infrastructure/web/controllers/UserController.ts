@@ -19,6 +19,7 @@ import { RegisterUserByAdmin } from '../../../application/services/user/Register
 import { NodemailerMailer } from '../../adapters/NodemailerMailer.js';
 import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
 import { MailerSendTemporaryPasswordException } from '../../../domain/exceptions/MailerExceptions.js';
+import { GetUserData } from '../../../application/services/user/GetUserData.js';
 
 
 
@@ -28,6 +29,7 @@ const passwordHasher = new BcryptPasswordHasher();
 const mailer = new NodemailerMailer();
 
 const getAllUsers = new GetAllUsers(userRepository);
+const getUserById = new GetUserData(userRepository);
 const createUser = new RegisterUserByAdmin(userRepository, passwordHasher, mailer);
 const updateUserAlias = new UpdateUserAlias(userRepository);
 const updateUserEmail = new UpdateUserEmail(userRepository);
@@ -217,6 +219,113 @@ export class UserController {
         )
       );
     } catch (error: any) {
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/users/{id}:
+   *   get:
+   *     summary: Get user by id
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: User ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: User fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: User fetched successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/User'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getUserById(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      let tournament = await getUserById.execute(id);
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          tournament,
+          'User fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')
