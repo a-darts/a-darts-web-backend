@@ -12,10 +12,24 @@ export class UserDeletedException extends Error {
     }
 }
 
+export class UserNotDeletedException extends Error {
+    constructor() {
+        super('User not deleted');
+        this.name = 'UserNotDeletedException';
+    }
+}
+
 export class UserBlockedException extends Error {
     constructor() {
         super('User blocked');
         this.name = 'UserBlockedException';
+    }
+}
+
+export class UserNotBlockedException extends Error {
+    constructor() {
+        super('User not blocked');
+        this.name = 'UserNotBlockedException';
     }
 }
 

@@ -1,4 +1,4 @@
-import { MissingRequiredUserFieldsException, UserDeletedException, UserNotActiveException } from "../exceptions/UserExceptions.js";
+import { MissingRequiredUserFieldsException, UserDeletedException, UserNotActiveException, UserNotBlockedException, UserNotDeletedException } from "../exceptions/UserExceptions.js";
 
 export enum UserRoles {
   ADMIN = 'ADMIN',
@@ -26,12 +26,12 @@ export class User {
   constructor(
     id: string,
     email: string,
-    password: string,
     alias: string,
     role: UserRoles,
     registeredAt: Date,
     deletedAt: Date | null,
     status: UserStatus,
+    password?: string,
   ) {
     this.id = id;
     this.email = email;
@@ -45,9 +45,33 @@ export class User {
 
 
   // --------------------------------------------------------------------
-  // FACTORY METHOD
+  // FACTORY METHODS
   // --------------------------------------------------------------------
-  public static create(
+  public static createByAdmin(
+    email: string,
+    alias: string,
+    role: UserRoles,
+  ): User {
+    if (
+      !email || !alias || !role ||
+      email.trim() === '' || alias.trim() === ''
+    ) {
+      throw new MissingRequiredUserFieldsException();
+    }
+
+    return new User(
+      crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
+      email,
+      alias,
+      role,
+      new Date(),
+      null,
+      UserStatus.INACTIVE,
+      undefined,
+    );
+  }
+
+  public static createSelf(
     email: string,
     password: string,
     alias: string,
@@ -63,12 +87,12 @@ export class User {
     return new User(
       crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
       email,
-      password,
       alias,
       role,
       new Date(),
       null,
-      UserStatus.INACTIVE,
+      UserStatus.ACTIVE,
+      password,
     );
   }
 
@@ -126,6 +150,19 @@ export class User {
     this.password = undefined;
   }
 
+  public restore(cleanEmail: string): void {
+    if (this.status !== UserStatus.DELETED) {
+      throw new UserNotDeletedException();
+    }
+    if (!cleanEmail || cleanEmail.trim() === '') {
+      throw new MissingRequiredUserFieldsException();
+    }
+
+    this.status = UserStatus.INACTIVE;
+    this.deletedAt = null;
+    this.email = cleanEmail;
+  }
+
   public activate(): void {
     if (this.status === UserStatus.DELETED) {
       throw new UserDeletedException();
@@ -145,6 +182,13 @@ export class User {
       throw new UserDeletedException();
     }
     this.status = UserStatus.BLOCKED;
+  }
+
+  public unblock(): void {
+    if (this.status !== UserStatus.BLOCKED) {
+      throw new UserNotBlockedException();
+    }
+    this.status = UserStatus.ACTIVE;
   }
 
 
@@ -190,12 +234,12 @@ export class User {
     return new User(
       data.id,
       data.email,
-      data.password,
       data.alias,
       data.role,
       data.registeredAt,
       data.deletedAt,
       data.status,
+      data.password,
     );
   }
 }
