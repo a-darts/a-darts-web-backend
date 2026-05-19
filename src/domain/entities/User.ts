@@ -1,4 +1,4 @@
-import { MissingRequiredUserFieldsException, UserDeletedException, UserNotActiveException, UserNotBlockedException, UserNotDeletedException } from "../exceptions/UserExceptions.js";
+import { MissingRequiredUserFieldsException, UserAlreadyActiveException, UserAlreadyBlockedException, UserAlreadyDeletedException, UserDeletedException, UserNotActiveException, UserNotBlockedException, UserNotDeletedException, UserNotInactiveException } from "../exceptions/UserExceptions.js";
 
 export enum UserRoles {
   ADMIN = 'ADMIN',
@@ -141,7 +141,7 @@ export class User {
   // --------------------------------------------------------------------
   public delete(): void {
     if (this.status === UserStatus.DELETED) {
-      throw new UserDeletedException();
+      throw new UserAlreadyDeletedException();
     }
     this.status = UserStatus.DELETED;
     this.deletedAt = new Date();
@@ -151,27 +151,37 @@ export class User {
     this.password = undefined;
   }
 
-  public restore(cleanEmail: string): void {
+  public restore(cleanEmail: string, temporaryPassword: string): void {
     if (this.status !== UserStatus.DELETED) {
       throw new UserNotDeletedException();
     }
     if (!cleanEmail || cleanEmail.trim() === '') {
       throw new MissingRequiredUserFieldsException();
     }
+    if (!temporaryPassword || temporaryPassword.trim() === '') {
+      throw new MissingRequiredUserFieldsException();
+    }
 
     this.status = UserStatus.INACTIVE;
     this.deletedAt = null;
     this.email = cleanEmail;
+    this.password = temporaryPassword;
   }
 
   public activate(): void {
-    if (this.status === UserStatus.DELETED) {
-      throw new UserDeletedException();
+    if (this.status === UserStatus.ACTIVE) {
+      throw new UserAlreadyActiveException();
+    }
+    if (this.status !== UserStatus.INACTIVE) {
+      throw new UserNotInactiveException();
     }
     this.status = UserStatus.ACTIVE;
   }
 
   public block(): void {
+    if (this.status === UserStatus.BLOCKED) {
+      throw new UserAlreadyBlockedException();
+    }
     if (this.status !== UserStatus.ACTIVE) {
       throw new UserNotActiveException();
     }

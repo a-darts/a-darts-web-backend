@@ -42,3 +42,8 @@ export interface UpdateUserPasswordRequestDTO {
     oldPassword: string;
     newPassword: string;
 }
+
+export interface RestoreUserRequestDTO {
+    id: string;
+    email: string;
+}

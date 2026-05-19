@@ -35,6 +35,13 @@ router.put('/users/:id/email', authMiddleware, isSelfOrAdmin, userController.upd
 router.put('/users/:id/password', authMiddleware, isSelfOrAdmin, userController.updatePassword);
 router.put('/users/:id/alias', authMiddleware, isSelfOrAdmin, userController.updateAlias);
 
+router.post('/users/:id/activate', authMiddleware, isAdmin, userController.activateUser);
+router.post('/users/:id/block', authMiddleware, isAdmin, userController.blockUser);
+router.post('/users/:id/unblock', authMiddleware, isAdmin, userController.unblockUser);
+router.post('/users/:id/delete', authMiddleware, isAdmin, userController.deleteUser);
+router.post('/users/:id/restore', authMiddleware, isAdmin, userController.restoreUser);
+
+
 // Player routes
 router.get('/players', authMiddleware, playerController.getAllPlayers);
 router.get('/players/:id', authMiddleware, playerController.getPlayerData);

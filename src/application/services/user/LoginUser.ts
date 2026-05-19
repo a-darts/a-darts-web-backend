@@ -1,3 +1,4 @@
+import { UserStatus } from '../../../domain/entities/User.js';
 import { InvalidCredentialsException, UserBlockedException, UserDeletedException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
@@ -31,11 +32,11 @@ export class LoginUser {
     }
 
     // 3. Check the status of the user (active or inactive)
-    if (user.getStatus() === 'deleted') {
+    if (user.getStatus() === UserStatus.DELETED) {
       throw new UserDeletedException();
     }
 
-    if (user.getStatus() === 'blocked') {
+    if (user.getStatus() === UserStatus.BLOCKED) {
       throw new UserBlockedException();
     }
 

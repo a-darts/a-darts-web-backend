@@ -5,10 +5,31 @@ export class UserNotFoundException extends Error {
     }
 }
 
+export class UserAlreadyActiveException extends Error {
+    constructor() {
+        super('User already active');
+        this.name = 'UserAlreadyActiveException';
+    }
+}
+
+export class UserNotInactiveException extends Error {
+    constructor() {
+        super('User not inactive');
+        this.name = 'UserNotInactiveException';
+    }
+}
+
 export class UserDeletedException extends Error {
     constructor() {
         super('User deleted');
         this.name = 'UserDeletedException';
+    }
+}
+
+export class UserAlreadyDeletedException extends Error {
+    constructor() {
+        super('User already deleted');
+        this.name = 'UserAlreadyDeletedException';
     }
 }
 
@@ -23,6 +44,13 @@ export class UserBlockedException extends Error {
     constructor() {
         super('User blocked');
         this.name = 'UserBlockedException';
+    }
+}
+
+export class UserAlreadyBlockedException extends Error {
+    constructor() {
+        super('User already blocked');
+        this.name = 'UserAlreadyBlockedException';
     }
 }
 
