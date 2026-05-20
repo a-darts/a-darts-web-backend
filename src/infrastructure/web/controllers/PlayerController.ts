@@ -231,7 +231,7 @@ export class PlayerController {
    *                   type: string
    *                   example: Player data retrieved successfully
    *                 data:
-   *                   $ref: '#/components/schemas/Player'
+   *                   $ref: '#/components/schemas/PlayerWithUser'
    *       400:
    *         description: Bad Request
    *         content:

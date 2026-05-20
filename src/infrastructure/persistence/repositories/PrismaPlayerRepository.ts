@@ -68,6 +68,19 @@ export class PrismaPlayerRepository implements PlayerRepository {
         return playersData ? PlayerMapper.toDomain(playersData) : null;
     }
 
+    async findByIdWithUser(id: string): Promise<PlayerWithUser | null> {
+        const playerData = await this.client.player.findUnique({
+            where: { id },
+            include: {
+                user: true,
+            },
+        });
+        return playerData ? {
+            player: PlayerMapper.toDomain(playerData),
+            user: UserMapper.toDomain(playerData.user),
+        } : null;
+    }
+
     async findManyByIds(ids: string[]): Promise<Player[]> {
         const playersData = await this.client.player.findMany({
             where: { id: { in: ids } },

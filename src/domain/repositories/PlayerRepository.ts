@@ -13,6 +13,7 @@ export interface PlayerRepository {
   findAll(skip?: number, take?: number): Promise<Player[]>;
   findAllWithUser(skip?: number, take?: number): Promise<PlayerWithUser[]>;
   findById(id: string): Promise<Player | null>;
+  findByIdWithUser(id: string): Promise<PlayerWithUser | null>;
   findManyByIds(ids: string[]): Promise<Player[]>;
   findByUserIdAndSeason(userId: string, seasonStartYear: number): Promise<Player | null>;
   findAllByUserId(userId: string): Promise<Player[]>;
