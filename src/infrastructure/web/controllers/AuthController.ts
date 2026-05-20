@@ -17,14 +17,17 @@ import {
   EmailAlreadyInUseException,
   InvalidCredentialsException,
   MissingRequiredUserFieldsException,
+  UserAlreadyActiveException,
   UserBlockedException,
   UserDeletedException,
   UserInactiveException,
+  UserNotActiveException,
   UserNotFoundException,
   UserNotInactiveException
 
 } from '../../../domain/exceptions/UserExceptions.js';
 import { GetUserData } from '../../../application/services/user/GetUserData.js';
+import { MailerSendException } from '../../../domain/exceptions/MailerExceptions.js';
 
 const userRepository = new PrismaUserRepository(prisma);
 const passwordHasher = new BcryptPasswordHasher();
@@ -102,6 +105,32 @@ const createTemporaryPassword = new CreateTemporaryPassword(userRepository, pass
  *         password:
  *           type: string
  *           example: 123456
+ * 
+ *     ActivateAccountRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - temporaryPassword
+ *         - newPassword
+ *       properties:
+ *         email:
+ *           type: string
+ *           example: prueba@gmail.com
+ *         temporaryPassword:
+ *           type: string
+ *           example: temp_45684
+ *         newPassword:
+ *           type: string
+ *           example: 123456
+ * 
+ *     ForgotPasswordRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *       properties:
+ *         email:
+ *           type: string
+ *           example: prueba@gmail.com
  */
 export class AuthController {
   /**
@@ -518,7 +547,7 @@ export class AuthController {
 
   /**
    * @swagger
-   * /api/auth/activateAccount:
+   * /api/auth/activate-account:
    *   post:
    *     summary: Activate user account
    *     tags: [Auth]
@@ -642,7 +671,11 @@ export class AuthController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof UserNotInactiveException) {
+      if (
+        error instanceof UserNotInactiveException ||
+        error instanceof UserDeletedException ||
+        error instanceof UserAlreadyActiveException
+      ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -654,6 +687,114 @@ export class AuthController {
     }
   }
 
+  /**
+   * @swagger
+   * /api/auth/forgot-password:
+   *   post:
+   *     summary: Create temporary password for user
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/ForgotPasswordRequest'
+   *     responses:
+   *       200:
+   *         description: Temporary password sent successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Temporary password sent successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Invalid credentials
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not active
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   *       502:
+   *         description: Bad Gateway
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Error while sending the email
+   */
   async forgotPassword(req: Request, res: Response) {
     try {
       const { email } = req.body;
@@ -679,6 +820,20 @@ export class AuthController {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );
+      }
+      if (
+        error instanceof UserNotActiveException ||
+        error instanceof UserDeletedException ||
+        error instanceof UserNotActiveException
+      ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof MailerSendException) {
+        return res.status(502).json(
+          ApiResponseBuilder.error(error.message)
+        )
       }
       console.error('[ERROR]:', error);
       res.status(500).json(

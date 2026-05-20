@@ -31,7 +31,7 @@ export class CreateTemporaryPassword {
 
     // 5. Send the temporary password to the user (email)
     try {
-      await this.mailer.sendTemporaryPassword(
+      await this.mailer.sendForgotPasswordRecovery(
         user.getEmail(),
         user.getAlias(),
         temporaryPlainPassword

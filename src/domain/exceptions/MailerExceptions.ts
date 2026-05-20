@@ -1,6 +1,6 @@
-export class MailerSendTemporaryPasswordException extends Error {
+export class MailerSendException extends Error {
     constructor() {
-        super('Error while sending the temporary password');
-        this.name = 'MailerSendTemporaryPasswordException';
+        super('Error while sending the email');
+        this.name = 'MailerSendException';
     }
 }

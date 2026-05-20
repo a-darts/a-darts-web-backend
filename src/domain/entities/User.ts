@@ -179,8 +179,8 @@ export class User {
   }
 
   public deactivate(): void {
-    if (this.status === UserStatus.DELETED) {
-      throw new UserDeletedException();
+    if (this.status !== UserStatus.ACTIVE) {
+      throw new UserNotActiveException();
     }
     this.status = UserStatus.INACTIVE;
   }

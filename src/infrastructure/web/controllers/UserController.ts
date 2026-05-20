@@ -24,7 +24,7 @@ import {
 import { GetAllUsers } from '../../../application/services/user/GetAllUsers.js';
 import { RegisterUserByAdmin } from '../../../application/services/user/RegisterUserByAdmin.js';
 import { NodemailerMailer } from '../../adapters/NodemailerMailer.js';
-import { MailerSendTemporaryPasswordException } from '../../../domain/exceptions/MailerExceptions.js';
+import { MailerSendException } from '../../../domain/exceptions/MailerExceptions.js';
 import { GetUserData } from '../../../application/services/user/GetUserData.js';
 import { ActivateUser } from '../../../application/services/user/ActivateUser.js';
 import { BlockUser } from '../../../application/services/user/BlockUser.js';
@@ -431,7 +431,7 @@ export class UserController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Error while sending the temporary password
+   *                   example: Error while sending the email
    */
   async createUser(req: Request, res: Response) {
     try {
@@ -453,7 +453,7 @@ export class UserController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof MailerSendTemporaryPasswordException) {
+      if (error instanceof MailerSendException) {
         return res.status(502).json(
           ApiResponseBuilder.error(error.message)
         )
