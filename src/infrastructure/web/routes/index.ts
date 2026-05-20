@@ -26,7 +26,8 @@ router.post('/auth/register', authController.register);
 router.post('/auth/login', authController.login);
 router.post('/auth/logout', authMiddleware, authController.logout);
 router.get('/auth/me', authMiddleware, authController.getMe);
-router.post('/auth/activateAccount', authController.activateAccount);
+router.post('/auth/activate-account', authController.activateAccount);
+router.post('/auth/forgot-password', authController.forgotPassword);
 
 
 // User routes

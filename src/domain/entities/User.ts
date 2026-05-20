@@ -178,6 +178,13 @@ export class User {
     this.status = UserStatus.ACTIVE;
   }
 
+  public deactivate(): void {
+    if (this.status === UserStatus.DELETED) {
+      throw new UserDeletedException();
+    }
+    this.status = UserStatus.INACTIVE;
+  }
+
   public block(): void {
     if (this.status === UserStatus.BLOCKED) {
       throw new UserAlreadyBlockedException();

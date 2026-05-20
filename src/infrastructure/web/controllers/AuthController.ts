@@ -3,6 +3,9 @@ import jwt from 'jsonwebtoken';
 import { RegisterUser } from '../../../application/services/user/RegisterUser.js';
 import { LoginUser } from '../../../application/services/user/LoginUser.js';
 import { ActivateAccount } from '../../../application/services/user/ActivateAccount.js';
+import { CreateTemporaryPassword } from '../../../application/services/user/CreateTemporaryPassword.js';
+import { NodemailerMailer } from '../../adapters/NodemailerMailer.js';
+
 
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 import { BcryptPasswordHasher } from '../../security/BcryptPasswordHasher.js';
@@ -30,6 +33,10 @@ const getUserData = new GetUserData(userRepository);
 const registerUser = new RegisterUser(userRepository, passwordHasher);
 const loginUser = new LoginUser(userRepository, passwordHasher);
 const activateAccount = new ActivateAccount(userRepository, passwordHasher);
+
+const mailer = new NodemailerMailer();
+const createTemporaryPassword = new CreateTemporaryPassword(userRepository, passwordHasher, mailer);
+
 
 
 /**
@@ -637,6 +644,39 @@ export class AuthController {
       }
       if (error instanceof UserNotInactiveException) {
         return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+  async forgotPassword(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await createTemporaryPassword.execute({ email });
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Temporary password sent successfully'
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserNotFoundException) {
+        return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );
       }

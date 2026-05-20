@@ -53,3 +53,8 @@ export interface ActivateAccountRequestDTO {
     temporaryPassword: string;
     newPassword: string;
 }
+
+export interface CreateTemporaryPasswordRequestDTO {
+    email: string;
+}
+
