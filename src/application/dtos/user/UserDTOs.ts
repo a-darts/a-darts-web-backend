@@ -47,3 +47,9 @@ export interface RestoreUserRequestDTO {
     id: string;
     email: string;
 }
+
+export interface ActivateAccountRequestDTO {
+    email: string;
+    temporaryPassword: string;
+    newPassword: string;
+}

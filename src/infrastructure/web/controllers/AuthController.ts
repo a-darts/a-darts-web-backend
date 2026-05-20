@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { RegisterUser } from '../../../application/services/user/RegisterUser.js';
 import { LoginUser } from '../../../application/services/user/LoginUser.js';
+import { ActivateAccount } from '../../../application/services/user/ActivateAccount.js';
+
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 import { BcryptPasswordHasher } from '../../security/BcryptPasswordHasher.js';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
@@ -15,7 +17,9 @@ import {
   UserBlockedException,
   UserDeletedException,
   UserInactiveException,
-  UserNotFoundException
+  UserNotFoundException,
+  UserNotInactiveException
+
 } from '../../../domain/exceptions/UserExceptions.js';
 import { GetUserData } from '../../../application/services/user/GetUserData.js';
 
@@ -25,6 +29,7 @@ const passwordHasher = new BcryptPasswordHasher();
 const getUserData = new GetUserData(userRepository);
 const registerUser = new RegisterUser(userRepository, passwordHasher);
 const loginUser = new LoginUser(userRepository, passwordHasher);
+const activateAccount = new ActivateAccount(userRepository, passwordHasher);
 
 
 /**
@@ -493,6 +498,145 @@ export class AuthController {
     } catch (error: any) {
       if (error instanceof UserNotFoundException) {
         return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/auth/activateAccount:
+   *   post:
+   *     summary: Activate user account
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/ActivateAccountRequest'
+   *     responses:
+   *       200:
+   *         description: Account activated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Account activated successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Invalid credentials
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: User not inactive
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async activateAccount(req: Request, res: Response) {
+    try {
+      const { email, temporaryPassword, newPassword } = req.body;
+      if (!email || !temporaryPassword || !newPassword) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await activateAccount.execute({ email, temporaryPassword, newPassword });
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Account activated successfully'
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof InvalidCredentialsException) {
+        return res.status(401).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserNotInactiveException) {
+        return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
       }
