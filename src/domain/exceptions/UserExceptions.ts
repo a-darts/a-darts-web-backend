@@ -19,6 +19,13 @@ export class UserNotInactiveException extends Error {
     }
 }
 
+export class UserInactiveException extends Error {
+    constructor() {
+        super('User inactive');
+        this.name = 'UserInactiveException';
+    }
+}
+
 export class UserDeletedException extends Error {
     constructor() {
         super('User deleted');

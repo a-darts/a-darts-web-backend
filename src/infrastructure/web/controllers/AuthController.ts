@@ -14,6 +14,7 @@ import {
   MissingRequiredUserFieldsException,
   UserBlockedException,
   UserDeletedException,
+  UserInactiveException,
   UserNotFoundException
 } from '../../../domain/exceptions/UserExceptions.js';
 import { GetUserData } from '../../../application/services/user/GetUserData.js';
@@ -258,7 +259,10 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User deleted
+   *                   oneOf:
+   *                     - example: User deleted
+   *                     - example: User blocked
+   *                     - example: User inactive
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -307,7 +311,8 @@ export class AuthController {
       }
       if (
         error instanceof UserDeletedException ||
-        error instanceof UserBlockedException
+        error instanceof UserBlockedException ||
+        error instanceof UserInactiveException
       ) {
         return res.status(403).json(
           ApiResponseBuilder.error(error.message)

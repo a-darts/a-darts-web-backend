@@ -1,5 +1,5 @@
 import { UserStatus } from '../../../domain/entities/User.js';
-import { InvalidCredentialsException, UserBlockedException, UserDeletedException } from '../../../domain/exceptions/UserExceptions.js';
+import { InvalidCredentialsException, UserBlockedException, UserDeletedException, UserInactiveException } from '../../../domain/exceptions/UserExceptions.js';
 import { UserRepository } from '../../../domain/repositories/UserRepository.js';
 import { PasswordHasher } from '../../../domain/services/PasswordHasher.js';
 import { LoginUserRequestDTO, UserResponseDTO } from '../../dtos/user/UserDTOs.js';
@@ -38,6 +38,10 @@ export class LoginUser {
 
     if (user.getStatus() === UserStatus.BLOCKED) {
       throw new UserBlockedException();
+    }
+
+    if (user.getStatus() === UserStatus.INACTIVE) {
+      throw new UserInactiveException();
     }
 
     // 4. Return the user data
