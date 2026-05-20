@@ -11,6 +11,7 @@ export interface PlayerRepository {
   update(player: Player): Promise<void>;
   delete(id: string): Promise<void>;
   findAll(skip?: number, take?: number): Promise<Player[]>;
+  findAllWithUser(skip?: number, take?: number): Promise<PlayerWithUser[]>;
   findById(id: string): Promise<Player | null>;
   findManyByIds(ids: string[]): Promise<Player[]>;
   findByUserIdAndSeason(userId: string, seasonStartYear: number): Promise<Player | null>;

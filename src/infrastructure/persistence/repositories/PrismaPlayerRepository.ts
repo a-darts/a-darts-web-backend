@@ -43,6 +43,20 @@ export class PrismaPlayerRepository implements PlayerRepository {
         return playersData.map(PlayerMapper.toDomain);
     }
 
+    async findAllWithUser(skip?: number, take?: number): Promise<PlayerWithUser[]> {
+        const playersData = await this.client.player.findMany({
+            skip,
+            take,
+            include: {
+                user: true,
+            },
+        });
+        return playersData.map(data => ({
+            player: PlayerMapper.toDomain(data),
+            user: UserMapper.toDomain(data.user),
+        }));
+    }
+
     async count(): Promise<number> {
         return this.client.player.count();
     }

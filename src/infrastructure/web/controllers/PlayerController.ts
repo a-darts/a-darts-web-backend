@@ -44,6 +44,28 @@ const updatePlayerFederation = new UpdatePlayerFederation(playerRepository);
  *           type: number
  *           example: 2026
  * 
+ *     PlayerWithUser:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         userId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         registrationNumber:
+ *           type: string
+ *           example: 5441068146
+ *         federation:
+ *           type: string
+ *           example: ARAGON
+ *         seasonStartYear:
+ *           type: number
+ *           example: 2026
+ *         userAlias:
+ *           type: string
+ *           example: Pepe
+ * 
  *     CreatePlayerRequest:
  *       type: object
  *       properties:
@@ -110,13 +132,13 @@ export class PlayerController {
    *                   oneOf:
    *                     - type: array
    *                       items:
-   *                         $ref: '#/components/schemas/Player'
+   *                         $ref: '#/components/schemas/PlayerWithUser'
    *                     - type: object
    *                       properties:
    *                         players:
    *                           type: array
    *                           items:
-   *                             $ref: '#/components/schemas/Player'
+   *                             $ref: '#/components/schemas/PlayerWithUser'
    *                         pagination:
    *                           type: object
    *                           properties:
