@@ -42,6 +42,7 @@ interface RegistrationPeriodDTO {
 
 export interface CreateTournamentRequestDTO {
     name: string;
+    seasonStartYear: number;
     info: TournamentInfoDTO;
 }
 

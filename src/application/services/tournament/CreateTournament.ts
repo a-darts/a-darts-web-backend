@@ -3,6 +3,7 @@ import { CreateTournamentRequestDTO, TournamentResponseDTO } from '../../dtos/to
 import { TournamentMapper } from '../../dtos/tournament/TournamentMapper.js';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
 import { TournamentInfo } from '../../../domain/entities/TournamentInfo.js';
+import { Season } from '../../../domain/entities/Season.js';
 
 export class CreateTournament {
   constructor(
@@ -14,6 +15,7 @@ export class CreateTournament {
     // 3. Create the tournament (with the factory method)
     const tournament = Tournament.create(
       request.name,
+      new Season(request.seasonStartYear),
       new TournamentInfo(
         request.info.place,
         request.info.dateTime,

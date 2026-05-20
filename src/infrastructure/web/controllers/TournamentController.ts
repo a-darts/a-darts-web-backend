@@ -335,6 +335,9 @@ const getUnregisteredPlayersByTournamentId = new GetUnregisteredPlayersByTournam
  *         name:
  *           type: string
  *           example: Campeonato de España Individual Femenino
+ *         seasonStartYear:
+ *           type: number
+ *           example: 2026
  *         info:
  *           $ref: '#/components/schemas/TournamentInfo'
  *
