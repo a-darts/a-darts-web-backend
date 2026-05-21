@@ -90,6 +90,7 @@ router.post('/matches/:id/resume', authMiddleware, isAdmin, matchController.resu
 router.put('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.updateMatchBoardNumber);
 router.post('/matches/:id/sets', authMiddleware, isAdmin, matchController.registerSetWin);
 router.post('/matches/:id/legs', authMiddleware, isAdmin, matchController.registerLegWin);
+router.post('/matches/:id/result', authMiddleware, isAdmin, matchController.setMatchResult);
 
 // Bracket routes
 router.put('/brackets/:id/swapPositions', authMiddleware, isAdmin, bracketController.swapPositions);

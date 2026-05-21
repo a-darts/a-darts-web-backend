@@ -14,6 +14,7 @@ import { FinishMatch } from '../../../application/services/tournament/matches/st
 import { CancelMatch } from '../../../application/services/tournament/matches/status/CancelMatch.js';
 import { SuspendMatch } from '../../../application/services/tournament/matches/status/SuspendMatch.js';
 import { ResumeMatch } from '../../../application/services/tournament/matches/status/ResumeMatch.js';
+import { SetMatchResultAndPromote } from '../../../application/services/tournament/matches/SetMatchResultAndPromote.js';
 
 
 const matchRepository = new PrismaMatchRepository(prisma);
@@ -27,6 +28,7 @@ const resumeMatch = new ResumeMatch(matchRepository);
 const updateMatchBoardNumber = new UpdateMatchBoardNumber(matchRepository);
 const registerLegWin = new RegisterLegWin(matchRepository);
 const registerSetWin = new RegisterSetWin(matchRepository);
+const setMatchResultAndPromote = new SetMatchResultAndPromote(matchRepository);
 
 /**
  * @swagger
@@ -1427,6 +1429,121 @@ export class MatchController {
         error instanceof ParticipantNotFoundInMatchException ||
         error instanceof MatchNotInProgressException
       ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/matches/{id}/result:
+   *   post:
+   *     summary: Set final result and finish match
+   *     tags: [Matches]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Match ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - p1Sets
+   *               - p1Legs
+   *               - p2Sets
+   *               - p2Legs
+   *             properties:
+   *               p1Sets:
+   *                 type: number
+   *               p1Legs:
+   *                 type: number
+   *               p2Sets:
+   *                 type: number
+   *               p2Legs:
+   *                 type: number
+   *     responses:
+   *       200:
+   *         description: Match result set successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *       401:
+   *         description: Unauthorized
+   *       403:
+   *         description: Forbidden
+   *       404:
+   *         description: Not Found
+   *       409:
+   *         description: Conflict
+   *       500:
+   *         description: Internal Server Error
+   */
+  async setMatchResult(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      const { p1Sets, p1Legs, p2Sets, p2Legs } = req.body;
+
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      if (
+        typeof p1Sets !== 'number' ||
+        typeof p1Legs !== 'number' ||
+        typeof p2Sets !== 'number' ||
+        typeof p2Legs !== 'number'
+      ) {
+        return res.status(400).json(
+          ApiResponseBuilder.error('Invalid score format')
+        );
+      }
+
+      await setMatchResultAndPromote.execute(id, p1Sets, p1Legs, p2Sets, p2Legs);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Match result set successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof MatchNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof MatchNotInProgressException) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
