@@ -301,7 +301,8 @@ export class Bracket {
             p2Id: null as string | null,
             isP1Bye: false,
             isP2Bye: false,
-            round: 0
+            round: 0,
+            matchIndex: 0,
         }));
 
         // 3. Población inicial estricta de la Ronda 1
@@ -319,6 +320,7 @@ export class Bracket {
             matchesData[i].isP1Bye = p1IsBye;
             matchesData[i].isP2Bye = p2IsBye;
             matchesData[i].round = 1;
+            matchesData[i].matchIndex = i + 1;
         }
 
         // 4. Calcular iterativamente el esqueleto de las siguientes rondas e inyectar BYEs automáticos
@@ -329,6 +331,12 @@ export class Bracket {
         while (currentRoundSize > 1) {
             const nextRoundSize = currentRoundSize / 2;
             const nextRoundStartIdx = currentRoundStartIdx + currentRoundSize;
+
+            for (let j = 0; j < nextRoundSize; j++) {
+                const nextMatchIdx = nextRoundStartIdx + j;
+                matchesData[nextMatchIdx].round = currentRound + 1;
+                matchesData[nextMatchIdx].matchIndex = j + 1;
+            }
 
             for (let i = 0; i < currentRoundSize; i++) {
                 const currentMatchIdx = currentRoundStartIdx + i;
@@ -360,22 +368,13 @@ export class Bracket {
                 }
             }
 
-            // Asignamos el número de ronda correcto a los partidos del bloque de la siguiente ronda
-            for (let j = 0; j < nextRoundSize; j++) {
-                matchesData[nextRoundStartIdx + j].round = currentRound + 1;
-            }
-
             currentRoundStartIdx = nextRoundStartIdx;
             currentRoundSize = nextRoundSize;
             currentRound++;
         }
 
         // 5. Mapear la estructura completa a instancias reales de la entidad Match
-        const roundMatchCounts: Record<number, number> = {};
         return matchesData.map(m => {
-            const currentCount = (roundMatchCounts[m.round] || 0) + 1;
-            roundMatchCounts[m.round] = currentCount;
-
             return Match.create(
                 this.tournamentId,
                 m.p1Id,
@@ -383,7 +382,7 @@ export class Bracket {
                 m.isP1Bye,
                 m.isP2Bye,
                 m.round,
-                currentCount
+                m.matchIndex,
             );
         });
     }

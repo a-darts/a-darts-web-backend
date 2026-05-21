@@ -122,12 +122,12 @@ export class PrismaMatchRepository implements MatchRepository {
         }));
     }
 
-    async findByTournamentRoundAndBoardNumber(tournamentId: string, round: number, boardNumber: number): Promise<Match | null> {
+    async findByTournamentRoundAndMatchIndex(tournamentId: string, round: number, matchIndex: number): Promise<Match | null> {
         const matchData = await this.client.match.findFirst({
             where: {
                 tournamentId: tournamentId,
                 round: round,
-                boardNumber: boardNumber,
+                matchIndex: matchIndex,
             },
         });
         return matchData ? MatchMapper.toDomain(matchData) : null;

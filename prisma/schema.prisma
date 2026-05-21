@@ -179,6 +179,7 @@ model RegisteredParticipant {
 model Match {
   id          String      @id @default(uuid()) @db.Uuid
   round       Int
+  matchIndex  Int
   boardNumber Int?
   startedAt   DateTime?
   finishedAt  DateTime?

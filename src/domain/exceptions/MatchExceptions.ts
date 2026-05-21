@@ -33,6 +33,13 @@ export class MatchAlreadyFinishedException extends Error {
     }
 }
 
+export class MatchBoardNumberRequiredException extends Error {
+    constructor() {
+        super('Match board number is required');
+        this.name = 'MatchBoardNumberRequiredException';
+    }
+}
+
 export class ParticipantNotFoundInMatchException extends Error {
     constructor() {
         super('Participant not found in this match');

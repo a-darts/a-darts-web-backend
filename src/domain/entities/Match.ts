@@ -1,4 +1,4 @@
-import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchAlreadyFinishedException, ParticipantNotFoundInMatchException, MatchNotReadyException } from "../exceptions/MatchExceptions.js";
+import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchAlreadyFinishedException, ParticipantNotFoundInMatchException, MatchNotReadyException, MatchBoardNumberRequiredException } from "../exceptions/MatchExceptions.js";
 
 
 export enum MatchStatus {
@@ -13,6 +13,7 @@ export enum MatchStatus {
 export class Match {
     private readonly id: string;
     private round: number;
+    private matchIndex: number;
     private boardNumber: number | null;
     private startedAt: Date | null;
     private finishedAt: Date | null;
@@ -32,6 +33,7 @@ export class Match {
     constructor(
         id: string,
         round: number,
+        matchIndex: number,
         boardNumber: number | null,
         startedAt: Date | null,
         finishedAt: Date | null,
@@ -45,6 +47,7 @@ export class Match {
     ) {
         this.id = id;
         this.round = round;
+        this.matchIndex = matchIndex;
         this.boardNumber = boardNumber;
         this.startedAt = startedAt;
         this.finishedAt = finishedAt;
@@ -68,6 +71,7 @@ export class Match {
         isParticipant1Bye: boolean,
         isParticipant2Bye: boolean,
         round: number,
+        matchIndex: number,
         boardNumber?: number,
     ): Match {
         const isByeMatch = isParticipant1Bye || isParticipant2Bye;
@@ -80,6 +84,7 @@ export class Match {
         return new Match(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             round,
+            matchIndex,
             boardNumber ?? null,
             null,
             finishedAt,
@@ -174,6 +179,9 @@ export class Match {
         if (this.status !== MatchStatus.READY) {
             throw new MatchNotReadyException();
         }
+        if (this.boardNumber === null) {
+            throw new MatchBoardNumberRequiredException();
+        }
 
         this.status = MatchStatus.IN_PROGRESS;
         this.startedAt = new Date();
@@ -222,6 +230,10 @@ export class Match {
 
     public getRound(): number {
         return this.round;
+    }
+
+    public getMatchIndex(): number {
+        return this.matchIndex;
     }
 
     public getBoardNumber(): number | null {
@@ -277,6 +289,7 @@ export class Match {
         return new Match(
             data.id,
             data.round,
+            data.matchIndex,
             data.boardNumber,
             data.startedAt ? new Date(data.startedAt) : null,
             data.finishedAt ? new Date(data.finishedAt) : null,

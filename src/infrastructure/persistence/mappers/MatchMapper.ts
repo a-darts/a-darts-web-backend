@@ -9,6 +9,7 @@ export class MatchMapper {
         return {
             id: match.getId(),
             round: match.getRound(),
+            matchIndex: match.getMatchIndex(),
             boardNumber: match.getBoardNumber(),
             startedAt: match.getStartedAt(),
             finishedAt: match.getFinishedAt(),
@@ -30,6 +31,7 @@ export class MatchMapper {
         return Match.rehydrate({
             id: prismaMatch.id,
             round: prismaMatch.round,
+            matchIndex: prismaMatch.matchIndex,
             boardNumber: prismaMatch.boardNumber,
             startedAt: prismaMatch.startedAt,
             finishedAt: prismaMatch.finishedAt,

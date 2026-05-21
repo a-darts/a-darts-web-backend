@@ -3,6 +3,7 @@ import { MatchStatus } from "../../../../domain/entities/Match.js";
 export interface MatchResponseDTO {
     id: string;
     round: number;
+    matchIndex: number;
     boardNumber: number | null;
     startedAt: Date | null;
     finishedAt: Date | null;

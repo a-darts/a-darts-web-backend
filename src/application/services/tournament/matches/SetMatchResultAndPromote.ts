@@ -1,8 +1,12 @@
 import { MatchNotFoundException, MatchNotInProgressException } from '../../../../domain/exceptions/MatchExceptions.js';
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
+import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
 
 export class SetMatchResultAndPromote {
-  constructor(private readonly matchRepository: MatchRepository) { }
+  constructor(
+    private readonly unitOfWork: UnitOfWork,
+    private readonly matchRepository: MatchRepository,
+  ) { }
 
   public async execute(
     id: string,
@@ -17,51 +21,46 @@ export class SetMatchResultAndPromote {
       throw new MatchNotFoundException();
     }
 
-    // 2. Set final score
+    // 2. Set final score and finish the match
     match.setFinalScore(p1Sets, p1Legs, p2Sets, p2Legs);
-
-    // 3. Finish the match
     match.finish();
 
-    // 4. Persist the current match changes
-    await this.matchRepository.update(match);
-
-    // 5. Promote winner to the next match
+    // 3. Obtain the winner
     const winnerId = match.getWinnerId();
+
+    // 4. Si no hay ganador (empate o error), solo guardamos el partido
     if (!winnerId) {
-        // Tie or error (not promoting anyone)
-        return;
+      await this.matchRepository.update(match);
+      return;
     }
 
+    // 5. Comprobamos que haya una diana
     const currentRound = match.getRound();
-    const currentBoardNumber = match.getBoardNumber();
-
-    // In some cases (e.g. final match) we shouldn't promote or board number might be null
-    if (currentBoardNumber === null) {
-        return;
-    }
+    const currentMatchIndex = match.getMatchIndex();
 
     const nextRound = currentRound + 1;
-    // Calculate next board number. Matches pair up: (1,2)->1, (3,4)->2, etc.
-    const nextBoardNumber = Math.floor((currentBoardNumber - 1) / 2) + 1;
-
-    // Slot P1 for odd board numbers, P2 for even board numbers
-    const slot = (currentBoardNumber % 2 !== 0) ? 'P1' : 'P2';
+    const nextMatchIndex = Math.floor((currentMatchIndex - 1) / 2) + 1;
+    const slot = (currentMatchIndex % 2 !== 0) ? 'P1' : 'P2';
 
     // Fetch the next match in the bracket
-    const nextMatch = await this.matchRepository.findByTournamentRoundAndBoardNumber(
+    const nextMatch = await this.matchRepository.findByTournamentRoundAndMatchIndex(
       match.getTournamentId(),
       nextRound,
-      nextBoardNumber
+      nextMatchIndex,
     );
 
     // If there is no next match, it means this was the final or the bracket is incomplete
     if (nextMatch) {
-        // Promote the winner
-        nextMatch.promoteWinner(winnerId, slot);
-        
-        // Persist the next match changes
-        await this.matchRepository.update(nextMatch);
+      // Promote the winner
+      nextMatch.promoteWinner(winnerId, slot);
     }
+
+    // Persist the next match changes
+    await this.unitOfWork.transaction(async () => {
+      await this.matchRepository.update(match);
+      if (nextMatch) {
+        await this.matchRepository.update(nextMatch);
+      }
+    });
   }
 }

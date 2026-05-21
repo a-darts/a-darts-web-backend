@@ -3,7 +3,7 @@ import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
-import { InvalidMatchStatusUpdateException, MatchAlreadyFinishedException, MatchNotFoundException, MatchNotInProgressException, MatchNotPendingException, MatchNotSuspendedException, ParticipantNotFoundInMatchException } from '../../../domain/exceptions/MatchExceptions.js';
+import { InvalidMatchStatusUpdateException, MatchAlreadyFinishedException, MatchBoardNumberRequiredException, MatchNotFoundException, MatchNotInProgressException, MatchNotPendingException, MatchNotSuspendedException, ParticipantNotFoundInMatchException } from '../../../domain/exceptions/MatchExceptions.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { GetMatchById } from '../../../application/services/tournament/matches/GetMatchById.js';
 import { StartMatch } from '../../../application/services/tournament/matches/status/StartMatch.js';
@@ -15,8 +15,10 @@ import { CancelMatch } from '../../../application/services/tournament/matches/st
 import { SuspendMatch } from '../../../application/services/tournament/matches/status/SuspendMatch.js';
 import { ResumeMatch } from '../../../application/services/tournament/matches/status/ResumeMatch.js';
 import { SetMatchResultAndPromote } from '../../../application/services/tournament/matches/SetMatchResultAndPromote.js';
+import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
 
 
+const unitOfWork = new PrismaUnitOfWork(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
 
 const getMatchById = new GetMatchById(matchRepository);
@@ -28,7 +30,7 @@ const resumeMatch = new ResumeMatch(matchRepository);
 const updateMatchBoardNumber = new UpdateMatchBoardNumber(matchRepository);
 const registerLegWin = new RegisterLegWin(matchRepository);
 const registerSetWin = new RegisterSetWin(matchRepository);
-const setMatchResultAndPromote = new SetMatchResultAndPromote(matchRepository);
+const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository);
 
 /**
  * @swagger
@@ -357,7 +359,10 @@ export class MatchController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof MatchNotPendingException) {
+      if (
+        error instanceof MatchNotPendingException ||
+        error instanceof MatchBoardNumberRequiredException
+      ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
