@@ -1,3 +1,10 @@
+export class PlayingAreaNotFoundException extends Error {
+    constructor() {
+        super('Playing area not found');
+        this.name = 'PlayingAreaNotFoundException';
+    }
+}
+
 export class PlayingAreaHasNoBoardsException extends Error {
     constructor() {
         super('Playing area has no boards');

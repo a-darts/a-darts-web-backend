@@ -80,6 +80,12 @@ enum BracketStatus {
   CANCELLED
 }
 
+enum BoardStatus {
+  AVAILABLE
+  OCCUPIED
+  DISABLED
+}
+
 model User {
   id           String     @id @default(uuid()) @db.Uuid
   email        String     @unique
@@ -149,6 +155,7 @@ model Tournament {
 
   // Integridad referencial
   bracket                Bracket?
+  playingArea            PlayingArea?
   registeredParticipants RegisteredParticipant[]
   matches                Match[]
 
@@ -203,6 +210,7 @@ model Match {
   tournament   Tournament             @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   participant1 RegisteredParticipant? @relation("MatchParticipant1", fields: [participant1Id], references: [id])
   participant2 RegisteredParticipant? @relation("MatchParticipant2", fields: [participant2Id], references: [id])
+  boards       Board[]
 
   // Índices para consultas más rápidas
   @@index([participant1Id])
@@ -239,4 +247,29 @@ model BracketPosition {
 
   @@unique([bracketId, position])
   @@map("bracketPositions")
+}
+
+model PlayingArea {
+  id           String @id @default(uuid()) @db.Uuid
+  tournamentId String @unique @db.Uuid
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  boards     Board[]
+
+  @@map("playingAreas")
+}
+
+model Board {
+  id            String      @id @default(uuid()) @db.Uuid
+  number        Int
+  status        BoardStatus
+  matchId       String?     @db.Uuid
+
+  playingAreaId String      @db.Uuid
+
+  playingArea   PlayingArea @relation(fields: [playingAreaId], references: [id], onDelete: Cascade)
+  match         Match?      @relation(fields: [matchId], references: [id])
+
+  @@unique([playingAreaId, number])
+  @@map("boards")
 }
