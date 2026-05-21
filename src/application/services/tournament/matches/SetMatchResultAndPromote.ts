@@ -41,6 +41,7 @@ export class SetMatchResultAndPromote {
     // Si no era la final, promocionamos al ganador a la siguiente partida
     if (winnerId) {
       const nextCoords = bracket.getNextMatchCoordinatesFor(match);
+
       // Si no era la final, promocionamos al ganador a la siguiente partida
       if (nextCoords) {
         nextMatch = await this.matchRepository.findByTournamentRoundAndMatchIndex(

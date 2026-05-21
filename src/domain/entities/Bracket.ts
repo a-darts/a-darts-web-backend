@@ -441,8 +441,9 @@ export class Bracket {
         // Si ya es la ronda final del bracket, no hay siguiente partido
         if (nextRound > this.getTotalRounds()) return null;
 
-        const nextMatchIndex = Math.floor(match.getMatchIndex() / 2);
-        const slot = match.getMatchIndex() % 2 === 0 ? 'P1' : 'P2';
+        const currentMatchIndexBasedOn0 = match.getMatchIndex() - 1;
+        const nextMatchIndex = Math.floor(currentMatchIndexBasedOn0 / 2) + 1;
+        const slot = currentMatchIndexBasedOn0 % 2 === 0 ? 'P1' : 'P2';
 
         return { round: nextRound, matchIndex: nextMatchIndex, slot };
     }
