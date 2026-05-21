@@ -1,58 +1,57 @@
+import { BracketNotFoundException } from '../../../../domain/exceptions/BracketExceptions.js';
 import { MatchNotFoundException, MatchNotInProgressException } from '../../../../domain/exceptions/MatchExceptions.js';
+import { BracketRepository } from '../../../../domain/repositories/BracketRepository.js';
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
 import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
+import { SetMatchResultRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
 
 export class SetMatchResultAndPromote {
   constructor(
     private readonly unitOfWork: UnitOfWork,
     private readonly matchRepository: MatchRepository,
+    private readonly bracketRepository: BracketRepository,
   ) { }
 
-  public async execute(
-    id: string,
-    p1Sets: number,
-    p1Legs: number,
-    p2Sets: number,
-    p2Legs: number
-  ): Promise<void> {
+  public async execute(request: SetMatchResultRequestDTO): Promise<void> {
     // 1. Rehydrate the match from the DB
-    const match = await this.matchRepository.findById(id);
+    const match = await this.matchRepository.findById(request.id);
     if (!match) {
       throw new MatchNotFoundException();
     }
 
+    // 2. Rehydrate the bracket from the DB
+    const bracket = await this.bracketRepository.findByTournamentId(match.getTournamentId());
+    if (!bracket) {
+      throw new BracketNotFoundException();
+    }
+
     // 2. Set final score and finish the match
-    match.setFinalScore(p1Sets, p1Legs, p2Sets, p2Legs);
+    match.setFinalScore(
+      request.participant1Sets,
+      request.participant1Legs,
+      request.participant2Sets,
+      request.participant2Legs,
+    );
     match.finish();
 
     // 3. Obtain the winner
     const winnerId = match.getWinnerId();
+    let nextMatch = null;
 
-    // 4. Si no hay ganador (empate o error), solo guardamos el partido
-    if (!winnerId) {
-      await this.matchRepository.update(match);
-      return;
-    }
-
-    // 5. Comprobamos que haya una diana
-    const currentRound = match.getRound();
-    const currentMatchIndex = match.getMatchIndex();
-
-    const nextRound = currentRound + 1;
-    const nextMatchIndex = Math.floor((currentMatchIndex - 1) / 2) + 1;
-    const slot = (currentMatchIndex % 2 !== 0) ? 'P1' : 'P2';
-
-    // Fetch the next match in the bracket
-    const nextMatch = await this.matchRepository.findByTournamentRoundAndMatchIndex(
-      match.getTournamentId(),
-      nextRound,
-      nextMatchIndex,
-    );
-
-    // If there is no next match, it means this was the final or the bracket is incomplete
-    if (nextMatch) {
-      // Promote the winner
-      nextMatch.promoteWinner(winnerId, slot);
+    // Si no era la final, promocionamos al ganador a la siguiente partida
+    if (winnerId) {
+      const nextCoords = bracket.getNextMatchCoordinatesFor(match);
+      // Si no era la final, promocionamos al ganador a la siguiente partida
+      if (nextCoords) {
+        nextMatch = await this.matchRepository.findByTournamentRoundAndMatchIndex(
+          match.getTournamentId(),
+          nextCoords.round,
+          nextCoords.matchIndex,
+        );
+        if (nextMatch) {
+          bracket.advanceWinner(match, nextMatch);
+        }
+      }
     }
 
     // Persist the next match changes

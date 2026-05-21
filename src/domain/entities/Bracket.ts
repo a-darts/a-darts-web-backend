@@ -14,6 +14,15 @@ export enum BracketStatus {
     CANCELLED = 'CANCELLED',
 }
 
+interface MatchBuilderData {
+    p1Id: string | null;
+    p2Id: string | null;
+    isP1Bye: boolean;
+    isP2Bye: boolean;
+    round: number;
+    matchIndex: number;
+}
+
 export class Bracket {
     private readonly id: string;
     private status: BracketStatus;
@@ -283,6 +292,10 @@ export class Bracket {
         this.positions.push(...updatedPositions);
     }
 
+
+
+
+
     public generateInitialMatches(): Match[] {
         if (this.status !== BracketStatus.IN_PROGRESS) {
             throw new BracketNotInProgressException();
@@ -290,25 +303,43 @@ export class Bracket {
 
         const N = this.positions.length;
         const totalMatches = N - 1;
-
-        // 1. Explicitly sort positions by position number ascending to preserve the established layout
-        const positions = [...this.getPositions()].sort((a, b) => a.getPosition() - b.getPosition());
         const round1Size = N / 2;
 
-        // 2. Estructura temporal rica para calcular flujos de BYEs
-        const matchesData = new Array(totalMatches).fill(null).map(() => ({
-            p1Id: null as string | null,
-            p2Id: null as string | null,
+        // 1. Preparar el esqueleto temporal de partidos
+        const matchesData = this.initializeMatchesDataSkeleton(totalMatches);
+
+        // 3. Poblar la ronda 1 según las posiciones del cuadrante
+        this.populateFirstRound(matchesData, round1Size);
+
+        // 4. Calcular iterativamente las siguientes rondas propagando los flujos de BYEs
+        this.propagateRoundsAndByes(matchesData, round1Size);
+
+        // 5. Mapear los datos temporales a instancias reales de la entidad de dominio Match
+        return this.buildDomainMatches(matchesData);
+    }
+
+
+    // --------------------------------------------------------------------
+    // PRIVATE MATCH GENERATION HELPERS
+    // --------------------------------------------------------------------
+    private initializeMatchesDataSkeleton(totalMatches: number): MatchBuilderData[] {
+        return new Array(totalMatches).fill(null).map(() => ({
+            p1Id: null,
+            p2Id: null,
             isP1Bye: false,
             isP2Bye: false,
             round: 0,
             matchIndex: 0,
         }));
+    }
 
-        // 3. Población inicial estricta de la Ronda 1
+    private populateFirstRound(matchesData: MatchBuilderData[], round1Size: number): void {
+        const sortedPositions =
+            [...this.getPositions()].sort((a, b) => a.getPosition() - b.getPosition());
+
         for (let i = 0; i < round1Size; i++) {
-            const p1 = positions[i * 2].getParticipant();
-            const p2 = positions[i * 2 + 1].getParticipant();
+            const p1 = sortedPositions[i * 2].getParticipant();
+            const p2 = sortedPositions[i * 2 + 1].getParticipant();
 
             const p1IsBye = p1 instanceof ByeParticipant;
             const p2IsBye = p2 instanceof ByeParticipant;
@@ -322,49 +353,31 @@ export class Bracket {
             matchesData[i].round = 1;
             matchesData[i].matchIndex = i + 1;
         }
+    }
 
-        // 4. Calcular iterativamente el esqueleto de las siguientes rondas e inyectar BYEs automáticos
+    private propagateRoundsAndByes(matchesData: MatchBuilderData[], initialRoundSize: number): void {
         let currentRoundStartIdx = 0;
-        let currentRoundSize = round1Size;
+        let currentRoundSize = initialRoundSize;
         let currentRound = 1;
 
         while (currentRoundSize > 1) {
             const nextRoundSize = currentRoundSize / 2;
             const nextRoundStartIdx = currentRoundStartIdx + currentRoundSize;
 
+            // Inicializar metadatos de la siguiente ronda
             for (let j = 0; j < nextRoundSize; j++) {
                 const nextMatchIdx = nextRoundStartIdx + j;
                 matchesData[nextMatchIdx].round = currentRound + 1;
                 matchesData[nextMatchIdx].matchIndex = j + 1;
             }
 
+            // Propagar ganadores automáticos por BYE
             for (let i = 0; i < currentRoundSize; i++) {
                 const currentMatchIdx = currentRoundStartIdx + i;
                 const currentMatch = matchesData[currentMatchIdx];
 
-                // Si el partido de la ronda actual tiene un BYE, calculamos quién promociona
                 if (currentMatch.isP1Bye || currentMatch.isP2Bye) {
-                    const advancingWinnerId = currentMatch.isP1Bye ? currentMatch.p2Id : currentMatch.p1Id;
-
-                    const nextMatchIdx = nextRoundStartIdx + Math.floor(i / 2);
-                    const isSlotP1 = i % 2 === 0;
-
-                    if (advancingWinnerId) {
-                        if (isSlotP1) {
-                            matchesData[nextMatchIdx].p1Id = advancingWinnerId;
-                        } else {
-                            matchesData[nextMatchIdx].p2Id = advancingWinnerId;
-                        }
-                    } else {
-                        // Si no hay ganador que avance (ambos byes), el slot del siguiente partido es un BYE
-                        if (isSlotP1) {
-                            matchesData[nextMatchIdx].p1Id = null;
-                            matchesData[nextMatchIdx].isP1Bye = true;
-                        } else {
-                            matchesData[nextMatchIdx].p2Id = null;
-                            matchesData[nextMatchIdx].isP2Bye = true;
-                        }
-                    }
+                    this.advanceParticipantOrBye(matchesData, currentMatch, nextRoundStartIdx, i);
                 }
             }
 
@@ -372,10 +385,40 @@ export class Bracket {
             currentRoundSize = nextRoundSize;
             currentRound++;
         }
+    }
 
-        // 5. Mapear la estructura completa a instancias reales de la entidad Match
-        return matchesData.map(m => {
-            return Match.create(
+    private advanceParticipantOrBye(
+        matchesData: MatchBuilderData[],
+        currentMatch: MatchBuilderData,
+        nextRoundStartIdx: number,
+        currentMatchIterationIdx: number
+    ): void {
+        const advancingWinnerId = currentMatch.isP1Bye ? currentMatch.p2Id : currentMatch.p1Id;
+        const currentMatchIdxBasedOn0 = currentMatch.matchIndex - 1;
+        const nextMatchIdx = nextRoundStartIdx + Math.floor(currentMatchIdxBasedOn0 / 2);
+        const isSlotP1 = currentMatchIterationIdx % 2 === 0;
+
+        if (advancingWinnerId) {
+            if (isSlotP1) {
+                matchesData[nextMatchIdx].p1Id = advancingWinnerId;
+            } else {
+                matchesData[nextMatchIdx].p2Id = advancingWinnerId;
+            }
+        } else {
+            // Caso extremo: si ambos fuesen BYE, se propaga un hueco vacío marcado como BYE
+            if (isSlotP1) {
+                matchesData[nextMatchIdx].p1Id = null;
+                matchesData[nextMatchIdx].isP1Bye = true;
+            } else {
+                matchesData[nextMatchIdx].p2Id = null;
+                matchesData[nextMatchIdx].isP2Bye = true;
+            }
+        }
+    }
+
+    private buildDomainMatches(matchesData: MatchBuilderData[]): Match[] {
+        return matchesData.map(m =>
+            Match.create(
                 this.tournamentId,
                 m.p1Id,
                 m.p2Id,
@@ -383,8 +426,57 @@ export class Bracket {
                 m.isP2Bye,
                 m.round,
                 m.matchIndex,
-            );
-        });
+            )
+        );
+    }
+
+
+    // --------------------------------------------------------------------
+    // MATCH WINNER PROMOTION
+    // --------------------------------------------------------------------
+    public getNextMatchCoordinatesFor(match: Match): { round: number; matchIndex: number; slot: 'P1' | 'P2' } | null {
+        // Si tu torneo es eliminación directa clásica:
+        const nextRound = match.getRound() + 1;
+
+        // Si ya es la ronda final del bracket, no hay siguiente partido
+        if (nextRound > this.getTotalRounds()) return null;
+
+        const nextMatchIndex = Math.floor(match.getMatchIndex() / 2);
+        const slot = match.getMatchIndex() % 2 === 0 ? 'P1' : 'P2';
+
+        return { round: nextRound, matchIndex: nextMatchIndex, slot };
+    }
+
+    /**
+     * Orquesta el paso de un jugador de un partido a otro
+     */
+    public advanceWinner(currentMatch: Match, nextMatch: Match): void {
+        const winnerId = currentMatch.getWinnerId();
+        if (!winnerId) return;
+
+        const coords = this.getNextMatchCoordinatesFor(currentMatch);
+        if (!coords) return;
+
+        // El bracket le dice al siguiente partido que acepte al ganador en el slot calculado
+        nextMatch.promoteWinner(winnerId, coords.slot);
+    }
+
+    /**
+     * Calcula el total de rondas basándose en la cantidad de posiciones del cuadrante
+     * Post: result = log2(this.positions.length)
+     * Ejemplo: 
+     * - 8 participantes = log2(8) = 3 rondas
+     * - 16 participantes = log2(16) = 4 rondas
+     */
+    public getTotalRounds(): number {
+        const totalParticipants = this.positions.length;
+
+        if (totalParticipants <= 1) {
+            return 0; // No hay rondas si hay 1 o 0 participantes
+        }
+
+        // Math.log2(8) nos da 3. Usamos Math.ceil por seguridad si el número no es potencia de 2 exacta (debido a BYEs)
+        return Math.ceil(Math.log2(totalParticipants));
     }
 
 

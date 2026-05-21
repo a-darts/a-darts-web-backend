@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
-import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
+import { InvalidUserFieldsException, MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { InvalidMatchStatusUpdateException, MatchAlreadyFinishedException, MatchBoardNumberRequiredException, MatchNotFoundException, MatchNotInProgressException, MatchNotPendingException, MatchNotSuspendedException, ParticipantNotFoundInMatchException } from '../../../domain/exceptions/MatchExceptions.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { GetMatchById } from '../../../application/services/tournament/matches/GetMatchById.js';
@@ -16,10 +16,13 @@ import { SuspendMatch } from '../../../application/services/tournament/matches/s
 import { ResumeMatch } from '../../../application/services/tournament/matches/status/ResumeMatch.js';
 import { SetMatchResultAndPromote } from '../../../application/services/tournament/matches/SetMatchResultAndPromote.js';
 import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
+import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
+import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
 
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
+const bracketRepository = new PrismaBracketRepository(prisma);
 
 const getMatchById = new GetMatchById(matchRepository);
 const startMatch = new StartMatch(matchRepository);
@@ -30,7 +33,7 @@ const resumeMatch = new ResumeMatch(matchRepository);
 const updateMatchBoardNumber = new UpdateMatchBoardNumber(matchRepository);
 const registerLegWin = new RegisterLegWin(matchRepository);
 const registerSetWin = new RegisterSetWin(matchRepository);
-const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository);
+const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository);
 
 /**
  * @swagger
@@ -1499,38 +1502,109 @@ export class MatchController {
    *                   example: null
    *       400:
    *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
    *       401:
    *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
    *       403:
    *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
    *       404:
    *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Match not found
    *       409:
    *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Match is not in progress
    *       500:
    *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
    */
   async setMatchResult(req: AuthRequest, res: Response) {
     try {
       const id = req.params.id;
       const { p1Sets, p1Legs, p2Sets, p2Legs } = req.body;
 
-      if (!id || typeof id !== 'string') {
+      if (id === undefined || p1Sets === undefined || p1Legs === undefined || p2Sets === undefined || p2Legs === undefined) {
         throw new MissingRequiredUserFieldsException();
       }
 
       if (
+        typeof id !== 'string' ||
         typeof p1Sets !== 'number' ||
         typeof p1Legs !== 'number' ||
         typeof p2Sets !== 'number' ||
         typeof p2Legs !== 'number'
       ) {
-        return res.status(400).json(
-          ApiResponseBuilder.error('Invalid score format')
-        );
+        throw new InvalidUserFieldsException();
       }
 
-      await setMatchResultAndPromote.execute(id, p1Sets, p1Legs, p2Sets, p2Legs);
+      await setMatchResultAndPromote.execute({
+        id: id,
+        participant1Sets: p1Sets,
+        participant1Legs: p1Legs,
+        participant2Sets: p2Sets,
+        participant2Legs: p2Legs,
+      });
       res.status(200).json(
         ApiResponseBuilder.success(
           null,
@@ -1538,17 +1612,26 @@ export class MatchController {
         )
       );
     } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
+      if (
+        error instanceof MissingRequiredUserFieldsException ||
+        error instanceof InvalidUserFieldsException
+      ) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof MatchNotFoundException) {
+      if (
+        error instanceof MatchNotFoundException ||
+        error instanceof BracketNotFoundException
+      ) {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof MatchNotInProgressException) {
+      if (
+        error instanceof MatchNotInProgressException ||
+        error instanceof MatchNotPendingException
+      ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );

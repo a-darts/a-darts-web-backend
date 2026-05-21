@@ -49,3 +49,11 @@ export interface RegisterSetWinRequestDTO {
     id: string;
     participantId: string;
 }
+
+export interface SetMatchResultRequestDTO {
+    id: string;
+    participant1Sets: number;
+    participant1Legs: number;
+    participant2Sets: number;
+    participant2Legs: number;
+}

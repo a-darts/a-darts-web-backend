@@ -157,7 +157,7 @@ export class Match {
 
     public promoteWinner(participantId: string, slot: 'P1' | 'P2'): void {
         if (this.status !== MatchStatus.PENDING) {
-            throw new Error("Cannot assign participants to a match that is not PENDING");
+            throw new MatchNotPendingException();
         }
 
         if (slot === 'P1') {
