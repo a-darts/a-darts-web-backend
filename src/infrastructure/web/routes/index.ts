@@ -9,6 +9,7 @@ import { TournamentController } from '../controllers/TournamentController.js';
 import { isAdmin, isSelfOrAdmin } from '../middlewares/authorizer.js';
 import { MatchController } from '../controllers/MatchController.js';
 import { BracketController } from '../controllers/BracketController.js';
+import { PlayingAreaController } from '../controllers/PlayingAreaController.js';
 
 const router = Router();
 const userController = new UserController();
@@ -17,6 +18,7 @@ const playerController = new PlayerController();
 const tournamentController = new TournamentController();
 const matchController = new MatchController();
 const bracketController = new BracketController();
+const playingAreaController = new PlayingAreaController();
 
 // Health check route
 router.get('/health', getHealth);
@@ -100,5 +102,12 @@ router.put('/brackets/:id/setupPositions', authMiddleware, isAdmin, bracketContr
 router.post('/brackets/:id/reshuffle', authMiddleware, isAdmin, bracketController.reshuffleBracket);
 router.post('/brackets/:id/unpublish', authMiddleware, isAdmin, bracketController.unpublishBracket);
 router.post('/brackets/:id/publish', authMiddleware, isAdmin, bracketController.publishBracket);
+
+// PlayingArea routes
+router.post('/playing-areas/:id/boards/:boardNumber/occupy', authMiddleware, isAdmin, playingAreaController.occupyPlayingAreaBoard);
+router.post('/playing-areas/:id/boards/:boardNumber/release', authMiddleware, isAdmin, playingAreaController.releasePlayingAreaBoard);
+router.post('/playing-areas/:id/boards/:boardNumber/disable', authMiddleware, isAdmin, playingAreaController.disablePlayingAreaBoard);
+router.post('/playing-areas/:id/boards/:boardNumber/enable', authMiddleware, isAdmin, playingAreaController.enablePlayingAreaBoard);
+
 
 export default router;

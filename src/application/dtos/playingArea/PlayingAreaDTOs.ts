@@ -13,6 +13,27 @@ export interface BoardDTO {
 }
 
 export interface CreatePlayingAreaRequestDTO {
-    id: string;
+    id: string; // Tournament ID
     numBoards: number;
+}
+
+export interface OccupyPlayingAreaBoardRequestDTO {
+    id: string; // Playing Area ID
+    boardNumber: number;
+    matchId: string;
+}
+
+export interface ReleasePlayingAreaBoardRequestDTO {
+    id: string; // Playing Area ID
+    boardNumber: number;
+}
+
+export interface DisablePlayingAreaBoardRequestDTO {
+    id: string; // Playing Area ID
+    boardNumber: number;
+}
+
+export interface EnablePlayingAreaBoardRequestDTO {
+    id: string; // Playing Area ID
+    boardNumber: number;
 }
