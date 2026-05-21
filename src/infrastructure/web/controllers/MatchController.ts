@@ -18,11 +18,13 @@ import { SetMatchResultAndPromote } from '../../../application/services/tourname
 import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
 import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
-
+import { NodeEventBus } from '../../events/NodeEventBus.js';
+import { globalEventBus } from '../../events/eventBusInstance.js';
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
 const bracketRepository = new PrismaBracketRepository(prisma);
+
 
 const getMatchById = new GetMatchById(matchRepository);
 const startMatch = new StartMatch(matchRepository);
@@ -33,7 +35,8 @@ const resumeMatch = new ResumeMatch(matchRepository);
 const updateMatchBoardNumber = new UpdateMatchBoardNumber(matchRepository);
 const registerLegWin = new RegisterLegWin(matchRepository);
 const registerSetWin = new RegisterSetWin(matchRepository);
-const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository);
+const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, globalEventBus);
+
 
 /**
  * @swagger

@@ -4,6 +4,8 @@ import type { IParticipant } from "./Participant.js";
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from "../exceptions/ParticipantExceptions.js";
 import { BracketAlreadyFinishedException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, DuplicateParticipantsException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
 import { Match } from "./Match.js";
+import { BracketFinishedEvent } from "../events/BracketFinishedEvent.js";
+import { IDomainEvent } from "../events/IDomainEvent.js";
 
 
 export enum BracketStatus {
@@ -30,6 +32,8 @@ export class Bracket {
     private readonly positions: BracketPosition[];
 
     private readonly tournamentId: string;
+
+    private domainEvents: IDomainEvent[] = [];
 
     constructor(
         id: string,
@@ -451,15 +455,24 @@ export class Bracket {
     /**
      * Orquesta el paso de un jugador de un partido a otro
      */
-    public advanceWinner(currentMatch: Match, nextMatch: Match): void {
+    public advanceWinner(currentMatch: Match, nextMatch: Match | null): void {
         const winnerId = currentMatch.getWinnerId();
         if (!winnerId) return;
 
         const coords = this.getNextMatchCoordinatesFor(currentMatch);
-        if (!coords) return;
+        // Si no hay siguiente partido (era la final), el torneo terminó
+        if (!coords) {
+            this.status = BracketStatus.FINISHED;
+            this.recordEvent(
+                new BracketFinishedEvent(this.id, this.tournamentId)
+            );
+            return;
+        };
 
-        // El bracket le dice al siguiente partido que acepte al ganador en el slot calculado
-        nextMatch.promoteWinner(winnerId, coords.slot);
+        // Promocionamos al ganador del partido al siguiente partido
+        if (nextMatch) {
+            nextMatch.promoteWinner(winnerId, coords.slot);
+        }
     }
 
     /**
@@ -556,6 +569,20 @@ export class Bracket {
             data.positions,
             data.tournamentId,
         );
+    }
+
+
+    // --------------------------------------------------------------------
+    // DOMAIN EVENTS
+    // --------------------------------------------------------------------    
+    public pullEvents(): IDomainEvent[] {
+        const events = [...this.domainEvents];
+        this.domainEvents = [];
+        return events;
+    }
+
+    public recordEvent(event: IDomainEvent): void {
+        this.domainEvents.push(event);
     }
 }
 

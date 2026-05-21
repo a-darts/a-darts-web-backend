@@ -1,3 +1,4 @@
+import { EventBus } from '../../../../domain/events/EventBus.js';
 import { BracketNotFoundException } from '../../../../domain/exceptions/BracketExceptions.js';
 import { MatchNotFoundException, MatchNotInProgressException } from '../../../../domain/exceptions/MatchExceptions.js';
 import { BracketRepository } from '../../../../domain/repositories/BracketRepository.js';
@@ -10,6 +11,7 @@ export class SetMatchResultAndPromote {
     private readonly unitOfWork: UnitOfWork,
     private readonly matchRepository: MatchRepository,
     private readonly bracketRepository: BracketRepository,
+    private readonly eventBus: EventBus,
   ) { }
 
   public async execute(request: SetMatchResultRequestDTO): Promise<void> {
@@ -49,18 +51,22 @@ export class SetMatchResultAndPromote {
           nextCoords.round,
           nextCoords.matchIndex,
         );
-        if (nextMatch) {
-          bracket.advanceWinner(match, nextMatch);
-        }
       }
+      bracket.advanceWinner(match, nextMatch);
     }
 
-    // Persist the next match changes
+    // Persist the next match changes and bracket status
     await this.unitOfWork.transaction(async () => {
+      await this.bracketRepository.update(bracket);
       await this.matchRepository.update(match);
       if (nextMatch) {
         await this.matchRepository.update(nextMatch);
       }
     });
+
+    const events = bracket.pullEvents();
+    if (events.length > 0) {
+      await this.eventBus.publish(events);
+    }
   }
 }
