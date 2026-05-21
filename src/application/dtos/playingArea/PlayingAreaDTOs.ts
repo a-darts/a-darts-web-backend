@@ -11,3 +11,8 @@ export interface BoardDTO {
     status: BoardStatus;
     matchId: string | null;
 }
+
+export interface CreatePlayingAreaRequestDTO {
+    id: string;
+    numBoards: number;
+}

@@ -5,6 +5,13 @@ export class PlayingAreaNotFoundException extends Error {
     }
 }
 
+export class PlayingAreaAlreadyExistsException extends Error {
+    constructor() {
+        super('Playing area already exists');
+        this.name = 'PlayingAreaAlreadyExistsException';
+    }
+}
+
 export class PlayingAreaHasNoBoardsException extends Error {
     constructor() {
         super('Playing area has no boards');

@@ -79,6 +79,7 @@ router.post('/tournaments/:id/bracket/automatic', authMiddleware, isAdmin, tourn
 router.post('/tournaments/:id/bracket/manual', authMiddleware, isAdmin, tournamentController.createBracketManually);
 router.get('/tournaments/:id/bracket', optionalAuthMiddleware, tournamentController.getTournamentBracket);
 router.get('/tournaments/:id/playing-areas', authMiddleware, isAdmin, tournamentController.getTournamentPlayingArea);
+router.post('/tournaments/:id/playing-areas', authMiddleware, isAdmin, tournamentController.createTournamentPlayingArea);
 
 
 // Match routes
