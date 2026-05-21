@@ -1,4 +1,4 @@
-import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, BoardOccupiedException, PlayingAreaHasNoBoardsException } from "../exceptions/PlayingAreaExceptions.js";
+import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, BoardOccupiedException, PlayingAreaHasNoBoardsException, MatchAlreadyAssignedToBoardException } from "../exceptions/PlayingAreaExceptions.js";
 
 export enum BoardStatus {
     AVAILABLE = 'AVAILABLE',
@@ -57,6 +57,11 @@ export class PlayingArea {
     }
 
     public assignMatchToBoard(matchId: string, boardNumber: number): void {
+        const isMatchAssigned = this.boards.some(b => b.getMatchId() === matchId);
+        if (isMatchAssigned) {
+            throw new MatchAlreadyAssignedToBoardException();
+        }
+
         const board = this.findBoardByNumber(boardNumber);
         board.occupy(matchId);
     }

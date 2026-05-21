@@ -67,3 +67,10 @@ export class BoardNotDisabledException extends Error {
         this.name = 'BoardNotDisabledException';
     }
 }
+
+export class MatchAlreadyAssignedToBoardException extends Error {
+    constructor() {
+        super('Match is already assigned to a board');
+        this.name = 'MatchAlreadyAssignedToBoardException';
+    }
+}

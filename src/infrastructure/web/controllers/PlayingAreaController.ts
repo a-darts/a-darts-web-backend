@@ -3,7 +3,7 @@ import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
-import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
+import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException, MatchAlreadyAssignedToBoardException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
 import { DisablePlayingAreaBoard } from '../../../application/services/playingArea/DisablePlayingAreaBoard.js';
 import { OccupyPlayingAreaBoard } from '../../../application/services/playingArea/OccupyPlayingAreaBoard.js';
@@ -228,7 +228,8 @@ export class PlayingAreaController {
       }
       if (
         error instanceof BoardAlreadyOccupiedException ||
-        error instanceof BoardDisabledException
+        error instanceof BoardDisabledException ||
+        error instanceof MatchAlreadyAssignedToBoardException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
