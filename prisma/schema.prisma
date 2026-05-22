@@ -113,6 +113,7 @@ model Player {
   // Integridad referencial
   user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   registrations RegisteredParticipant[]
+  tournamentResults TournamentResult[]
 
   @@unique([userId, seasonStartYear])
   @@map("players")
@@ -158,6 +159,7 @@ model Tournament {
   playingArea            PlayingArea?
   registeredParticipants RegisteredParticipant[]
   matches                Match[]
+  tournamentResults      TournamentResult[]
 
   @@map("tournaments")
 }
@@ -176,6 +178,7 @@ model RegisteredParticipant {
   bracketPositions BracketPosition[]
   matchesAsP1      Match[]           @relation("MatchParticipant1")
   matchesAsP2      Match[]           @relation("MatchParticipant2")
+  tournamentResults TournamentResult[]
 
   @@unique([playerId, tournamentId])
   // Índice para buscar rápido por id del jugador
@@ -272,4 +275,26 @@ model Board {
 
   @@unique([playingAreaId, number])
   @@map("boards")
+}
+
+model TournamentResult {
+  id            String   @id @default(uuid()) @db.Uuid
+  tournamentId  String   @db.Uuid
+  participantId String   @db.Uuid
+  playerId      String   @db.Uuid
+  
+  finalPosition Int
+  matchesWon    Int
+  matchesLost   Int
+  setsWon       Int
+  setsLost      Int
+  legsWon       Int
+  legsLost      Int
+
+  tournament  Tournament            @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  participant RegisteredParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  player      Player                @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, participantId])
+  @@map("tournamentResults")
 }

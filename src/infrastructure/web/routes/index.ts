@@ -10,6 +10,9 @@ import { isAdmin, isSelfOrAdmin } from '../middlewares/authorizer.js';
 import { MatchController } from '../controllers/MatchController.js';
 import { BracketController } from '../controllers/BracketController.js';
 import { PlayingAreaController } from '../controllers/PlayingAreaController.js';
+import { TournamentResultController } from '../controllers/TournamentResultController.js';
+import { GetTournamentResults } from '../../../application/services/tournament/GetTournamentResults.js';
+import { prisma } from '../../persistence/client.js';
 
 const router = Router();
 const userController = new UserController();
@@ -19,6 +22,8 @@ const tournamentController = new TournamentController();
 const matchController = new MatchController();
 const bracketController = new BracketController();
 const playingAreaController = new PlayingAreaController();
+const tournamentResultController = new TournamentResultController(new GetTournamentResults(prisma));
+
 
 // Health check route
 router.get('/health', getHealth);
@@ -82,6 +87,7 @@ router.post('/tournaments/:id/bracket/manual', authMiddleware, isAdmin, tourname
 router.get('/tournaments/:id/bracket', optionalAuthMiddleware, tournamentController.getTournamentBracket);
 router.get('/tournaments/:id/playing-areas', authMiddleware, isAdmin, tournamentController.getTournamentPlayingArea);
 router.post('/tournaments/:id/playing-areas', authMiddleware, isAdmin, tournamentController.createTournamentPlayingArea);
+router.get('/tournaments/:id/results', tournamentResultController.getResults);
 
 
 // Match routes
