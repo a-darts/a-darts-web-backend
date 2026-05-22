@@ -3,7 +3,7 @@ import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
-import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException, MatchAlreadyAssignedToBoardException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
+import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException, MatchAlreadyAssignedToBoardException, PlayingAreaHasNoBoardsException, BoardOccupiedException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
 import { DisablePlayingAreaBoard } from '../../../application/services/playingArea/DisablePlayingAreaBoard.js';
 import { OccupyPlayingAreaBoard } from '../../../application/services/playingArea/OccupyPlayingAreaBoard.js';
@@ -11,6 +11,8 @@ import { ReleasePlayingAreaBoard } from '../../../application/services/playingAr
 import { EnablePlayingAreaBoard } from '../../../application/services/playingArea/EnablePlayingAreaBoard.js';
 import { MatchNotFoundException } from '../../../domain/exceptions/MatchExceptions.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
+import { AddBoardInPlayingArea } from '../../../application/services/playingArea/AddBoardInPlayingArea.js';
+import { RemoveLastBoardFromPlayingArea } from '../../../application/services/playingArea/RemoveLastBoardFromPlayingArea copy.js';
 
 
 
@@ -21,6 +23,8 @@ const occupyPlayingAreaBoard = new OccupyPlayingAreaBoard(playingAreaRepository,
 const releasePlayingAreaBoard = new ReleasePlayingAreaBoard(playingAreaRepository);
 const disablePlayingAreaBoard = new DisablePlayingAreaBoard(playingAreaRepository);
 const enablePlayingAreaBoard = new EnablePlayingAreaBoard(playingAreaRepository);
+const addBoardInPlayingArea = new AddBoardInPlayingArea(playingAreaRepository);
+const removeLastBoardFromPlayingArea = new RemoveLastBoardFromPlayingArea(playingAreaRepository);
 
 
 /**
@@ -723,6 +727,293 @@ export class PlayingAreaController {
         );
       }
       if (error instanceof BoardNotDisabledException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/playing-areas/{id}/boards:
+   *   post:
+   *     summary: Add a new board in a playing area
+   *     tags: [PlayingAreas]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Playing area ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Board added successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Board added successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Playing area not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async addBoardInPlayingArea(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await addBoardInPlayingArea.execute(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Board added successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof PlayingAreaNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/playing-areas/{id}/boards/last:
+   *   delete:
+   *     summary: Remove the last board from a playing area
+   *     tags: [PlayingAreas]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Playing area ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Board removed successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Board removed successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Playing area not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Playing area has no boards
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async removeLastBoardFromPlayingArea(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await removeLastBoardFromPlayingArea.execute(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Board removed successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof PlayingAreaNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof PlayingAreaHasNoBoardsException ||
+        error instanceof BoardOccupiedException
+      ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );

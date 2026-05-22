@@ -108,6 +108,8 @@ router.post('/playing-areas/:id/boards/:boardNumber/occupy', authMiddleware, isA
 router.post('/playing-areas/:id/boards/:boardNumber/release', authMiddleware, isAdmin, playingAreaController.releasePlayingAreaBoard);
 router.post('/playing-areas/:id/boards/:boardNumber/disable', authMiddleware, isAdmin, playingAreaController.disablePlayingAreaBoard);
 router.post('/playing-areas/:id/boards/:boardNumber/enable', authMiddleware, isAdmin, playingAreaController.enablePlayingAreaBoard);
+router.post('/playing-areas/:id/boards', authMiddleware, isAdmin, playingAreaController.addBoardInPlayingArea);
+router.delete('/playing-areas/:id/boards/last', authMiddleware, isAdmin, playingAreaController.removeLastBoardFromPlayingArea);
 
 
 export default router;
