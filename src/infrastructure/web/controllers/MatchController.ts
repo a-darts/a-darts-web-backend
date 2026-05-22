@@ -20,10 +20,13 @@ import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBr
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
 import { NodeEventBus } from '../../events/NodeEventBus.js';
 import { globalEventBus } from '../../events/eventBusInstance.js';
+import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
+import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
 const bracketRepository = new PrismaBracketRepository(prisma);
+const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
 
 
 const getMatchById = new GetMatchById(matchRepository);
@@ -32,7 +35,7 @@ const finishMatch = new FinishMatch(matchRepository);
 const cancelMatch = new CancelMatch(matchRepository);
 const suspendMatch = new SuspendMatch(matchRepository);
 const resumeMatch = new ResumeMatch(matchRepository);
-const updateMatchBoardNumber = new UpdateMatchBoardNumber(matchRepository);
+const updateMatchBoardNumber = new UpdateMatchBoardNumber(unitOfWork, matchRepository, playingAreaRepository);
 const registerLegWin = new RegisterLegWin(matchRepository);
 const registerSetWin = new RegisterSetWin(matchRepository);
 const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, globalEventBus);
@@ -1072,6 +1075,19 @@ export class MatchController {
    *                 message:
    *                   type: string
    *                   example: Match not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Board is not occupied
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1111,11 +1127,25 @@ export class MatchController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof MatchNotFoundException) {
+      if (
+        error instanceof MatchNotFoundException ||
+        error instanceof PlayingAreaNotFoundException ||
+        error instanceof BoardNotFoundException
+      ) {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );
       }
+      if (
+        error instanceof BoardNotOccupiedException ||
+        error instanceof BoardAlreadyOccupiedException ||
+        error instanceof BoardDisabledException
+      ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')

@@ -13,13 +13,15 @@ import { MatchNotFoundException } from '../../../domain/exceptions/MatchExceptio
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { AddBoardInPlayingArea } from '../../../application/services/playingArea/AddBoardInPlayingArea.js';
 import { RemoveLastBoardFromPlayingArea } from '../../../application/services/playingArea/RemoveLastBoardFromPlayingArea copy.js';
+import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
 
 
+const unitOfWork = new PrismaUnitOfWork(prisma);
 
 const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
 
-const occupyPlayingAreaBoard = new OccupyPlayingAreaBoard(playingAreaRepository, matchRepository);
+const occupyPlayingAreaBoard = new OccupyPlayingAreaBoard(unitOfWork, playingAreaRepository, matchRepository);
 const releasePlayingAreaBoard = new ReleasePlayingAreaBoard(playingAreaRepository);
 const disablePlayingAreaBoard = new DisablePlayingAreaBoard(playingAreaRepository);
 const enablePlayingAreaBoard = new EnablePlayingAreaBoard(playingAreaRepository);

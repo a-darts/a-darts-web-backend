@@ -2,10 +2,12 @@ import { MatchNotFoundException } from '../../../domain/exceptions/MatchExceptio
 import { PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { MatchRepository } from '../../../domain/repositories/MatchRepository.js';
 import { PlayingAreaRepository } from '../../../domain/repositories/PlayingAreaRepository.js';
+import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
 import { OccupyPlayingAreaBoardRequestDTO } from '../../dtos/playingArea/PlayingAreaDTOs.js';
 
 export class OccupyPlayingAreaBoard {
     constructor(
+        private readonly unitOfWork: UnitOfWork,
         private readonly playingAreaRepository: PlayingAreaRepository,
         private readonly matchRepository: MatchRepository,
     ) { }
@@ -25,8 +27,12 @@ export class OccupyPlayingAreaBoard {
 
         // 3. Occupy the board in the playing area
         playingArea.assignMatchToBoard(request.matchId, request.boardNumber);
+        match.assignBoardNumber(request.boardNumber);
 
         // 4. Persist the changes in the DB
-        await this.playingAreaRepository.update(playingArea);
+        await this.unitOfWork.transaction(async () => {
+            await this.playingAreaRepository.update(playingArea);
+            await this.matchRepository.update(match);
+        });
     }
 }
