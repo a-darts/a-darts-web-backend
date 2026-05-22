@@ -1,9 +1,11 @@
 import { TournamentRepository } from "../../domain/repositories/TournamentRepository.js";
 import { BracketFinishedEvent } from "../../domain/events/BracketFinishedEvent.js";
+import { EventBus } from "../../domain/events/EventBus.js";
 
 export class FinishTournamentOnBracketFinished {
     constructor(
         private readonly tournamentRepository: TournamentRepository,
+        private readonly eventBus: EventBus,
     ) { }
 
     public async on(event: BracketFinishedEvent): Promise<void> {
@@ -11,6 +13,11 @@ export class FinishTournamentOnBracketFinished {
         if (tournament) {
             tournament.finish();
             await this.tournamentRepository.update(tournament);
+            
+            const events = tournament.pullEvents();
+            if (events.length > 0) {
+                await this.eventBus.publish(events);
+            }
         }
     }
 }

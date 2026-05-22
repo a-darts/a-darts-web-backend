@@ -13,6 +13,9 @@ import { MissingRequiredUserFieldsException } from "../exceptions/UserExceptions
 import { Registration, RegistrationPeriod, RegistrationStatus } from "./Registration.js";
 import { Season } from "./Season.js";
 import { TournamentInfo } from "./TournamentInfo.js";
+import { IDomainEvent } from "../events/IDomainEvent.js";
+import { TournamentFinishedEvent } from "../events/TournamentFinishedEvent.js";
+
 
 export enum TournamentStatus {
   DRAFT = 'DRAFT',
@@ -34,6 +37,9 @@ export class Tournament {
   private registration: Registration;
 
   private hasBracket: boolean;
+
+  private domainEvents: IDomainEvent[] = [];
+
 
   constructor(
     id: string,
@@ -136,7 +142,9 @@ export class Tournament {
       throw new TournamentNotInProgressException();
     }
     this.status = TournamentStatus.FINISHED;
+    this.recordEvent(new TournamentFinishedEvent(this.id));
   }
+
 
   public cancel(): void {
     if (this.status === TournamentStatus.FINISHED) {
@@ -256,6 +264,20 @@ export class Tournament {
   public getHasBracket(): boolean {
     return this.hasBracket;
   }
+
+  // --------------------------------------------------------------------
+  // DOMAIN EVENTS
+  // --------------------------------------------------------------------    
+  public pullEvents(): IDomainEvent[] {
+    const events = [...this.domainEvents];
+    this.domainEvents = [];
+    return events;
+  }
+
+  public recordEvent(event: IDomainEvent): void {
+    this.domainEvents.push(event);
+  }
+
 
 
   // --------------------------------------------------------------------
