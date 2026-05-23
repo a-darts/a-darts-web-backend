@@ -28,6 +28,10 @@ export class BracketMapper {
             const participant = p.participantId
                 ? RegisteredParticipant.rehydrate({
                     id: p.participantId,
+                    playerId: p.participant?.playerId,
+                    registeredAt: p.participant?.registeredAt,
+                    checkedInAt: p.participant?.checkedInAt,
+                    tournamentId: p.participant?.tournamentId,
                     alias: p.participant?.player?.user?.alias || 'Unknown',
                     federation: p.participant?.player?.federation || 'Unknown',
                 })

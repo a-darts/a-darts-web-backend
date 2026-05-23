@@ -1,6 +1,6 @@
 import { TournamentResult } from '../../../domain/entities/TournamentResult.js';
 
-export class ResultMapper {
+export class TournamentResultMapper {
     static toPersistence(domain: TournamentResult): any {
         return {
             id: domain.getId(),

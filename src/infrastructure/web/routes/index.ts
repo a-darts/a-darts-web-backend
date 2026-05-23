@@ -10,9 +10,6 @@ import { isAdmin, isSelfOrAdmin } from '../middlewares/authorizer.js';
 import { MatchController } from '../controllers/MatchController.js';
 import { BracketController } from '../controllers/BracketController.js';
 import { PlayingAreaController } from '../controllers/PlayingAreaController.js';
-import { TournamentResultController } from '../controllers/TournamentResultController.js';
-import { GetTournamentResults } from '../../../application/services/tournament/GetTournamentResults.js';
-import { prisma } from '../../persistence/client.js';
 
 const router = Router();
 const userController = new UserController();
@@ -22,7 +19,6 @@ const tournamentController = new TournamentController();
 const matchController = new MatchController();
 const bracketController = new BracketController();
 const playingAreaController = new PlayingAreaController();
-const tournamentResultController = new TournamentResultController(new GetTournamentResults(prisma));
 
 
 // Health check route
@@ -87,7 +83,7 @@ router.post('/tournaments/:id/bracket/manual', authMiddleware, isAdmin, tourname
 router.get('/tournaments/:id/bracket', optionalAuthMiddleware, tournamentController.getTournamentBracket);
 router.get('/tournaments/:id/playing-areas', authMiddleware, isAdmin, tournamentController.getTournamentPlayingArea);
 router.post('/tournaments/:id/playing-areas', authMiddleware, isAdmin, tournamentController.createTournamentPlayingArea);
-router.get('/tournaments/:id/results', tournamentResultController.getResults);
+router.get('/tournaments/:id/results', tournamentController.getTournamentResults);
 
 
 // Match routes
@@ -97,6 +93,7 @@ router.post('/matches/:id/finish', authMiddleware, isAdmin, matchController.fini
 router.post('/matches/:id/cancel', authMiddleware, isAdmin, matchController.cancelMatch);
 router.post('/matches/:id/suspend', authMiddleware, isAdmin, matchController.suspendMatch);
 router.post('/matches/:id/resume', authMiddleware, isAdmin, matchController.resumeMatch);
+router.post('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.setMatchBoardNumber);
 router.put('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.updateMatchBoardNumber);
 router.post('/matches/:id/sets', authMiddleware, isAdmin, matchController.registerSetWin);
 router.post('/matches/:id/legs', authMiddleware, isAdmin, matchController.registerLegWin);

@@ -1,38 +1,30 @@
-import { PrismaClient } from '@prisma/client';
 import { TournamentResultDTO } from '../../dtos/tournament/result/TournamentResultDTO.js';
+import { TournamentResultRepository } from '../../../domain/repositories/TournamentResultRepository.js';
+import { TournamentResultNotFoundException } from '../../../domain/exceptions/TournamentResultException.js';
+import { TournamentResultMapper } from '../../dtos/tournament/result/TournamentResultMapper.js';
+import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
+import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 
 export class GetTournamentResults {
-    constructor(private readonly prisma: PrismaClient) { }
+    constructor(
+        private readonly tournamentRepository: TournamentRepository,
+        private readonly tournamentResultRepository: TournamentResultRepository,
+    ) { }
 
-    public async execute(tournamentId: string): Promise<TournamentResultDTO[]> {
-        const results = await this.prisma.tournamentResult.findMany({
-            where: { tournamentId },
-            include: {
-                player: {
-                    include: {
-                        user: true
-                    }
-                }
-            },
-            orderBy: {
-                finalPosition: 'asc'
-            }
-        });
+    public async execute(tournamentId: string): Promise<TournamentResultDTO> {
+        // 1. Rehydrate the tournament from the DB
+        const tournament = await this.tournamentRepository.findById(tournamentId);
+        if (!tournament) {
+            throw new TournamentNotFoundException();
+        }
 
-        return results.map((r: any) => ({
-            id: r.id,
-            tournamentId: r.tournamentId,
-            participantId: r.participantId,
-            playerId: r.playerId,
-            alias: r.player.user.alias,
-            federation: r.player.federation,
-            finalPosition: r.finalPosition,
-            matchesWon: r.matchesWon,
-            matchesLost: r.matchesLost,
-            setsWon: r.setsWon,
-            setsLost: r.setsLost,
-            legsWon: r.legsWon,
-            legsLost: r.legsLost,
-        }));
+        // 2. Rehydrate the results from the DB
+        const tournamentResults = await this.tournamentResultRepository.findAllByTournamentIdWithPlayerAndUser(tournamentId);
+        if (!tournamentResults || tournamentResults.length === 0) {
+            throw new TournamentResultNotFoundException();
+        }
+
+        // 3. Return the results data
+        return TournamentResultMapper.toResponse(tournamentResults);
     }
 }

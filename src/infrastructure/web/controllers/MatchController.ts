@@ -18,10 +18,10 @@ import { SetMatchResultAndPromote } from '../../../application/services/tourname
 import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
 import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
-import { NodeEventBus } from '../../events/NodeEventBus.js';
 import { globalEventBus } from '../../events/eventBusInstance.js';
 import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
-import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
+import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotFoundException, BoardNotOccupiedException, MatchAlreadyAssignedToBoardException, PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
+import { SetMatchBoardNumber } from '../../../application/services/tournament/matches/SetMatchBoardNumber.js';
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
@@ -35,6 +35,7 @@ const finishMatch = new FinishMatch(matchRepository);
 const cancelMatch = new CancelMatch(matchRepository);
 const suspendMatch = new SuspendMatch(matchRepository);
 const resumeMatch = new ResumeMatch(matchRepository);
+const setMatchBoardNumber = new SetMatchBoardNumber(unitOfWork, matchRepository, playingAreaRepository);
 const updateMatchBoardNumber = new UpdateMatchBoardNumber(unitOfWork, matchRepository, playingAreaRepository);
 const registerLegWin = new RegisterLegWin(matchRepository);
 const registerSetWin = new RegisterSetWin(matchRepository);
@@ -976,6 +977,180 @@ export class MatchController {
           ApiResponseBuilder.error(error.message)
         );
       }
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/matches/{id}/boardNumber:
+   *   post:
+   *     summary: Set match board number
+   *     tags: [Matches]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Match ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateMatchBoardNumberRequest'
+   *     responses:
+   *       200:
+   *         description: Board number set successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Board number set successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Match not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Board is not occupied
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async setMatchBoardNumber(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const { newBoardNumber } = req.body;
+      if (!newBoardNumber) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await setMatchBoardNumber.execute({
+        id: id,
+        newBoardNumber: newBoardNumber,
+      });
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Board number set successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof MatchNotFoundException ||
+        error instanceof PlayingAreaNotFoundException ||
+        error instanceof BoardNotFoundException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof BoardNotOccupiedException ||
+        error instanceof BoardAlreadyOccupiedException ||
+        error instanceof BoardDisabledException ||
+        error instanceof MatchAlreadyAssignedToBoardException
+      ) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')

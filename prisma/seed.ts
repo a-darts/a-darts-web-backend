@@ -31,8 +31,8 @@ async function main() {
             email: adminEmail,
             password: hashedPassword,
             alias: 'SuperAdmin',
-            role: 'admin',
-            status: 'active',
+            role: 'ADMIN',
+            status: 'ACTIVE',
             registeredAt: new Date(),
         },
     });

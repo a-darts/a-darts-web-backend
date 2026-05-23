@@ -5,20 +5,19 @@ import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse
 import { GetAllTournaments } from '../../../application/services/tournament/GetAllTournaments.js';
 import { PrismaTournamentRepository } from '../../persistence/repositories/PrismaTournamentRepository.js';
 import { TournamentStatus } from '../../../domain/entities/Tournament.js';
-import { InvalidTournamentStatusUpdateException, TournamentAlreadyFinishedException, TournamentAlreadyHasBracketException, TournamentDoesNotHaveBracketException, TournamentMaxPlayersExceededException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
+import { TournamentAlreadyFinishedException, TournamentAlreadyHasBracketException, TournamentDoesNotHaveBracketException, TournamentMaxPlayersExceededException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
 import { InvalidRegistrationPeriodException, InvalidRegistrationStatusException, RegistrationAlreadyClosedException, RegistrationAlreadyOpenException, RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
 import { UpdateTournamentInfo } from '../../../application/services/tournament/UpdateTournamentInfo.js';
 import { UpdateTournamentName } from '../../../application/services/tournament/UpdateTournamentName.js';
-import { UpdateTournamentRegistrationStatus } from '../../../application/services/tournament/registration/UpdateTournamentRegistrationStatus.js';
 import { UpdateTournamentRegistrationPeriod } from '../../../application/services/tournament/registration/UpdateTournamentRegistrationPeriod.js';
 import { RegisterParticipantInTournament } from '../../../application/services/tournament/registration/RegisterParticipantInTournament.js';
 import { PrismaRegisteredParticipantRepository } from '../../persistence/repositories/PrismaRegisteredParticipantRepository.js';
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
 import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
 import { ParticipantAlreadyCheckedInException, ParticipantAlreadyRegisteredException, ParticipantNotCheckedInException, ParticipantNotRegisteredException, RegisteredParticipantNotFoundException, RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from '../../../domain/exceptions/ParticipantExceptions.js';
-import { MatchAlreadyExistsException, MatchAlreadyFinishedException, ParticipantNotRegisteredInTournamentException } from '../../../domain/exceptions/MatchExceptions.js';
+import { MatchAlreadyFinishedException } from '../../../domain/exceptions/MatchExceptions.js';
 import { UnregisterParticipantFromTournament } from '../../../application/services/tournament/registration/UnregisterParticipantFromTournament.js';
 import { DoCheckInParticipant } from '../../../application/services/tournament/registration/DoCheckInParticipant.js';
 import { UndoCheckInParticipant } from '../../../application/services/tournament/registration/UndoCheckInParticipant.js';
@@ -28,7 +27,7 @@ import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserR
 import { GetMatchesByTournamentId } from '../../../application/services/tournament/matches/GetMatchesByTournamentId.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
-import { BracketAlreadyExistsException, BracketAlreadyFinishedException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, BracketUnfinishedException } from '../../../domain/exceptions/BracketExceptions.js';
+import { BracketAlreadyFinishedException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, BracketUnfinishedException } from '../../../domain/exceptions/BracketExceptions.js';
 import { StartTournament } from '../../../application/services/tournament/StartTournament.js';
 import { PublishTournament } from '../../../application/services/tournament/PublishTournament.js';
 import { CancelTournament } from '../../../application/services/tournament/CancelTournament.js';
@@ -46,6 +45,9 @@ import { PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException } from 
 import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
 import { GetTournamentPlayingArea } from '../../../application/services/playingArea/GetTournamentPlayingArea.js';
 import { CreateTournamentPlayingArea } from '../../../application/services/playingArea/CreateTournamentPlayingArea.js';
+import { GetTournamentResults } from '../../../application/services/tournament/GetTournamentResults.js';
+import { PrismaTournamentResultRepository } from '../../persistence/repositories/PrismaTournamentResultRepository.js';
+import { TournamentResultNotFoundException } from '../../../domain/exceptions/TournamentResultException.js';
 
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
@@ -58,6 +60,7 @@ const userRepository = new PrismaUserRepository(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
 const bracketRepository = new PrismaBracketRepository(prisma);
 const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
+const tournamentResultRepository = new PrismaTournamentResultRepository(prisma);
 
 
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
@@ -84,6 +87,7 @@ const getTournamentBracket = new GetTournamentBracket(tournamentRepository, brac
 const getUnregisteredPlayersByTournamentId = new GetUnregisteredPlayersByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository);
 const getTournamentPlayingArea = new GetTournamentPlayingArea(tournamentRepository, playingAreaRepository);
 const createTournamentPlayingArea = new CreateTournamentPlayingArea(tournamentRepository, playingAreaRepository);
+const getTournamentResults = new GetTournamentResults(tournamentRepository, tournamentResultRepository);
 
 
 /**
@@ -338,6 +342,54 @@ const createTournamentPlayingArea = new CreateTournamentPlayingArea(tournamentRe
  *               matchId:
  *                 type: string
  *                 example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ * 
+ *     TournamentResult:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         tournamentId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         participantsResults:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               participantId:
+ *                 type: string
+ *                 example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *               playerId:
+ *                 type: string
+ *                 example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *               alias:
+ *                 type: string
+ *                 example: Pepe
+ *               federation:
+ *                 type: string
+ *                 example: ARAGON
+ *               finalPosition:
+ *                 type: number
+ *                 example: 1
+ *               matchesWon:
+ *                 type: number
+ *                 example: 2
+ *               matchesLost:
+ *                 type: number
+ *                 example: 0
+ *               setsWon:
+ *                 type: number
+ *                 example: 2
+ *               setsLost:
+ *                 type: number
+ *                 example: 0
+ *               legsWon:
+ *                 type: number
+ *                 example: 6
+ *               legsLost:
+ *                 type: number
+ *                 example: 0
  * 
  *     UnregisteredPlayer:
  *       type: object
@@ -3782,6 +3834,116 @@ export class TournamentController {
       if (
         error instanceof TournamentNotFoundException ||
         error instanceof PlayingAreaAlreadyExistsException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/results:
+   *   get:
+   *     summary: Get tournament results
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Tournament results fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Tournament results fetched successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/TournamentResult'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getTournamentResults(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const results = await getTournamentResults.execute(id);
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          results,
+          'Tournament results fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotFoundException ||
+        error instanceof TournamentResultNotFoundException
       ) {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)

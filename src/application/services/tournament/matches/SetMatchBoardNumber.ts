@@ -1,12 +1,11 @@
-import { MatchStatus } from '../../../../domain/entities/Match.js';
-import { InvalidMatchStatusUpdateException, MatchNotFoundException } from '../../../../domain/exceptions/MatchExceptions.js';
+import { MatchNotFoundException } from '../../../../domain/exceptions/MatchExceptions.js';
 import { PlayingAreaNotFoundException } from '../../../../domain/exceptions/PlayingAreaExceptions.js';
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
 import { PlayingAreaRepository } from '../../../../domain/repositories/PlayingAreaRepository.js';
 import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
 import { UpdateMatchBoardNumberRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
 
-export class UpdateMatchBoardNumber {
+export class SetMatchBoardNumber {
   constructor(
     private readonly unitOfWork: UnitOfWork,
     private readonly matchRepository: MatchRepository,
@@ -26,9 +25,9 @@ export class UpdateMatchBoardNumber {
       throw new PlayingAreaNotFoundException();
     }
 
-    // 3. Update the boardNumber in the match object and reassign the match to the new board in the playing area
+    // 3. Set the boardNumber in the match object and assign the match to the board in the playing area
     match.assignBoardNumber(request.newBoardNumber);
-    playingArea.reassignMatchToBoard(request.id, request.newBoardNumber);
+    playingArea.assignMatchToBoard(request.id, request.newBoardNumber);
 
     // 4. Persist the changes in the DB
     await this.unitOfWork.transaction(async () => {
