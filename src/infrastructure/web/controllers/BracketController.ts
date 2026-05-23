@@ -12,15 +12,17 @@ import { UnpublishBracket } from '../../../application/services/bracket/Unpublis
 import { AssignParticipantsToBracketPositions } from '../../../application/services/bracket/AssignParticipantsToBracketPositions.js';
 import { PrismaRegisteredParticipantRepository } from '../../persistence/repositories/PrismaRegisteredParticipantRepository.js';
 import { RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
+import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
 
 
 const bracketRepository = new PrismaBracketRepository(prisma);
 const registeredParticipantRepository = new PrismaRegisteredParticipantRepository(prisma);
 
+const seedingService = new BracketSeedingService();
 
 const swapBracketPositions = new SwapBracketPositions(bracketRepository);
 const assignParticipantsToBracketPositions = new AssignParticipantsToBracketPositions(bracketRepository, registeredParticipantRepository);
-const reshuffleBracket = new ReshuffleBracket(bracketRepository);
+const reshuffleBracket = new ReshuffleBracket(bracketRepository, seedingService);
 const publishBracket = new PublishBracket(bracketRepository);
 const unpublishBracket = new UnpublishBracket(bracketRepository);
 

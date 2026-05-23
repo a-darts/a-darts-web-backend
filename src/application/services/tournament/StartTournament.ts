@@ -4,6 +4,7 @@ import { BracketRepository } from '../../../domain/repositories/BracketRepositor
 import { MatchRepository } from '../../../domain/repositories/MatchRepository.js';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
 import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
+import { SingleEliminationMatchGenerator } from '../../../domain/services/SingleEliminationMatchGenerator.js';
 
 export class StartTournament {
   constructor(
@@ -11,6 +12,7 @@ export class StartTournament {
     private readonly tournamentRepository: TournamentRepository,
     private readonly bracketRepository: BracketRepository,
     private readonly matchRepository: MatchRepository,
+    private readonly matchGenerator: SingleEliminationMatchGenerator,
   ) { }
 
   public async execute(id: string): Promise<void> {
@@ -43,7 +45,10 @@ export class StartTournament {
     tournament.start();
     bracket.start();
 
-    const initialMatches = bracket.generateInitialMatches();
+    const initialMatches = this.matchGenerator.generateMatches(
+      bracket.getTournamentId(),
+      bracket.getPositions(),
+    );
 
     // 4. Persist the changes in the DB
     await this.unitOfWork.transaction(async () => {

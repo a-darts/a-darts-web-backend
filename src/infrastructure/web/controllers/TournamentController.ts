@@ -48,6 +48,8 @@ import { CreateTournamentPlayingArea } from '../../../application/services/playi
 import { GetTournamentResults } from '../../../application/services/tournament/GetTournamentResults.js';
 import { PrismaTournamentResultRepository } from '../../persistence/repositories/PrismaTournamentResultRepository.js';
 import { TournamentResultNotFoundException } from '../../../domain/exceptions/TournamentResultException.js';
+import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
+import { SingleEliminationMatchGenerator } from '../../../domain/services/SingleEliminationMatchGenerator.js';
 
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
@@ -62,13 +64,15 @@ const bracketRepository = new PrismaBracketRepository(prisma);
 const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
 const tournamentResultRepository = new PrismaTournamentResultRepository(prisma);
 
+const seedingService = new BracketSeedingService();
+const matchGenerator = new SingleEliminationMatchGenerator();
 
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
 const getTournamentById = new GetTournamentById(tournamentRepository);
 const createTournament = new CreateTournament(tournamentRepository);
 const unpublishTournament = new UnpublishTournament(unitOfWork, tournamentRepository, bracketRepository);
 const publishTournament = new PublishTournament(unitOfWork, tournamentRepository, bracketRepository);
-const startTournament = new StartTournament(unitOfWork, tournamentRepository, bracketRepository, matchRepository);
+const startTournament = new StartTournament(unitOfWork, tournamentRepository, bracketRepository, matchRepository, matchGenerator);
 const cancelTournament = new CancelTournament(unitOfWork, tournamentRepository, bracketRepository, matchRepository);
 const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
 const updateTournamentName = new UpdateTournamentName(tournamentRepository);
@@ -81,8 +85,8 @@ const doCheckInParticipant = new DoCheckInParticipant(tournamentRepository, regi
 const undoCheckInParticipant = new UndoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
 const getMatchesByTournamentId = new GetMatchesByTournamentId(tournamentRepository, matchRepository);
-const createBracketAutomatically = new CreateBracketAutomatically(unitOfWork, bracketRepository, tournamentRepository, registeredParticipantRepository);
-const createBracketManually = new CreateBracketManually(unitOfWork, bracketRepository, tournamentRepository);
+const createBracketAutomatically = new CreateBracketAutomatically(unitOfWork, bracketRepository, tournamentRepository, registeredParticipantRepository, seedingService);
+const createBracketManually = new CreateBracketManually(unitOfWork, bracketRepository, tournamentRepository, seedingService);
 const getTournamentBracket = new GetTournamentBracket(tournamentRepository, bracketRepository);
 const getUnregisteredPlayersByTournamentId = new GetUnregisteredPlayersByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository);
 const getTournamentPlayingArea = new GetTournamentPlayingArea(tournamentRepository, playingAreaRepository);

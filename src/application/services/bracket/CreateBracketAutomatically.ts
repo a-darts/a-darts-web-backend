@@ -6,6 +6,7 @@ import { TournamentRepository } from '../../../domain/repositories/TournamentRep
 import { RegisteredParticipantRepository } from '../../../domain/repositories/RegisteredParticipantRepository.js';
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
+import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
 
 export class CreateBracketAutomatically {
     constructor(
@@ -13,6 +14,7 @@ export class CreateBracketAutomatically {
         private readonly bracketRepository: BracketRepository,
         private readonly tournamentRepository: TournamentRepository,
         private readonly registeredParticipantRepository: RegisteredParticipantRepository,
+        private readonly seedingService: BracketSeedingService,
     ) { }
 
     public async execute(request: CreateBracketRequestDTO): Promise<BracketResponseDTO> {
@@ -29,6 +31,7 @@ export class CreateBracketAutomatically {
         const bracket = Bracket.createAutomatically(
             request.id,
             participants,
+            this.seedingService,
         );
         tournament.bracketGenerated();
 

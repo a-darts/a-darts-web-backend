@@ -22,11 +22,14 @@ import { globalEventBus } from '../../events/eventBusInstance.js';
 import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
 import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotFoundException, BoardNotOccupiedException, MatchAlreadyAssignedToBoardException, PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { SetMatchBoardNumber } from '../../../application/services/tournament/matches/SetMatchBoardNumber.js';
+import { SingleEliminationMatchGenerator } from '../../../domain/services/SingleEliminationMatchGenerator.js';
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
 const bracketRepository = new PrismaBracketRepository(prisma);
 const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
+
+const matchGenerator = new SingleEliminationMatchGenerator();
 
 
 const getMatchById = new GetMatchById(matchRepository);
@@ -39,7 +42,7 @@ const setMatchBoardNumber = new SetMatchBoardNumber(unitOfWork, matchRepository,
 const updateMatchBoardNumber = new UpdateMatchBoardNumber(unitOfWork, matchRepository, playingAreaRepository);
 const registerLegWin = new RegisterLegWin(matchRepository);
 const registerSetWin = new RegisterSetWin(matchRepository);
-const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, globalEventBus);
+const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, matchGenerator, globalEventBus);
 
 
 /**

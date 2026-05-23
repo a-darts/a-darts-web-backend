@@ -305,67 +305,6 @@ export class Match {
 }
 
 
-export class ParticipantScore {
-    private readonly setsWon: number;
-    private readonly legsWon: number;
-
-    constructor(
-        setsWon: number,
-        legsWon: number,
-    ) {
-        this.setsWon = setsWon;
-        this.legsWon = legsWon;
-    }
-
-
-    // --------------------------------------------------------------------
-    // FACTORY METHOD
-    // --------------------------------------------------------------------
-    public static create(): ParticipantScore {
-        return new ParticipantScore(
-            0,
-            0,
-        );
-    }
-
-
-    // --------------------------------------------------------------------
-    // HELPER METHODS
-    // --------------------------------------------------------------------
-    public winLeg(): ParticipantScore {
-        return new ParticipantScore(
-            this.setsWon,
-            this.legsWon + 1,
-        );
-    }
-
-    public winSet(): ParticipantScore {
-        return new ParticipantScore(
-            this.setsWon + 1,
-            0,
-        );
-    }
-
-    public newSet(): ParticipantScore {
-        return new ParticipantScore(
-            this.setsWon,
-            0,
-        );
-    }
-
-
-    // --------------------------------------------------------------------
-    // GETTERS
-    // --------------------------------------------------------------------
-    public getLegsWon(): number {
-        return this.legsWon;
-    }
-
-    public getSetsWon(): number {
-        return this.setsWon;
-    }
-}
-
 
 export class MatchScore {
     private readonly scores: Record<'P1' | 'P2', ParticipantScore>;
@@ -430,5 +369,69 @@ export class MatchScore {
             new ParticipantScore(p1Data.setsWon, p1Data.legsWon),
             new ParticipantScore(p2Data.setsWon, p2Data.legsWon)
         );
+    }
+}
+
+
+
+
+export class ParticipantScore {
+    private readonly setsWon: number;
+    private readonly legsWon: number;
+
+    constructor(
+        setsWon: number,
+        legsWon: number,
+    ) {
+        this.setsWon = setsWon;
+        this.legsWon = legsWon;
+    }
+
+
+    // --------------------------------------------------------------------
+    // FACTORY METHOD
+    // --------------------------------------------------------------------
+    public static create(): ParticipantScore {
+        return new ParticipantScore(
+            0,
+            0,
+        );
+    }
+
+
+    // --------------------------------------------------------------------
+    // HELPER METHODS
+    // --------------------------------------------------------------------
+    public winLeg(): ParticipantScore {
+        return new ParticipantScore(
+            this.setsWon,
+            this.legsWon + 1,
+        );
+    }
+
+    public winSet(): ParticipantScore {
+        return new ParticipantScore(
+            this.setsWon + 1,
+            0,
+        );
+    }
+
+    public newSet(): ParticipantScore {
+        return new ParticipantScore(
+            this.setsWon,
+            0,
+        );
+    }
+
+
+    // --------------------------------------------------------------------
+    // GETTERS
+    // --------------------------------------------------------------------
+    public getLegsWon(): number {
+        return this.legsWon;
+    }
+
+    public getSetsWon(): number {
+        return this.setsWon;
     }
 }

@@ -1,11 +1,9 @@
 import { ByeParticipant, EmptyParticipant, RegisteredParticipant } from "./Participant.js";
 import type { IParticipant } from "./Participant.js";
-
-import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from "../exceptions/ParticipantExceptions.js";
 import { BracketAlreadyFinishedException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, DuplicateParticipantsException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
-import { Match } from "./Match.js";
 import { BracketFinishedEvent } from "../events/BracketFinishedEvent.js";
 import { IDomainEvent } from "../events/IDomainEvent.js";
+import { BracketSeedingService } from "../services/BracketSeedingService.js";
 
 
 export enum BracketStatus {
@@ -16,14 +14,6 @@ export enum BracketStatus {
     CANCELLED = 'CANCELLED',
 }
 
-interface MatchBuilderData {
-    p1Id: string | null;
-    p2Id: string | null;
-    isP1Bye: boolean;
-    isP2Bye: boolean;
-    round: number;
-    matchIndex: number;
-}
 
 export class Bracket {
     private readonly id: string;
@@ -49,7 +39,7 @@ export class Bracket {
 
 
     // --------------------------------------------------------------------
-    // FACTORY METHOD
+    // FACTORY METHODS
     // --------------------------------------------------------------------
     /**
      * OPCIÓN A: Generación Automática
@@ -58,11 +48,10 @@ export class Bracket {
     public static createAutomatically(
         tournamentId: string,
         participants: IParticipant[],
+        seedingService: BracketSeedingService,
     ): Bracket {
-        this.validateParticipantsCount(participants.length);
-
         // 1. Obtenemos las posiciones ya sorteadas
-        const positions = this.generateSeededPositions(participants);
+        const positions = seedingService.generatePositions(participants);
 
         // 2. Creamos el objeto cuadrante
         return new Bracket(
@@ -80,12 +69,13 @@ export class Bracket {
      */
     public static createManualEmpty(
         tournamentId: string,
-        participantsCount: number
+        participantsCount: number,
+        seedingService: BracketSeedingService,
     ): Bracket {
-        this.validateParticipantsCount(participantsCount);
+        seedingService.validateCount(participantsCount);
 
         // 1. Calculamos el tamaño del cuadrante (participantes + byes)
-        const bracketSize = this.calculateBracketSize(participantsCount);
+        const bracketSize = seedingService.calculateBracketSize(participantsCount);
         const positions: BracketPosition[] = [];
 
         // 2. Creamos posiciones Vacías hasta completar el tamaño del cuadrante
@@ -104,85 +94,6 @@ export class Bracket {
             BracketStatus.DRAFT,
             positions,
             tournamentId,
-        );
-    }
-
-
-    // --------------------------------------------------------------------
-    // HELPER METHODS
-    // --------------------------------------------------------------------
-    private static validateParticipantsCount(count: number): void {
-        if (count === 0) {
-            throw new RegistratedParticipantsEmptyException();
-        }
-        if (count < 2) {
-            throw new RegistratedParticipantsNotEnoughException(2, count);
-        }
-    }
-
-    /**
-     * Calcula la potencia de 2 más cercana (hacia arriba)
-     * Ejemplo: 5 participantes -> 8 posiciones.
-     */
-    private static calculateBracketSize(n: number): number {
-        if (n <= 2) return 2;
-        return Math.pow(2, Math.ceil(Math.log2(n)));
-    }
-
-
-    /**
-     * Intercala participantes y Byes.
-     * (Standard Tournament Seeding)
-     */
-    private static distributePositions(items: IParticipant[]): IParticipant[] {
-        let order = [0];
-        const size = items.length;
-
-        while (order.length < size) {
-            const nextOrder = [];
-            for (let i = 0; i < order.length; i++) {
-                nextOrder.push(order[i]);
-                nextOrder.push(order.length * 2 - 1 - order[i]);
-            }
-            order = nextOrder;
-        }
-
-        return order.map(index => items[index]);
-    }
-
-
-    /**
-     * Algoritmo Fisher-Yates para barajar un array
-     */
-    private static shuffle<T>(array: T[]): T[] {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-
-    private static generateSeededPositions(participants: IParticipant[]): BracketPosition[] {
-        const totalParticipants = participants.length;
-        const bracketSize = this.calculateBracketSize(totalParticipants);
-
-        // 1. Barajamos los participantes (orden aleatorio) y clonamos
-        const shuffledParticipants = this.shuffle([...participants]);
-
-        // 2. Creamos la lista completa agregando los Byes necesarios
-        const fullParticipantList: IParticipant[] = shuffledParticipants;
-        const numByes = bracketSize - totalParticipants;
-
-        for (let i = 0; i < numByes; i++) {
-            fullParticipantList.push(ByeParticipant.create());
-        }
-
-        // 3. Ordenamos usando Standard Tournament Seeding
-        const interleavedParticipants = this.distributePositions(fullParticipantList);
-
-        // 4. Mapeamos a las posiciones del cuadrante
-        return interleavedParticipants.map((participant, index) =>
-            BracketPosition.create(participant, index + 1)
         );
     }
 
@@ -240,27 +151,16 @@ export class Bracket {
         );
     }
 
-    public reshuffle(): void {
-        // 1. Validar que esté en borrador o publicado
+    public reshuffle(seedingService: BracketSeedingService): void {
         if (this.status !== BracketStatus.DRAFT && this.status !== BracketStatus.PUBLISHED) {
             throw new BracketNotInDraftOrPublisedException();
         }
 
-        // 2. Filtrar únicamente los participantes reales (ignoramos Byes y Empties)
         const realParticipants = this.positions
             .map(p => p.getParticipant())
-            .filter(participant =>
-                !(participant instanceof ByeParticipant) &&
-                !(participant instanceof EmptyParticipant)
-            );
+            .filter(p => !(p instanceof ByeParticipant) && !(p instanceof EmptyParticipant));
 
-        // 3. Validar de nuevo que el total de participantes rescatados siga siendo válido
-        Bracket.validateParticipantsCount(realParticipants.length);
-
-        // 4. Obtenemos las posiciones ya sorteadas
-        const newPositions = Bracket.generateSeededPositions(realParticipants);
-
-        // 5. Guardamos las nuevas posiciones
+        const newPositions = seedingService.generatePositions(realParticipants);
         this.positions.length = 0;
         this.positions.push(...newPositions);
     }
@@ -297,184 +197,9 @@ export class Bracket {
     }
 
 
-
-
-
-    public generateInitialMatches(): Match[] {
-        if (this.status !== BracketStatus.IN_PROGRESS) {
-            throw new BracketNotInProgressException();
-        }
-
-        const N = this.positions.length;
-        const totalMatches = N - 1;
-        const round1Size = N / 2;
-
-        // 1. Preparar el esqueleto temporal de partidos
-        const matchesData = this.initializeMatchesDataSkeleton(totalMatches);
-
-        // 3. Poblar la ronda 1 según las posiciones del cuadrante
-        this.populateFirstRound(matchesData, round1Size);
-
-        // 4. Calcular iterativamente las siguientes rondas propagando los flujos de BYEs
-        this.propagateRoundsAndByes(matchesData, round1Size);
-
-        // 5. Mapear los datos temporales a instancias reales de la entidad de dominio Match
-        return this.buildDomainMatches(matchesData);
-    }
-
-
-    // --------------------------------------------------------------------
-    // PRIVATE MATCH GENERATION HELPERS
-    // --------------------------------------------------------------------
-    private initializeMatchesDataSkeleton(totalMatches: number): MatchBuilderData[] {
-        return new Array(totalMatches).fill(null).map(() => ({
-            p1Id: null,
-            p2Id: null,
-            isP1Bye: false,
-            isP2Bye: false,
-            round: 0,
-            matchIndex: 0,
-        }));
-    }
-
-    private populateFirstRound(matchesData: MatchBuilderData[], round1Size: number): void {
-        const sortedPositions =
-            [...this.getPositions()].sort((a, b) => a.getPosition() - b.getPosition());
-
-        for (let i = 0; i < round1Size; i++) {
-            const p1 = sortedPositions[i * 2].getParticipant();
-            const p2 = sortedPositions[i * 2 + 1].getParticipant();
-
-            const p1IsBye = p1 instanceof ByeParticipant;
-            const p2IsBye = p2 instanceof ByeParticipant;
-            const p1IsEmpty = p1 instanceof EmptyParticipant;
-            const p2IsEmpty = p2 instanceof EmptyParticipant;
-
-            matchesData[i].p1Id = (p1IsBye || p1IsEmpty) ? null : p1.getId();
-            matchesData[i].p2Id = (p2IsBye || p2IsEmpty) ? null : p2.getId();
-            matchesData[i].isP1Bye = p1IsBye;
-            matchesData[i].isP2Bye = p2IsBye;
-            matchesData[i].round = 1;
-            matchesData[i].matchIndex = i + 1;
-        }
-    }
-
-    private propagateRoundsAndByes(matchesData: MatchBuilderData[], initialRoundSize: number): void {
-        let currentRoundStartIdx = 0;
-        let currentRoundSize = initialRoundSize;
-        let currentRound = 1;
-
-        while (currentRoundSize > 1) {
-            const nextRoundSize = currentRoundSize / 2;
-            const nextRoundStartIdx = currentRoundStartIdx + currentRoundSize;
-
-            // Inicializar metadatos de la siguiente ronda
-            for (let j = 0; j < nextRoundSize; j++) {
-                const nextMatchIdx = nextRoundStartIdx + j;
-                matchesData[nextMatchIdx].round = currentRound + 1;
-                matchesData[nextMatchIdx].matchIndex = j + 1;
-            }
-
-            // Propagar ganadores automáticos por BYE
-            for (let i = 0; i < currentRoundSize; i++) {
-                const currentMatchIdx = currentRoundStartIdx + i;
-                const currentMatch = matchesData[currentMatchIdx];
-
-                if (currentMatch.isP1Bye || currentMatch.isP2Bye) {
-                    this.advanceParticipantOrBye(matchesData, currentMatch, nextRoundStartIdx, i);
-                }
-            }
-
-            currentRoundStartIdx = nextRoundStartIdx;
-            currentRoundSize = nextRoundSize;
-            currentRound++;
-        }
-    }
-
-    private advanceParticipantOrBye(
-        matchesData: MatchBuilderData[],
-        currentMatch: MatchBuilderData,
-        nextRoundStartIdx: number,
-        currentMatchIterationIdx: number
-    ): void {
-        const advancingWinnerId = currentMatch.isP1Bye ? currentMatch.p2Id : currentMatch.p1Id;
-        const currentMatchIdxBasedOn0 = currentMatch.matchIndex - 1;
-        const nextMatchIdx = nextRoundStartIdx + Math.floor(currentMatchIdxBasedOn0 / 2);
-        const isSlotP1 = currentMatchIterationIdx % 2 === 0;
-
-        if (advancingWinnerId) {
-            if (isSlotP1) {
-                matchesData[nextMatchIdx].p1Id = advancingWinnerId;
-            } else {
-                matchesData[nextMatchIdx].p2Id = advancingWinnerId;
-            }
-        } else {
-            // Caso extremo: si ambos fuesen BYE, se propaga un hueco vacío marcado como BYE
-            if (isSlotP1) {
-                matchesData[nextMatchIdx].p1Id = null;
-                matchesData[nextMatchIdx].isP1Bye = true;
-            } else {
-                matchesData[nextMatchIdx].p2Id = null;
-                matchesData[nextMatchIdx].isP2Bye = true;
-            }
-        }
-    }
-
-    private buildDomainMatches(matchesData: MatchBuilderData[]): Match[] {
-        return matchesData.map(m =>
-            Match.create(
-                this.tournamentId,
-                m.p1Id,
-                m.p2Id,
-                m.isP1Bye,
-                m.isP2Bye,
-                m.round,
-                m.matchIndex,
-            )
-        );
-    }
-
-
     // --------------------------------------------------------------------
     // MATCH WINNER PROMOTION
     // --------------------------------------------------------------------
-    public getNextMatchCoordinatesFor(match: Match): { round: number; matchIndex: number; slot: 'P1' | 'P2' } | null {
-        // Si tu torneo es eliminación directa clásica:
-        const nextRound = match.getRound() + 1;
-
-        // Si ya es la ronda final del bracket, no hay siguiente partido
-        if (nextRound > this.getTotalRounds()) return null;
-
-        const currentMatchIndexBasedOn0 = match.getMatchIndex() - 1;
-        const nextMatchIndex = Math.floor(currentMatchIndexBasedOn0 / 2) + 1;
-        const slot = currentMatchIndexBasedOn0 % 2 === 0 ? 'P1' : 'P2';
-
-        return { round: nextRound, matchIndex: nextMatchIndex, slot };
-    }
-
-    /**
-     * Orquesta el paso de un jugador de un partido a otro
-     */
-    public advanceWinner(currentMatch: Match, nextMatch: Match | null): void {
-        const winnerId = currentMatch.getWinnerId();
-        if (!winnerId) return;
-
-        const coords = this.getNextMatchCoordinatesFor(currentMatch);
-        // Si no hay siguiente partido (era la final), el torneo terminó
-        if (!coords) {
-            this.status = BracketStatus.FINISHED;
-            this.recordEvent(
-                new BracketFinishedEvent(this.id, this.tournamentId)
-            );
-            return;
-        };
-
-        // Promocionamos al ganador del partido al siguiente partido
-        if (nextMatch) {
-            nextMatch.promoteWinner(winnerId, coords.slot);
-        }
-    }
-
     /**
      * Calcula el total de rondas basándose en la cantidad de posiciones del cuadrante
      * Post: result = log2(this.positions.length)
@@ -497,18 +222,18 @@ export class Bracket {
     // --------------------------------------------------------------------
     // STATUS MANAGEMENT METHODS
     // --------------------------------------------------------------------
-    public unpublish(): void {
-        if (this.status !== BracketStatus.PUBLISHED) {
-            throw new BracketNotPublishedException();
-        }
-        this.status = BracketStatus.DRAFT;
-    }
-
     public publish(): void {
         if (this.status !== BracketStatus.DRAFT) {
             throw new BracketNotInDraftException();
         }
         this.status = BracketStatus.PUBLISHED;
+    }
+
+    public unpublish(): void {
+        if (this.status !== BracketStatus.PUBLISHED) {
+            throw new BracketNotPublishedException();
+        }
+        this.status = BracketStatus.DRAFT;
     }
 
     public start(): void {
@@ -523,6 +248,7 @@ export class Bracket {
             throw new BracketNotInProgressException();
         }
         this.status = BracketStatus.FINISHED;
+        this.recordEvent(new BracketFinishedEvent(this.id, this.tournamentId));
     }
 
     public cancel(): void {

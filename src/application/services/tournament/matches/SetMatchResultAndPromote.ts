@@ -1,6 +1,7 @@
 import { EventBus } from '../../../../domain/events/EventBus.js';
 import { BracketNotFoundException } from '../../../../domain/exceptions/BracketExceptions.js';
 import { MatchNotFoundException, MatchNotInProgressException } from '../../../../domain/exceptions/MatchExceptions.js';
+import { SingleEliminationMatchGenerator } from '../../../../domain/services/SingleEliminationMatchGenerator.js';
 import { BracketRepository } from '../../../../domain/repositories/BracketRepository.js';
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
 import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
@@ -11,6 +12,7 @@ export class SetMatchResultAndPromote {
     private readonly unitOfWork: UnitOfWork,
     private readonly matchRepository: MatchRepository,
     private readonly bracketRepository: BracketRepository,
+    private readonly matchGenerator: SingleEliminationMatchGenerator,
     private readonly eventBus: EventBus,
   ) { }
 
@@ -42,7 +44,11 @@ export class SetMatchResultAndPromote {
 
     // Si no era la final, promocionamos al ganador a la siguiente partida
     if (winnerId) {
-      const nextCoords = bracket.getNextMatchCoordinatesFor(match);
+      const nextCoords = this.matchGenerator.getNextMatchCoordinates(
+        match.getRound(),
+        match.getMatchIndex(),
+        bracket.getPositions().length,
+      );
 
       // Si no era la final, promocionamos al ganador a la siguiente partida
       if (nextCoords) {
@@ -51,8 +57,12 @@ export class SetMatchResultAndPromote {
           nextCoords.round,
           nextCoords.matchIndex,
         );
+        if (nextMatch) {
+          nextMatch.promoteWinner(winnerId, nextCoords.slot);
+        }
+      } else {
+        bracket.finish();
       }
-      bracket.advanceWinner(match, nextMatch);
     }
 
     // Persist the next match changes and bracket status

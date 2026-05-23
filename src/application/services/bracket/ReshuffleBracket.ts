@@ -1,10 +1,14 @@
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
 import { BracketRepository } from '../../../domain/repositories/BracketRepository.js';
+import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
 import { BracketResponseDTO, ReshuffleBracketRequestDTO, UpdateBracketPositionsRequestDTO } from '../../dtos/bracket/BracketDTOs.js';
 import { BracketMapper } from '../../dtos/bracket/BracketMapper.js';
 
 export class ReshuffleBracket {
-    constructor(private readonly bracketRepository: BracketRepository) { }
+    constructor(
+        private readonly bracketRepository: BracketRepository,
+        private readonly seedingService: BracketSeedingService,
+    ) { }
 
     public async execute(request: ReshuffleBracketRequestDTO): Promise<BracketResponseDTO> {
         // 1. Rehydrate the bracket from the DB
@@ -14,7 +18,7 @@ export class ReshuffleBracket {
         }
 
         // 2. Swap the positions in the bracket
-        bracket.reshuffle();
+        bracket.reshuffle(this.seedingService);
 
         // 3. Persist the changes in the DB
         await this.bracketRepository.update(bracket);

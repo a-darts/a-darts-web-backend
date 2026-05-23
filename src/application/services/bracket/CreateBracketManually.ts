@@ -5,12 +5,14 @@ import { BracketRepository } from '../../../domain/repositories/BracketRepositor
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
+import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
 
 export class CreateBracketManually {
     constructor(
         private readonly unitOfWork: UnitOfWork,
         private readonly bracketRepository: BracketRepository,
         private readonly tournamentRepository: TournamentRepository,
+        private readonly seedingService: BracketSeedingService,
     ) { }
 
     public async execute(request: CreateBracketRequestDTO): Promise<BracketResponseDTO> {
@@ -24,6 +26,7 @@ export class CreateBracketManually {
         const bracket = Bracket.createManualEmpty(
             request.id,
             tournament.getRegistration().getRegisteredParticipantsCount(),
+            this.seedingService,
         );
         tournament.bracketGenerated();
 

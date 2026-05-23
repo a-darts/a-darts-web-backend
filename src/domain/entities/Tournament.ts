@@ -145,7 +145,6 @@ export class Tournament {
     this.recordEvent(new TournamentFinishedEvent(this.id));
   }
 
-
   public cancel(): void {
     if (this.status === TournamentStatus.FINISHED) {
       throw new TournamentAlreadyFinishedException();
