@@ -74,10 +74,3 @@ export class TournamentAlreadyHasBracketException extends Error {
         this.name = 'TournamentAlreadyHasBracketException';
     }
 }
-
-export class TournamentDoesNotHaveBracketException extends Error {
-    constructor() {
-        super('Tournament does not have a bracket');
-        this.name = 'TournamentDoesNotHaveBracketException';
-    }
-}

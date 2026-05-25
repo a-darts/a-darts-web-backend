@@ -28,7 +28,6 @@ export class CreateBracketManually {
             tournament.getRegistration().getRegisteredParticipantsCount(),
             this.seedingService,
         );
-        tournament.bracketGenerated();
 
         // 4. Persist the changes in the DB
         await this.unitOfWork.transaction(async () => {

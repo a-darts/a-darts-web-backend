@@ -3,7 +3,6 @@ import { RegistrationCloseDateAfterTournamentException, RegistrationNotClosedExc
 import {
   TournamentAlreadyFinishedException,
   TournamentAlreadyHasBracketException,
-  TournamentDoesNotHaveBracketException,
   TournamentMaxPlayersExceededException,
   TournamentNotInDraftException,
   TournamentNotInProgressException,
@@ -36,8 +35,6 @@ export class Tournament {
   private info: TournamentInfo;
   private registration: Registration;
 
-  private hasBracket: boolean;
-
   private domainEvents: IDomainEvent[] = [];
 
 
@@ -49,7 +46,6 @@ export class Tournament {
     status: TournamentStatus,
     info: TournamentInfo,
     registration: Registration,
-    hasBracket: boolean,
   ) {
     this.id = id;
     this.name = name;
@@ -58,7 +54,6 @@ export class Tournament {
     this.status = status;
     this.info = info;
     this.registration = registration;
-    this.hasBracket = hasBracket;
   }
 
 
@@ -82,7 +77,6 @@ export class Tournament {
       TournamentStatus.DRAFT,
       info,
       Registration.create(),
-      false,
     );
   }
 
@@ -130,9 +124,6 @@ export class Tournament {
     if (this.registration.isOpen()) {
       throw new RegistrationNotClosedException();
     }
-    if (!this.hasBracket) {
-      throw new TournamentDoesNotHaveBracketException();
-    }
 
     this.status = TournamentStatus.IN_PROGRESS;
   }
@@ -173,9 +164,6 @@ export class Tournament {
     if (!this.isPublished()) {
       throw new TournamentNotPublishedException();
     }
-    if (this.hasBracket) {
-      throw new TournamentAlreadyHasBracketException();
-    }
 
     this.registration = this.registration.open();
   }
@@ -191,9 +179,6 @@ export class Tournament {
   public scheduleRegistration(open: Date | null, close: Date | null) {
     if (!this.isPublished()) {
       throw new TournamentNotPublishedException();
-    }
-    if (this.hasBracket) {
-      throw new TournamentAlreadyHasBracketException();
     }
 
     const now = new Date();
@@ -213,9 +198,6 @@ export class Tournament {
   }
 
   public registerParticipant(participantId: string) {
-    if (this.hasBracket) {
-      throw new TournamentAlreadyHasBracketException();
-    }
     const maxPlayers = this.getInfo().getMaxPlayers();
     if (maxPlayers && this.registration.getRegisteredParticipantsCount() >= maxPlayers) {
       throw new TournamentMaxPlayersExceededException();
@@ -225,30 +207,9 @@ export class Tournament {
   }
 
   public unregisterParticipant(participantId: string) {
-    if (this.hasBracket) {
-      throw new TournamentAlreadyHasBracketException();
-    }
-
     this.registration = this.registration.unregisterParticipant(participantId);
   }
 
-
-  // --------------------------------------------------------------------
-  // BRACKET METHODS
-  // --------------------------------------------------------------------
-  public bracketGenerated() {
-    if (!this.isPublished()) {
-      throw new TournamentNotPublishedException();
-    }
-    if (this.registration.isOpen()) {
-      throw new RegistrationNotClosedException();
-    }
-    if (this.hasBracket) {
-      throw new TournamentAlreadyHasBracketException();
-    }
-
-    this.hasBracket = true;
-  }
 
   // --------------------------------------------------------------------
   // GETTERS
@@ -281,9 +242,6 @@ export class Tournament {
     return this.registration;
   }
 
-  public getHasBracket(): boolean {
-    return this.hasBracket;
-  }
 
   // --------------------------------------------------------------------
   // DOMAIN EVENTS
@@ -333,7 +291,6 @@ export class Tournament {
         ),
         data.registration.registeredParticipantsIds,
       ),
-      data.hasBracket,
     );
   }
 }

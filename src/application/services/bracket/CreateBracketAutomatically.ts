@@ -33,7 +33,6 @@ export class CreateBracketAutomatically {
             participants,
             this.seedingService,
         );
-        tournament.bracketGenerated();
 
         // 4. Persist the changes in the DB
         await this.unitOfWork.transaction(async () => {

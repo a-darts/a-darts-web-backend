@@ -1,6 +1,6 @@
 import { ByeParticipant, EmptyParticipant, RegisteredParticipant } from "./Participant.js";
 import type { IParticipant } from "./Participant.js";
-import { BracketAlreadyFinishedException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, DuplicateParticipantsException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
+import { BracketAlreadyFinishedException, BracketInProgressException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, DuplicateParticipantsException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
 import { BracketFinishedEvent } from "../events/BracketFinishedEvent.js";
 import { IDomainEvent } from "../events/IDomainEvent.js";
 import { BracketSeedingService } from "../services/BracketSeedingService.js";
@@ -259,6 +259,14 @@ export class Bracket {
         this.status = BracketStatus.CANCELLED;
     }
 
+    public delete(): void {
+        if (this.status === BracketStatus.IN_PROGRESS) {
+            throw new BracketInProgressException();
+        }
+        if (this.status === BracketStatus.FINISHED) {
+            throw new BracketAlreadyFinishedException();
+        }
+    }
 
     // --------------------------------------------------------------------
     // GETTERS

@@ -13,7 +13,6 @@ export class TournamentMapper {
             createdAt: tournament.getCreatedAt(),
             status: tournament.getStatus(),
             isDelayed: tournament.isDelayed(),
-            hasBracket: tournament.getHasBracket(),
             info: {
                 place: tournamentInfo.getPlace(),
                 dateTime: tournamentInfo.getDateTime(),

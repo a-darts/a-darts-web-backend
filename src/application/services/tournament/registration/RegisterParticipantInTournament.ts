@@ -1,8 +1,9 @@
 import { RegisteredParticipant } from '../../../../domain/entities/Participant.js';
 import { ParticipantAlreadyRegisteredException } from '../../../../domain/exceptions/ParticipantExceptions.js';
 import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../../domain/exceptions/PlayerExceptions.js';
-import { TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
+import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
 import { UserNotFoundException } from '../../../../domain/exceptions/UserExceptions.js';
+import { BracketRepository } from '../../../../domain/repositories/BracketRepository.js';
 import { PlayerRepository } from '../../../../domain/repositories/PlayerRepository.js';
 import { RegisteredParticipantRepository } from '../../../../domain/repositories/RegisteredParticipantRepository.js';
 import { TournamentRepository } from '../../../../domain/repositories/TournamentRepository.js';
@@ -13,6 +14,7 @@ import { RegisterParticipantInTournamentRequestDTO } from '../../../dtos/tournam
 export class RegisterParticipantInTournament {
     constructor(
         private readonly tournamentRepository: TournamentRepository,
+        private readonly bracketRepository: BracketRepository,
         private readonly registeredParticipantRepository: RegisteredParticipantRepository,
         private readonly playerRepository: PlayerRepository,
         private readonly userRepository: UserRepository,
@@ -25,18 +27,24 @@ export class RegisterParticipantInTournament {
             throw new TournamentNotFoundException();
         }
 
-        // 2. Check if the player exists
+        // 2. Check the tournament does not have a bracket
+        const bracket = await this.bracketRepository.findByTournamentId(request.id);
+        if (bracket) {
+            throw new TournamentAlreadyHasBracketException();
+        }
+
+        // 3. Check if the player exists
         const player = await this.playerRepository.findById(request.playerId);
         if (!player) {
             throw new PlayerNotFoundException();
         }
 
-        // 3. Check if the player is registrated in the same season as the tournament
+        // 4. Check if the player is registrated in the same season as the tournament
         if (!player.getSeason().equals(tournament.getSeason())) {
             throw new InvalidRegisteredPlayerSeasonException();
         }
 
-        // 4. Check if the participant is already registered in this tournament
+        // 5. Check if the participant is already registered in this tournament
         const existingParticipant = await this.registeredParticipantRepository.findByTournamentIdAndPlayerId(
             request.id,
             request.playerId,
@@ -45,13 +53,13 @@ export class RegisterParticipantInTournament {
             throw new ParticipantAlreadyRegisteredException();
         }
 
-        // 5. Get player alias
+        // 6. Get player alias
         const user = await this.userRepository.findById(player.getUserId());
         if (!user) {
             throw new UserNotFoundException();
         }
 
-        // 6. Create the new registered participant
+        // 7. Create the new registered participant
         const newRegisteredParticipant = RegisteredParticipant.create(
             request.playerId,
             request.id,
@@ -59,10 +67,10 @@ export class RegisterParticipantInTournament {
             player.getFederation(),
         );
 
-        // 7. Register the participant in the tournament
+        // 8. Register the participant in the tournament
         tournament.registerParticipant(newRegisteredParticipant.getId());
 
-        // 8. Persist the changes in the DB
+        // 9. Persist the changes in the DB
         await this.tournamentRepository.update(tournament);
         await this.registeredParticipantRepository.create(
             newRegisteredParticipant,

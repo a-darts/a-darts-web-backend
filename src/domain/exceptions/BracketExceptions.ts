@@ -33,6 +33,13 @@ export class BracketNotInProgressException extends Error {
     }
 }
 
+export class BracketInProgressException extends Error {
+    constructor() {
+        super('Bracket in progress');
+        this.name = 'BracketInProgressException';
+    }
+}
+
 export class BracketNotPublishedException extends Error {
     constructor() {
         super('Bracket not published');

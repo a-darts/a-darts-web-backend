@@ -105,6 +105,7 @@ router.put('/brackets/:id/setupPositions', authMiddleware, isAdmin, bracketContr
 router.post('/brackets/:id/reshuffle', authMiddleware, isAdmin, bracketController.reshuffleBracket);
 router.post('/brackets/:id/unpublish', authMiddleware, isAdmin, bracketController.unpublishBracket);
 router.post('/brackets/:id/publish', authMiddleware, isAdmin, bracketController.publishBracket);
+router.delete('/brackets/:id', authMiddleware, isAdmin, bracketController.deleteBracket);
 
 // PlayingArea routes
 router.post('/playing-areas/:id/boards/:boardNumber/occupy', authMiddleware, isAdmin, playingAreaController.occupyPlayingAreaBoard);

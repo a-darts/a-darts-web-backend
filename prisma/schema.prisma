@@ -111,8 +111,8 @@ model Player {
   //
 
   // Integridad referencial
-  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  registrations RegisteredParticipant[]
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registrations     RegisteredParticipant[]
   tournamentResults TournamentResult[]
 
   @@unique([userId, seasonStartYear])
@@ -127,7 +127,6 @@ model Tournament {
   //
   createdAt       DateTime
   status          TournamentStatus
-  hasBracket      Boolean
 
   // Value object TournamentInfo fields
   infoPlace      String
@@ -173,11 +172,11 @@ model RegisteredParticipant {
   tournamentId String @db.Uuid
 
   // Integridad referencial
-  player           Player            @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  tournament       Tournament        @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  bracketPositions BracketPosition[]
-  matchesAsP1      Match[]           @relation("MatchParticipant1")
-  matchesAsP2      Match[]           @relation("MatchParticipant2")
+  player            Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  tournament        Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  bracketPositions  BracketPosition[]
+  matchesAsP1       Match[]            @relation("MatchParticipant1")
+  matchesAsP2       Match[]            @relation("MatchParticipant2")
   tournamentResults TournamentResult[]
 
   @@unique([playerId, tournamentId])
@@ -263,26 +262,26 @@ model PlayingArea {
 }
 
 model Board {
-  id            String      @id @default(uuid()) @db.Uuid
-  number        Int
-  status        BoardStatus
-  matchId       String?     @db.Uuid
+  id      String      @id @default(uuid()) @db.Uuid
+  number  Int
+  status  BoardStatus
+  matchId String?     @db.Uuid
 
-  playingAreaId String      @db.Uuid
+  playingAreaId String @db.Uuid
 
-  playingArea   PlayingArea @relation(fields: [playingAreaId], references: [id], onDelete: Cascade)
-  match         Match?      @relation(fields: [matchId], references: [id])
+  playingArea PlayingArea @relation(fields: [playingAreaId], references: [id], onDelete: Cascade)
+  match       Match?      @relation(fields: [matchId], references: [id])
 
   @@unique([playingAreaId, number])
   @@map("boards")
 }
 
 model TournamentResult {
-  id            String   @id @default(uuid()) @db.Uuid
-  tournamentId  String   @db.Uuid
-  participantId String   @db.Uuid
-  playerId      String   @db.Uuid
-  
+  id            String @id @default(uuid()) @db.Uuid
+  tournamentId  String @db.Uuid
+  participantId String @db.Uuid
+  playerId      String @db.Uuid
+
   finalPosition Int
   matchesWon    Int
   matchesLost   Int

@@ -5,7 +5,7 @@ import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse
 import { GetAllTournaments } from '../../../application/services/tournament/GetAllTournaments.js';
 import { PrismaTournamentRepository } from '../../persistence/repositories/PrismaTournamentRepository.js';
 import { TournamentStatus } from '../../../domain/entities/Tournament.js';
-import { TournamentAlreadyFinishedException, TournamentAlreadyHasBracketException, TournamentDoesNotHaveBracketException, TournamentMaxPlayersExceededException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
+import { TournamentAlreadyFinishedException, TournamentAlreadyHasBracketException, TournamentMaxPlayersExceededException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
 import { InvalidRegistrationPeriodException, InvalidRegistrationStatusException, RegistrationAlreadyClosedException, RegistrationAlreadyOpenException, RegistrationCloseDateAfterTournamentException, RegistrationNotClosedException, RegistrationOpenDateInPastException } from '../../../domain/exceptions/RegistrationExceptions.js';
@@ -76,11 +76,11 @@ const startTournament = new StartTournament(unitOfWork, tournamentRepository, br
 const cancelTournament = new CancelTournament(unitOfWork, tournamentRepository, bracketRepository, matchRepository);
 const updateTournamentInfo = new UpdateTournamentInfo(tournamentRepository);
 const updateTournamentName = new UpdateTournamentName(tournamentRepository);
-const openRegistration = new OpenRegistration(tournamentRepository);
+const openRegistration = new OpenRegistration(tournamentRepository, bracketRepository);
 const closeRegistration = new CloseRegistration(tournamentRepository);
-const updateTournamentRegistrationPeriod = new UpdateTournamentRegistrationPeriod(tournamentRepository);
-const registerParticipantInTournament = new RegisterParticipantInTournament(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
-const unregisterParticipantFromTournament = new UnregisterParticipantFromTournament(tournamentRepository, registeredParticipantRepository);
+const updateTournamentRegistrationPeriod = new UpdateTournamentRegistrationPeriod(tournamentRepository, bracketRepository);
+const registerParticipantInTournament = new RegisterParticipantInTournament(tournamentRepository, bracketRepository, registeredParticipantRepository, playerRepository, userRepository);
+const unregisterParticipantFromTournament = new UnregisterParticipantFromTournament(tournamentRepository, bracketRepository, registeredParticipantRepository);
 const doCheckInParticipant = new DoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const undoCheckInParticipant = new UndoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
@@ -117,9 +117,6 @@ const getTournamentResults = new GetTournamentResults(tournamentRepository, tour
  *         status:
  *           type: string
  *           example: PUBLISHED
- *         hasBracket:
- *           type: boolean
- *           example: false
  *         info:
  *           $ref: '#/components/schemas/TournamentInfo'
  *         registration:
@@ -1404,7 +1401,6 @@ export class TournamentController {
         error instanceof RegistrationNotClosedException ||
         error instanceof BracketNotInDraftOrPublisedException ||
         error instanceof BracketNotInProgressException ||
-        error instanceof TournamentDoesNotHaveBracketException ||
         error instanceof BracketUnfinishedException
       ) {
         return res.status(409).json(

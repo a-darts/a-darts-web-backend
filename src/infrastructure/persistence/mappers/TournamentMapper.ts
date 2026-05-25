@@ -29,7 +29,6 @@ export class TournamentMapper {
             seasonStartYear: tournament.getSeason().getStartYear(),
             createdAt: tournament.getCreatedAt(),
             status: tournament.getStatus() as PrismaTournamentStatus,
-            hasBracket: tournament.getHasBracket(),
 
             // TournamentInfo fields
             infoPlace: info.getPlace(),
@@ -66,7 +65,6 @@ export class TournamentMapper {
             seasonStartYear: prismaTournament.seasonStartYear,
             createdAt: prismaTournament.createdAt,
             status: prismaTournament.status as TournamentStatus,
-            hasBracket: prismaTournament.hasBracket,
 
             // Tournament Info
             info: {
