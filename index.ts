@@ -15,6 +15,10 @@ async function startServer() {
         await prisma.$connect();
         console.log('Database connection established successfully.');
 
+        // Start background jobs
+        const { registrationScheduler } = await import('./src/infrastructure/jobs/RegistrationScheduler.js');
+        registrationScheduler.start();
+
         app.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT}`);
             console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);

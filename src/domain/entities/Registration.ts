@@ -58,7 +58,7 @@ export class Registration {
         return new Registration(
             this.hasCheckIn,
             RegistrationStatus.OPEN,
-            new RegistrationPeriod(null, this.registrationPeriod.getEndsAt()),
+            this.registrationPeriod,
             this.registeredParticipantsIds,
         );
     }
@@ -72,7 +72,7 @@ export class Registration {
         return new Registration(
             this.hasCheckIn,
             RegistrationStatus.CLOSED,
-            new RegistrationPeriod(this.registrationPeriod.getStartsAt(), new Date()),
+            this.registrationPeriod,
             this.registeredParticipantsIds,
         );
     }
@@ -102,8 +102,7 @@ export class Registration {
         if (this.isParticipantRegistered(participantId)) {
             throw new ParticipantAlreadyRegisteredException();
         }
-
-        if (this.status === RegistrationStatus.CLOSED) {
+        if (this.isClosed()) {
             throw new RegistrationAlreadyClosedException();
         }
 
