@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import http from 'http';
 import app from './app.js';
 import { prisma } from './src/infrastructure/persistence/client.js';
 
@@ -19,7 +20,13 @@ async function startServer() {
         const { registrationScheduler } = await import('./src/infrastructure/jobs/RegistrationScheduler.js');
         registrationScheduler.start();
 
-        app.listen(PORT, () => {
+        const server = http.createServer(app);
+        
+        // Carga dinámica de initializeSocketServer para evitar ciclos o problemas con env vars no listas
+        const { initializeSocketServer } = await import('./src/infrastructure/websockets/SocketServer.js');
+        initializeSocketServer(server);
+
+        server.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT}`);
             console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
         });

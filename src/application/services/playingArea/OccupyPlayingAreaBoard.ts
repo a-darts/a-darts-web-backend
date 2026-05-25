@@ -4,6 +4,7 @@ import { MatchRepository } from '../../../domain/repositories/MatchRepository.js
 import { PlayingAreaRepository } from '../../../domain/repositories/PlayingAreaRepository.js';
 import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
 import { OccupyPlayingAreaBoardRequestDTO } from '../../dtos/playingArea/PlayingAreaDTOs.js';
+import { getSocketServer } from '../../../infrastructure/websockets/SocketServer.js';
 
 export class OccupyPlayingAreaBoard {
     constructor(
@@ -25,6 +26,9 @@ export class OccupyPlayingAreaBoard {
             throw new MatchNotFoundException();
         }
 
+        // Find board ID to emit socket event
+        const boardId = playingArea.getBoards().find(b => b.getNumber() === request.boardNumber)?.getId();
+
         // 3. Occupy the board in the playing area
         playingArea.assignMatchToBoard(request.matchId, request.boardNumber);
         match.assignBoardNumber(request.boardNumber);
@@ -34,5 +38,11 @@ export class OccupyPlayingAreaBoard {
             await this.playingAreaRepository.update(playingArea);
             await this.matchRepository.update(match);
         });
+
+        // 5. Notify the board via socket
+        if (boardId) {
+            const roomName = `room_board_${boardId}`;
+            getSocketServer().to(roomName).emit('match_assigned', { matchId: request.matchId });
+        }
     }
 }

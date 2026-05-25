@@ -74,3 +74,10 @@ export class MatchAlreadyAssignedToBoardException extends Error {
         this.name = 'MatchAlreadyAssignedToBoardException';
     }
 }
+
+export class BoardPairedWithTabletException extends Error {
+    constructor() {
+        super('Board is already paired with a tablet');
+        this.name = 'BoardPairedWithTabletException';
+    }
+}

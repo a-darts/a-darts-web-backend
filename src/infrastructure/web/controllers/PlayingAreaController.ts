@@ -3,7 +3,7 @@ import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
-import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException, MatchAlreadyAssignedToBoardException, PlayingAreaHasNoBoardsException, BoardOccupiedException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
+import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException, MatchAlreadyAssignedToBoardException, PlayingAreaHasNoBoardsException, BoardOccupiedException, BoardPairedWithTabletException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
 import { DisablePlayingAreaBoard } from '../../../application/services/playingArea/DisablePlayingAreaBoard.js';
 import { OccupyPlayingAreaBoard } from '../../../application/services/playingArea/OccupyPlayingAreaBoard.js';
@@ -12,7 +12,7 @@ import { EnablePlayingAreaBoard } from '../../../application/services/playingAre
 import { MatchNotFoundException } from '../../../domain/exceptions/MatchExceptions.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { AddBoardInPlayingArea } from '../../../application/services/playingArea/AddBoardInPlayingArea.js';
-import { RemoveLastBoardFromPlayingArea } from '../../../application/services/playingArea/RemoveLastBoardFromPlayingArea copy.js';
+import { RemoveLastBoardFromPlayingArea } from '../../../application/services/playingArea/RemoveLastBoardFromPlayingArea.js';
 import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
 
 
@@ -1014,7 +1014,8 @@ export class PlayingAreaController {
       }
       if (
         error instanceof PlayingAreaHasNoBoardsException ||
-        error instanceof BoardOccupiedException
+        error instanceof BoardOccupiedException ||
+        error instanceof BoardPairedWithTabletException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
