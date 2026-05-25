@@ -16,21 +16,48 @@ export class PrismaPlayingAreaRepository implements PlayingAreaRepository {
     }
 
     async create(playingArea: PlayingArea): Promise<void> {
+        console.log("Creating playing area...", playingArea);
         const data = PlayingAreaMapper.toPersistence(playingArea);
         await this.client.playingArea.create({ data });
     }
 
     async update(playingArea: PlayingArea): Promise<void> {
-        const data = PlayingAreaMapper.toPersistence(playingArea);
-        await this.client.playingArea.update({
-            where: { id: playingArea.getId() },
-            data: {
-                ...data,
-                boards: {
-                    deleteMany: {},
-                    create: data.boards.create
+        console.log("Updating playing area...", playingArea);
+
+        await this.client.$transaction(async (tx) => {
+            // Update the main playing area fields
+            await tx.playingArea.update({
+                where: { id: playingArea.getId() },
+                data: { tournamentId: playingArea.getTournamentId() },
+            });
+
+            // Delete boards that are no longer in the domain model
+            const currentBoardIds = playingArea.getBoards().map(b => b.getId());
+            await tx.board.deleteMany({
+                where: {
+                    playingAreaId: playingArea.getId(),
+                    id: { notIn: currentBoardIds }
                 }
-            },
+            });
+
+            // Upsert each board to preserve their IDs
+            for (const board of playingArea.getBoards()) {
+                await tx.board.upsert({
+                    where: { id: board.getId() },
+                    create: {
+                        id: board.getId(),
+                        number: board.getNumber(),
+                        status: board.getStatus() as any,
+                        matchId: board.getMatchId(),
+                        playingAreaId: playingArea.getId(),
+                    },
+                    update: {
+                        number: board.getNumber(),
+                        status: board.getStatus() as any,
+                        matchId: board.getMatchId(),
+                    }
+                });
+            }
         });
     }
 

@@ -33,7 +33,7 @@ const matchGenerator = new SingleEliminationMatchGenerator();
 
 
 const getMatchById = new GetMatchById(matchRepository);
-const startMatch = new StartMatch(matchRepository);
+const startMatch = new StartMatch(matchRepository, playingAreaRepository);
 const finishMatch = new FinishMatch(matchRepository);
 const cancelMatch = new CancelMatch(matchRepository);
 const suspendMatch = new SuspendMatch(matchRepository);
