@@ -5,6 +5,7 @@ import { MatchRepository } from '../../../../domain/repositories/MatchRepository
 import { PlayingAreaRepository } from '../../../../domain/repositories/PlayingAreaRepository.js';
 import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
 import { UpdateMatchBoardNumberRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
+import { getSocketServer } from '../../../../infrastructure/websockets/SocketServer.js';
 
 export class UpdateMatchBoardNumber {
   constructor(
@@ -35,5 +36,11 @@ export class UpdateMatchBoardNumber {
       await this.playingAreaRepository.update(playingArea);
       await this.matchRepository.update(match);
     });
+
+    // 5. Notify the board via socket
+    const boardId = playingArea.findBoardByNumber(request.newBoardNumber).getId();
+    console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardId} with matchId: ${request.id}`);
+    const roomName = `room_board_${boardId}`;
+    getSocketServer().to(roomName).emit('match_assigned', { matchId: request.id });
   }
 }

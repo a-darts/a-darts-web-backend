@@ -8,6 +8,7 @@ export interface MatchResponseDTO {
     startedAt: Date | null;
     finishedAt: Date | null;
     status: MatchStatus;
+    tournamentId: string;
     participant1: ParticipantResponseDTO;
     participant2: ParticipantResponseDTO;
     matchScore: MatchScoreDTO;

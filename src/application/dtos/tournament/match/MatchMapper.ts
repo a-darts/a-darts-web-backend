@@ -20,6 +20,7 @@ export class MatchMapper {
             startedAt: match.getStartedAt(),
             finishedAt: match.getFinishedAt(),
             status: match.getStatus(),
+            tournamentId: match.getTournamentId(),
             participant1: this.mapParticipant(
                 participant1,
                 match.getIsParticipant1Bye()

@@ -72,6 +72,9 @@ const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchR
  *         status:
  *           type: string
  *           example: FINISHED
+ *         tournamentId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  *         participant1Id:
  *           type: string
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
@@ -99,9 +102,6 @@ const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchR
  *                 legsWon:
  *                   type: number
  *                   example: 1
- *         tournamentId:
- *           type: string
- *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  * 
  *     UpdateMatchBoardNumberRequest:
  *       type: object
@@ -241,8 +241,6 @@ export class MatchController {
    *   post:
    *     summary: Start match
    *     tags: [Matches]
-   *     security:
-   *       - bearerAuth: []
    *     parameters:
    *       - name: id
    *         in: path

@@ -96,7 +96,7 @@ export class PlayingArea {
     // --------------------------------------------------------------------
     // HELPER METHODS
     // --------------------------------------------------------------------
-    private findBoardByNumber(boardNumber: number): Board {
+    public findBoardByNumber(boardNumber: number): Board {
         const board = this.boards.find(b => b.getNumber() === boardNumber);
         if (!board) {
             throw new BoardNotFoundException();

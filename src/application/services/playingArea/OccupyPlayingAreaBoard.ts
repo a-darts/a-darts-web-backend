@@ -26,8 +26,7 @@ export class OccupyPlayingAreaBoard {
             throw new MatchNotFoundException();
         }
 
-        // Find board ID to emit socket event
-        const boardId = playingArea.getBoards().find(b => b.getNumber() === request.boardNumber)?.getId();
+
 
         // 3. Occupy the board in the playing area
         playingArea.assignMatchToBoard(request.matchId, request.boardNumber);
@@ -40,9 +39,9 @@ export class OccupyPlayingAreaBoard {
         });
 
         // 5. Notify the board via socket
-        if (boardId) {
-            const roomName = `room_board_${boardId}`;
-            getSocketServer().to(roomName).emit('match_assigned', { matchId: request.matchId });
-        }
+        const boardId = playingArea.findBoardByNumber(request.boardNumber).getId();
+        console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardId} with matchId: ${request.matchId}`);
+        const roomName = `room_board_${boardId}`;
+        getSocketServer().to(roomName).emit('match_assigned', { matchId: request.matchId });
     }
 }

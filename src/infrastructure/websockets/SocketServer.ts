@@ -19,8 +19,8 @@ export const initializeSocketServer = (server: HttpServer): void => {
             // Unirse a la sala lógica del board
             const roomName = `room_board_${boardId}`;
             await socket.join(roomName);
-            console.log(`Client ${socket.id} joined ${roomName}`);
-            
+            console.log(`[SocketServer] Client ${socket.id} successfully joined ${roomName}`);
+
             // Opcional: Podríamos emitir el historial actual si hay un partido activo
             // const matchId = await MatchStateCache.getActiveMatchForBoard(boardId);
             // if (matchId) {
@@ -31,7 +31,7 @@ export const initializeSocketServer = (server: HttpServer): void => {
 
         socket.on('score_update', async (data: { boardId: string, matchId: string, throwData: any }) => {
             const { boardId, matchId, throwData } = data;
-            
+
             // Guardar en Redis
             await MatchStateCache.addThrow(matchId, throwData);
 

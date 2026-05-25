@@ -88,7 +88,7 @@ router.get('/tournaments/:id/results', tournamentController.getTournamentResults
 
 // Match routes
 router.get('/matches/:id', matchController.getMatchById);
-router.post('/matches/:id/start', authMiddleware, isAdmin, matchController.startMatch);
+router.post('/matches/:id/start', matchController.startMatch);
 router.post('/matches/:id/finish', authMiddleware, isAdmin, matchController.finishMatch);
 router.post('/matches/:id/cancel', authMiddleware, isAdmin, matchController.cancelMatch);
 router.post('/matches/:id/suspend', authMiddleware, isAdmin, matchController.suspendMatch);

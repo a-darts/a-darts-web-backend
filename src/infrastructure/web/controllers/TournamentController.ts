@@ -238,6 +238,9 @@ const getTournamentResults = new GetTournamentResults(tournamentRepository, tour
  *         status:
  *           type: string
  *           example: FINISHED
+ *         tournamentId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  *         participant1:
  *           type: object
  *           properties:
@@ -283,9 +286,6 @@ const getTournamentResults = new GetTournamentResults(tournamentRepository, tour
  *                 legsWon:
  *                   type: number
  *                   example: 1
- *         tournamentId:
- *           type: string
- *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  * 
  *     Bracket:
  *       type: object
