@@ -7,6 +7,7 @@ import { RegisteredParticipantRepository } from '../../../domain/repositories/Re
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
 import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
+import { RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
 
 export class CreateBracketAutomatically {
     constructor(
@@ -24,10 +25,15 @@ export class CreateBracketAutomatically {
             throw new TournamentNotFoundException();
         }
 
-        // 2. Obtain the participants from the tournament
+        // 2. Check tournament registration is closed
+        if (!tournament.isRegistrationClosed()) {
+            throw new RegistrationNotClosedException();
+        }
+
+        // 3. Obtain the participants from the tournament
         const participants = await this.registeredParticipantRepository.findAllByTournamentId(request.id);
 
-        // 3. Create the bracket (with auto factory method)
+        // 4. Create the bracket (with auto factory method)
         const bracket = Bracket.createAutomatically(
             request.id,
             participants,

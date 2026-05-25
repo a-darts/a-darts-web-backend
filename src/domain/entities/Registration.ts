@@ -87,7 +87,11 @@ export class Registration {
     }
 
     public isOpen(): boolean {
-        return this.status === RegistrationStatus.OPEN && this.registrationPeriod.isOpen();
+        return this.status === RegistrationStatus.OPEN;
+    }
+
+    public isClosed(): boolean {
+        return this.status === RegistrationStatus.CLOSED;
     }
 
 
@@ -184,6 +188,12 @@ export class RegistrationPeriod {
         const afterStart = this.startsAt ? now >= this.startsAt : true;
         const beforeEnd = this.endsAt ? now <= this.endsAt : true;
         return afterStart && beforeEnd;
+    }
+
+    public isClosed(): boolean {
+        const now = new Date();
+        const beforeEnd = this.endsAt ? now > this.endsAt : false;
+        return beforeEnd;
     }
 
 

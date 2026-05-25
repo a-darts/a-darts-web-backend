@@ -210,6 +210,10 @@ export class Tournament {
     this.registration = this.registration.unregisterParticipant(participantId);
   }
 
+  public isRegistrationClosed(): boolean {
+    return this.registration.isClosed();
+  }
+
 
   // --------------------------------------------------------------------
   // GETTERS
