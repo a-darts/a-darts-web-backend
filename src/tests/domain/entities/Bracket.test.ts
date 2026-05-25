@@ -1,6 +1,9 @@
 import { Bracket } from '../../../domain/entities/Bracket.js';
 import { RegisteredParticipant } from '../../../domain/entities/Participant.js';
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from '../../../domain/exceptions/ParticipantExceptions.js';
+import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
+
+const seedingService = new BracketSeedingService();
 
 // Helper to create participants
 function createParticipants(n: number): RegisteredParticipant[] {
@@ -33,7 +36,7 @@ async function runTests() {
         try {
             totalTests++;
             const participants = createParticipants(size);
-            const bracket = Bracket.createAutomatically('tournament-1', participants);
+            const bracket = Bracket.createAutomatically('tournament-1', participants, seedingService);
             const positions = bracket.getPositions();
             const byes = positions.filter(p => p.isBye()).length;
 
@@ -55,7 +58,7 @@ async function runTests() {
                 totalTests++;
                 const partialCount = size - 1;
                 const participants = createParticipants(partialCount);
-                const bracket = Bracket.createAutomatically('tournament-1', participants);
+                const bracket = Bracket.createAutomatically('tournament-1', participants, seedingService);
                 const positions = bracket.getPositions();
                 const byes = positions.filter(p => p.isBye()).length;
 
@@ -78,7 +81,7 @@ async function runTests() {
     try {
         totalTests++;
         const participants = createParticipants(5);
-        const bracket = Bracket.createAutomatically('tournament-1', participants);
+        const bracket = Bracket.createAutomatically('tournament-1', participants, seedingService);
         const positions = bracket.getPositions();
 
         // Expected Bye positions for 8-size bracket with 3 byes:
@@ -115,7 +118,7 @@ async function runTests() {
     // 0 participants
     try {
         totalTests++;
-        Bracket.createAutomatically('tournament-1', []);
+        Bracket.createAutomatically('tournament-1', [], seedingService);
         console.log('  [0 participants] \x1b[31m✗ FAILED (Should have thrown)\x1b[0m');
     } catch (e) {
         if (e instanceof RegistratedParticipantsEmptyException) {
@@ -129,7 +132,7 @@ async function runTests() {
     // 1 participant
     try {
         totalTests++;
-        Bracket.createAutomatically('tournament-1', createParticipants(1));
+        Bracket.createAutomatically('tournament-1', createParticipants(1), seedingService);
         console.log('  [1 participant] \x1b[31m✗ FAILED (Should have thrown)\x1b[0m');
     } catch (e) {
         if (e instanceof RegistratedParticipantsNotEnoughException) {
@@ -144,8 +147,8 @@ async function runTests() {
     console.log(`\n\x1b[33mTesting Shuffle (Randomness)\x1b[0m`);
     totalTests++;
     const shuffleParticipants = createParticipants(8);
-    const bracket1 = Bracket.createAutomatically('tournament-1', shuffleParticipants);
-    const bracket2 = Bracket.createAutomatically('tournament-1', shuffleParticipants);
+    const bracket1 = Bracket.createAutomatically('tournament-1', shuffleParticipants, seedingService);
+    const bracket2 = Bracket.createAutomatically('tournament-1', shuffleParticipants, seedingService);
 
     const ids1 = bracket1.getPositions().filter(p => !p.isBye()).map(p => p.getParticipant().getId());
     const ids2 = bracket2.getPositions().filter(p => !p.isBye()).map(p => p.getParticipant().getId());

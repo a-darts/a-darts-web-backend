@@ -6,6 +6,7 @@ export class PlayingAreaMapper {
         prismaPlayingArea: PrismaPlayingArea & { boards: PrismaBoard[] }
     ): PlayingArea {
         const boards = prismaPlayingArea.boards.map(b => new Board(
+            b.id,
             b.number,
             b.status as unknown as DomainBoardStatus,
             b.matchId,

@@ -157,6 +157,14 @@ export class Tournament {
     return this.status === TournamentStatus.PUBLISHED;
   }
 
+  public isDelayed(): boolean {
+    if (this.status !== TournamentStatus.PUBLISHED && this.status !== TournamentStatus.DRAFT) {
+      return false;
+    }
+    const now = new Date();
+    return now > this.info.getDateTime();
+  }
+
 
   // --------------------------------------------------------------------
   // REGISTRATION METHODS

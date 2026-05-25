@@ -37,7 +37,7 @@ export class PlayingArea {
 
 
     // --------------------------------------------------------------------
-    // FACTORY METHOD
+    // DOMAIN METHODS
     // --------------------------------------------------------------------
     public addBoard(): void {
         this.boards.push(Board.create(this.boards.length + 1));
@@ -132,15 +132,18 @@ export class PlayingArea {
 
 
 export class Board {
+    private readonly id: string;
     private readonly number: number;
     private status: BoardStatus;
     private matchId: string | null;
 
     constructor(
+        id: string,
         number: number,
         status: BoardStatus,
         matchId: string | null,
     ) {
+        this.id = id;
         this.number = number;
         this.status = status;
         this.matchId = matchId;
@@ -152,6 +155,7 @@ export class Board {
     // --------------------------------------------------------------------
     public static create(number: number): Board {
         return new Board(
+            crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             number,
             BoardStatus.AVAILABLE,
             null,
@@ -210,6 +214,10 @@ export class Board {
     // --------------------------------------------------------------------
     // GETTERS
     // --------------------------------------------------------------------
+    public getId(): string {
+        return this.id;
+    }
+
     public getNumber(): number {
         return this.number;
     }

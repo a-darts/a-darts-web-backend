@@ -12,6 +12,7 @@ export class TournamentMapper {
             seasonStartYear: tournament.getSeason().getStartYear(),
             createdAt: tournament.getCreatedAt(),
             status: tournament.getStatus(),
+            isDelayed: tournament.isDelayed(),
             hasBracket: tournament.getHasBracket(),
             info: {
                 place: tournamentInfo.getPlace(),
