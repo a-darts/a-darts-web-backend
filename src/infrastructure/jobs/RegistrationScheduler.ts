@@ -13,12 +13,12 @@ export class RegistrationScheduler {
             return;
         }
 
-        // Run every 15 minutes
-        this.cronJob = cron.schedule('*/15 * * * *', async () => {
+        // Run every 5 minutes
+        this.cronJob = cron.schedule('*/5 * * * *', async () => {
             await this.processRegistrationPeriods.execute();
         });
 
-        console.log('[RegistrationScheduler] Started cron job (runs every 15 minutes).');
+        console.log('[RegistrationScheduler] Started cron job (runs every 5 minutes).');
     }
 
     stop() {
