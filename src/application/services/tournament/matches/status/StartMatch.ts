@@ -5,8 +5,8 @@ import { getSocketServer } from '../../../../../infrastructure/websockets/Socket
 
 export class StartMatch {
   constructor(
-      private readonly matchRepository: MatchRepository,
-      private readonly playingAreaRepository: PlayingAreaRepository,
+    private readonly matchRepository: MatchRepository,
+    private readonly playingAreaRepository: PlayingAreaRepository,
   ) { }
 
   public async execute(id: string): Promise<void> {
@@ -26,10 +26,8 @@ export class StartMatch {
     console.log(`[StartMatch] Checking if match has a board assigned... Board number:`, match.getBoardNumber());
     if (match.getBoardNumber() !== null && match.getBoardNumber() !== undefined) {
       const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
-      console.log(`[StartMatch] PlayingArea found?`, !!playingArea);
       if (playingArea) {
         const board = playingArea.getBoards().find(b => b.getNumber() === match.getBoardNumber());
-        console.log(`[StartMatch] Board found in PlayingArea?`, !!board);
         if (board) {
           const roomName = `room_board_${board.getId()}`;
           console.log(`[StartMatch] Sending match_started to ${roomName} with matchId: ${id}`);
