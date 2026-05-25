@@ -6,12 +6,15 @@ import { BracketRepository } from '../../../../domain/repositories/BracketReposi
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
 import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
 import { SetMatchResultRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
+import { PlayingAreaRepository } from '../../../../domain/repositories/PlayingAreaRepository.js';
+import { PlayingAreaNotFoundException } from '../../../../domain/exceptions/PlayingAreaExceptions.js';
 
 export class SetMatchResultAndPromote {
   constructor(
     private readonly unitOfWork: UnitOfWork,
     private readonly matchRepository: MatchRepository,
     private readonly bracketRepository: BracketRepository,
+    private readonly playingAreaRepository: PlayingAreaRepository,
     private readonly matchGenerator: SingleEliminationMatchGenerator,
     private readonly eventBus: EventBus,
   ) { }
@@ -29,7 +32,13 @@ export class SetMatchResultAndPromote {
       throw new BracketNotFoundException();
     }
 
-    // 2. Set final score and finish the match
+    // 3. Rehydrate the playing area from the DB
+    const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
+    if (!playingArea) {
+      throw new PlayingAreaNotFoundException();
+    }
+
+    // 4. Set final score and finish the match
     match.setFinalScore(
       request.participant1Sets,
       request.participant1Legs,
@@ -37,12 +46,16 @@ export class SetMatchResultAndPromote {
       request.participant2Legs,
     );
     match.finish();
+    const matchBoardNumber = match.getBoardNumber();
+    if (matchBoardNumber) {
+      playingArea.releaseBoard(matchBoardNumber);
+    }
 
-    // 3. Obtain the winner
+    // 5. Obtain the winner
     const winnerId = match.getWinnerId();
     let nextMatch = null;
 
-    // Si no era la final, promocionamos al ganador a la siguiente partida
+    // 6. Si no era la final, promocionamos al ganador a la siguiente partida
     if (winnerId) {
       const nextCoords = this.matchGenerator.getNextMatchCoordinates(
         match.getRound(),
@@ -50,7 +63,6 @@ export class SetMatchResultAndPromote {
         bracket.getPositions().length,
       );
 
-      // Si no era la final, promocionamos al ganador a la siguiente partida
       if (nextCoords) {
         nextMatch = await this.matchRepository.findByTournamentRoundAndMatchIndex(
           match.getTournamentId(),
@@ -65,13 +77,14 @@ export class SetMatchResultAndPromote {
       }
     }
 
-    // Persist the next match changes and bracket status
+    // 7. Persist the next match changes and bracket status
     await this.unitOfWork.transaction(async () => {
       await this.bracketRepository.update(bracket);
       await this.matchRepository.update(match);
       if (nextMatch) {
         await this.matchRepository.update(nextMatch);
       }
+      await this.playingAreaRepository.update(playingArea);
     });
 
     const events = bracket.pullEvents();

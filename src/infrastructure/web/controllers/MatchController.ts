@@ -42,7 +42,7 @@ const setMatchBoardNumber = new SetMatchBoardNumber(unitOfWork, matchRepository,
 const updateMatchBoardNumber = new UpdateMatchBoardNumber(unitOfWork, matchRepository, playingAreaRepository);
 const registerLegWin = new RegisterLegWin(matchRepository);
 const registerSetWin = new RegisterSetWin(matchRepository);
-const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, matchGenerator, globalEventBus);
+const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, playingAreaRepository, matchGenerator, globalEventBus);
 
 
 /**
@@ -1841,7 +1841,8 @@ export class MatchController {
       }
       if (
         error instanceof MatchNotInProgressException ||
-        error instanceof MatchNotPendingException
+        error instanceof MatchNotPendingException ||
+        error instanceof MatchAlreadyFinishedException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
