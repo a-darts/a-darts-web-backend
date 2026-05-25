@@ -32,3 +32,17 @@ export class RegistrationAlreadyClosedException extends Error {
         this.name = 'RegistrationAlreadyClosedException';
     }
 }
+
+export class RegistrationOpenDateInPastException extends Error {
+    constructor() {
+        super('Registration opening date in past.');
+        this.name = 'RegistrationOpenDateInPastException';
+    }
+}
+
+export class RegistrationCloseDateAfterTournamentException extends Error {
+    constructor() {
+        super('Registration closing date must be before the tournament start date.');
+        this.name = 'RegistrationCloseDateAfterTournamentException';
+    }
+}

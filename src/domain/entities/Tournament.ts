@@ -1,5 +1,5 @@
 import { BracketAlreadyExistsException } from "../exceptions/BracketExceptions.js";
-import { RegistrationNotClosedException } from "../exceptions/RegistrationExceptions.js";
+import { RegistrationCloseDateAfterTournamentException, RegistrationNotClosedException, RegistrationOpenDateInPastException } from "../exceptions/RegistrationExceptions.js";
 import {
   TournamentAlreadyFinishedException,
   TournamentAlreadyHasBracketException,
@@ -196,7 +196,20 @@ export class Tournament {
       throw new TournamentAlreadyHasBracketException();
     }
 
-    this.registration = this.registration.schedule(open, close);
+    const now = new Date();
+    const tournamentDate = this.info.getDateTime();
+    const openDate = open ? new Date(open) : null;
+    const closeDate = close ? new Date(close) : null;
+
+    if (openDate && openDate < now) {
+      throw new RegistrationOpenDateInPastException();
+    }
+
+    if (closeDate && closeDate >= tournamentDate) {
+      throw new RegistrationCloseDateAfterTournamentException();
+    }
+
+    this.registration = this.registration.schedule(openDate, closeDate);
   }
 
   public registerParticipant(participantId: string) {

@@ -8,7 +8,7 @@ import { TournamentStatus } from '../../../domain/entities/Tournament.js';
 import { TournamentAlreadyFinishedException, TournamentAlreadyHasBracketException, TournamentDoesNotHaveBracketException, TournamentMaxPlayersExceededException, TournamentNotFoundException, TournamentNotInDraftException, TournamentNotInProgressException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreateTournament } from '../../../application/services/tournament/CreateTournament.js';
-import { InvalidRegistrationPeriodException, InvalidRegistrationStatusException, RegistrationAlreadyClosedException, RegistrationAlreadyOpenException, RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
+import { InvalidRegistrationPeriodException, InvalidRegistrationStatusException, RegistrationAlreadyClosedException, RegistrationAlreadyOpenException, RegistrationCloseDateAfterTournamentException, RegistrationNotClosedException, RegistrationOpenDateInPastException } from '../../../domain/exceptions/RegistrationExceptions.js';
 import { UpdateTournamentInfo } from '../../../application/services/tournament/UpdateTournamentInfo.js';
 import { UpdateTournamentName } from '../../../application/services/tournament/UpdateTournamentName.js';
 import { UpdateTournamentRegistrationPeriod } from '../../../application/services/tournament/registration/UpdateTournamentRegistrationPeriod.js';
@@ -2167,7 +2167,9 @@ export class TournamentController {
       }
       if (
         error instanceof TournamentNotPublishedException ||
-        error instanceof TournamentAlreadyHasBracketException
+        error instanceof TournamentAlreadyHasBracketException ||
+        error instanceof RegistrationOpenDateInPastException ||
+        error instanceof RegistrationCloseDateAfterTournamentException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
