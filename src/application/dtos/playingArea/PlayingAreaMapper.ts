@@ -8,6 +8,7 @@ export class PlayingAreaMapper {
             id: playingArea.getId(),
             tournamentId: playingArea.getTournamentId(),
             boards: playingArea.getBoards().map(board => ({
+                id: board.getId(),
                 number: board.getNumber(),
                 status: board.getStatus(),
                 matchId: board.getMatchId(),

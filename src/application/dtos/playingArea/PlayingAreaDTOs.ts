@@ -7,6 +7,7 @@ export interface PlayingAreaResponseDTO {
 }
 
 export interface BoardDTO {
+    id: string;
     number: number;
     status: BoardStatus;
     matchId: string | null;

@@ -10,7 +10,6 @@ export class MatchMapper {
             id: match.getId(),
             round: match.getRound(),
             matchIndex: match.getMatchIndex(),
-            boardNumber: match.getBoardNumber(),
             startedAt: match.getStartedAt(),
             finishedAt: match.getFinishedAt(),
             status: match.getStatus() as PrismaMatchStatus,

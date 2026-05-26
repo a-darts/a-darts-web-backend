@@ -3,6 +3,7 @@ import { PlayingAreaNotFoundException } from '../../../../domain/exceptions/Play
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
 import { PlayingAreaRepository } from '../../../../domain/repositories/PlayingAreaRepository.js';
 import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
+import { MatchStateCache } from '../../../../infrastructure/cache/MatchStateCache.js';
 import { getSocketServer } from '../../../../infrastructure/websockets/SocketServer.js';
 import { SetMatchBoardNumberRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
 
@@ -33,6 +34,9 @@ export class SetMatchBoardNumber {
 
     // 5. Notify the board via socket
     const boardId = playingArea.findBoardByNumber(request.boardNumber).getId();
+
+    await MatchStateCache.setActiveMatchForBoard(boardId, request.id);
+
     console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardId} with matchId: ${request.id}`);
     const roomName = `room_board_${boardId}`;
     getSocketServer().to(roomName).emit('match_assigned', { matchId: request.id });

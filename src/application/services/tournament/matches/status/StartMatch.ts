@@ -26,7 +26,8 @@ export class StartMatch {
     const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
     if (playingArea) {
       try {
-        const boardId = await playingArea.findBoardByMatchId(id);
+        const board = await playingArea.findBoardByMatchId(id);
+        const boardId = board.getId();
         console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardId} with matchId: ${id}`);
         const roomName = `room_board_${boardId}`;
         console.log(`[StartMatch] Sending match_started to ${roomName} with matchId: ${id}`);

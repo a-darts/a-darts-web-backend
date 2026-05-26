@@ -22,15 +22,21 @@ export const initializeSocketServer = (server: HttpServer): void => {
             console.log(`[SocketServer] Client ${socket.id} successfully joined ${roomName}`);
 
             // MIRAR: emitir el historial actual si hay un partido activo
-            // const matchId = await MatchStateCache.getActiveMatchForBoard(boardId);
-            // if (matchId) {
-            //     const throws = await MatchStateCache.getThrows(matchId);
-            //     socket.emit('match_state_sync', throws);
-            // }
+            try {
+                const matchId = await MatchStateCache.getActiveMatchForBoard(boardId);
+                if (matchId) {
+                    console.log(`[SocketServer] Diana ${boardId} ya tiene el partido ${matchId} asignado. Notificando al cliente...`);
+                    socket.emit('match_assigned', { matchId });
+                }
+
+            } catch (error) {
+                console.error(`[SocketServer] Error al verificar partido activo en la diana ${boardId}:`, error);
+            }
         });
 
         socket.on('score_update', async (data: { boardId: string, matchId: string, throwData: any }) => {
             const { boardId, matchId, throwData } = data;
+            console.log(`[SocketServer] Receiver score_update with throwData: ${throwData.score}`);
 
             // Guardar en Redis
             await MatchStateCache.addThrow(matchId, throwData);

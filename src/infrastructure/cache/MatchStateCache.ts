@@ -23,6 +23,23 @@ export class MatchStateCache {
     }
 
     /**
+     * Vincula un partido activo a una diana específica
+     */
+    static async setActiveMatchForBoard(boardId: string, matchId: string): Promise<void> {
+        const key = `board:${boardId}:active_match`;
+        await redis.set(key, matchId);
+        await redis.expire(key, 60 * 60 * 24); // 24 horas de seguridad
+    }
+
+    /**
+     * Recupera el ID del partido activo asignado a una diana
+     */
+    static async getActiveMatchForBoard(boardId: string): Promise<string | null> {
+        const key = `board:${boardId}:active_match`;
+        return await redis.get(key);
+    }
+
+    /**
      * Borra los datos del partido cuando termina
      */
     static async clearMatch(matchId: string): Promise<void> {
