@@ -60,6 +60,28 @@ export const initializeSocketServer = (server: HttpServer): void => {
             }
         });
 
+        socket.on('score_undo', async (data: { boardId: string, matchId: string }) => {
+            const { boardId, matchId } = data;
+            console.log(`[SocketServer] Received score_undo para matchId: ${matchId}`);
+
+            try {
+                // 1. Eliminamos el último registro de Redis
+                await MatchStateCache.removeLastThrow(matchId);
+
+                // 2. Obtenemos cómo quedó el historial actual tras el borrado
+                const remainingThrows = await MatchStateCache.getThrows(matchId);
+
+                // 3. Retransmitimos a la sala web el evento informando el nuevo historial
+                const roomName = `room_board_${boardId}`;
+                socket.to(roomName).emit('score_undo_confirmed', {
+                    matchId,
+                    historyThrows: remainingThrows
+                });
+            } catch (error) {
+                console.error(`[SocketServer] Error procesando match_undo:`, error);
+            }
+        });
+
         socket.on('disconnect', () => {
             console.log(`Client disconnected: ${socket.id}`);
         });

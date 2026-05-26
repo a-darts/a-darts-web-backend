@@ -14,6 +14,23 @@ export class MatchStateCache {
     }
 
     /**
+     * Elimina y retorna la última tirada de la lista de Redis (Undo)
+     */
+    static async removeLastThrow(matchId: string): Promise<any | null> {
+        const key = `match:${matchId}:throws`;
+        const lastThrow = await redis.rpop(key); // RPOP remueve y devuelve el último elemento
+
+        if (!lastThrow) return null;
+
+        try {
+            return JSON.parse(lastThrow);
+        } catch (error) {
+            console.error(`[MatchStateCache] Error al parsear tirada eliminada ${matchId}:`, error);
+            return null;
+        }
+    }
+
+    /**
      * Recupera todas las tiradas de un partido
      */
     static async getThrows(matchId: string): Promise<any[]> {
