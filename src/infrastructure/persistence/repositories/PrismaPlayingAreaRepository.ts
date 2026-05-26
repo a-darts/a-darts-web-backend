@@ -16,45 +16,41 @@ export class PrismaPlayingAreaRepository implements PlayingAreaRepository {
     }
 
     async create(playingArea: PlayingArea): Promise<void> {
-        console.log("Creating playing area...", playingArea);
         const data = PlayingAreaMapper.toPersistence(playingArea);
         await this.client.playingArea.create({ data });
     }
 
     async update(playingArea: PlayingArea): Promise<void> {
-        await this.client.$transaction(async (tx) => {
-            // Update the main playing area fields
-            await tx.playingArea.update({
-                where: { id: playingArea.getId() },
-                data: { tournamentId: playingArea.getTournamentId() },
-            });
+        // Generamos las operaciones de actualización/creación para cada board individualmente
+        const boardUpsertOperations = playingArea.getBoards().map(board => ({
+            where: { id: board.getId() },
+            update: {
+                number: board.getNumber(),
+                status: board.getStatus() as any,
+                matchId: board.getMatchId(),
+            },
+            create: {
+                id: board.getId(),
+                number: board.getNumber(),
+                status: board.getStatus() as any,
+                matchId: board.getMatchId(),
+            }
+        }));
 
-            // Delete boards that are no longer in the domain model
-            const currentBoardIds = playingArea.getBoards().map(b => b.getId());
-            await tx.board.deleteMany({
-                where: {
-                    playingAreaId: playingArea.getId(),
-                    id: { notIn: currentBoardIds }
-                }
-            });
-
-            // Upsert each board to preserve their IDs
-            for (const board of playingArea.getBoards()) {
-                await tx.board.upsert({
-                    where: { id: board.getId() },
-                    create: {
-                        id: board.getId(),
-                        number: board.getNumber(),
-                        status: board.getStatus() as any,
-                        matchId: board.getMatchId(),
-                        playingAreaId: playingArea.getId(),
+        // Prisma ejecuta TODO esto en una sola transacción nativa implícita de base de datos
+        await this.client.playingArea.update({
+            where: { id: playingArea.getId() },
+            data: {
+                tournamentId: playingArea.getTournamentId(),
+                boards: {
+                    // 1. Borra automáticamente las dianas que ya no están en tu modelo de dominio
+                    deleteMany: {
+                        id: { notIn: playingArea.getBoards().map(b => b.getId()) }
                     },
-                    update: {
-                        number: board.getNumber(),
-                        status: board.getStatus() as any,
-                        matchId: board.getMatchId(),
-                    }
-                });
+                    // 2. Hace un upsert individual optimizado por ID para cada diana
+                    // Si existe la actualiza, si no existe la crea. ¡Sin duplicar llamadas!
+                    upsert: boardUpsertOperations
+                }
             }
         });
     }

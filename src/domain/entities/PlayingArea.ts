@@ -58,21 +58,15 @@ export class PlayingArea {
 
     // Assign the match to the board or reassign the match if already assigned to a board
     public assignMatchToBoard(matchId: string, boardNumber: number): void {
-        const currentBoard = this.findBoardByMatchId(matchId);
-        if (currentBoard) {
+        try {
+            const currentBoard = this.findBoardByMatchId(matchId);
             currentBoard.release();
+        } catch (error) {
+            console.log("El partido no estaba previamente asignado a ninguna diana");
         }
-
         const newBoard = this.findBoardByNumber(boardNumber);
         newBoard.occupy(matchId);
     }
-
-    // public reassignMatchToBoard(matchId: string, boardNumber: number): void {
-    //     const currentBoard = this.findBoardByMatchId(matchId);
-    //     const newBoard = this.findBoardByNumber(boardNumber);
-    //     currentBoard.release();
-    //     newBoard.occupy(matchId);
-    // }
 
     public releaseBoard(boardNumber: number): void {
         const board = this.findBoardByNumber(boardNumber);
