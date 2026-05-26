@@ -1,6 +1,8 @@
+import { MatchStatus } from '../../../../../domain/entities/Match.js';
 import { MatchNotFoundException } from '../../../../../domain/exceptions/MatchExceptions.js';
 import { MatchRepository } from '../../../../../domain/repositories/MatchRepository.js';
 import { PlayingAreaRepository } from '../../../../../domain/repositories/PlayingAreaRepository.js';
+import { MatchStateCache } from '../../../../../infrastructure/cache/MatchStateCache.js';
 import { getSocketServer } from '../../../../../infrastructure/websockets/SocketServer.js';
 
 export class StartMatch {
@@ -36,5 +38,8 @@ export class StartMatch {
         console.log("Error while fetching the match board in the playing area");
       }
     }
+
+    // 5. Save the match status in Redis
+    await MatchStateCache.setMatchStatus(id, MatchStatus.IN_PROGRESS);
   }
 }

@@ -7,7 +7,6 @@ export class MatchStateCache {
      * Guarda una tirada en la lista de tiradas del partido
      */
     static async addThrow(matchId: string, throwData: any): Promise<void> {
-        console.log(`[CACHE] addThrow(throwData: ${throwData})`);
         const key = `match:${matchId}:throws`;
         await redis.rpush(key, JSON.stringify(throwData));
         // Opcional: configurar un TTL para que no viva eternamente si falla el borrado
@@ -64,8 +63,33 @@ export class MatchStateCache {
     /**
      * Borra los datos del partido cuando termina
      */
-    static async clearMatch(matchId: string): Promise<void> {
-        const key = `match:${matchId}:throws`;
-        await redis.del(key);
+    static async clearMatch(matchId: string, boardId?: string): Promise<void> {
+        const throwsKey = `match:${matchId}:throws`;
+        const statusKey = `match:${matchId}:status`;
+
+        await redis.del(throwsKey);
+        await redis.del(statusKey);
+
+        if (boardId) {
+            const boardKey = `board:${boardId}:active_match`;
+            await redis.del(boardKey);
+        }
+    }
+
+    /**
+     * Guarda el estado actual del partido (READY, IN_PROGRESS, etc.)
+     */
+    static async setMatchStatus(matchId: string, status: string): Promise<void> {
+        const key = `match:${matchId}:status`;
+        await redis.set(key, status);
+        await redis.expire(key, 60 * 60 * 24); // 24 horas de seguridad
+    }
+
+    /**
+     * Recupera el estado actual del partido
+     */
+    static async getMatchStatus(matchId: string): Promise<string | null> {
+        const key = `match:${matchId}:status`;
+        return await redis.get(key);
     }
 }

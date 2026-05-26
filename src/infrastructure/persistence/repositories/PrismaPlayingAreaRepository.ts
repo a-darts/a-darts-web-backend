@@ -78,8 +78,12 @@ export class PrismaPlayingAreaRepository implements PlayingAreaRepository {
         const playingAreaData = await this.client.playingArea.findUnique({
             where: { id },
             include: {
-                boards: true,
-            },
+                boards: {
+                    orderBy: {
+                        number: 'asc',
+                    },
+                },
+            }
         });
         return playingAreaData ? PlayingAreaMapper.toDomain(playingAreaData) : null;
     }
@@ -88,7 +92,11 @@ export class PrismaPlayingAreaRepository implements PlayingAreaRepository {
         const playingAreaData = await this.client.playingArea.findUnique({
             where: { tournamentId },
             include: {
-                boards: true,
+                boards: {
+                    orderBy: {
+                        number: 'asc',
+                    },
+                },
             },
         });
         return playingAreaData ? PlayingAreaMapper.toDomain(playingAreaData) : null;
