@@ -36,7 +36,7 @@ export const initializeSocketServer = (server: HttpServer): void => {
 
         socket.on('score_update', async (data: { boardId: string, matchId: string, throwData: any }) => {
             const { boardId, matchId, throwData } = data;
-            console.log(`[SocketServer] Receiver score_update with throwData: ${throwData.score}`);
+            console.log(`[SocketServer] Received score_update ${throwData.score} from matchId: ${matchId} and boardId: ${boardId}`);
 
             // Guardar en Redis
             await MatchStateCache.addThrow(matchId, throwData);

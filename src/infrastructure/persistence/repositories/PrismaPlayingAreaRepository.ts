@@ -21,38 +21,51 @@ export class PrismaPlayingAreaRepository implements PlayingAreaRepository {
     }
 
     async update(playingArea: PlayingArea): Promise<void> {
-        // Generamos las operaciones de actualización/creación para cada board individualmente
-        const boardUpsertOperations = playingArea.getBoards().map(board => ({
-            where: { id: board.getId() },
-            update: {
-                number: board.getNumber(),
-                status: board.getStatus() as any,
-                matchId: board.getMatchId(),
-            },
-            create: {
-                id: board.getId(),
-                number: board.getNumber(),
-                status: board.getStatus() as any,
-                matchId: board.getMatchId(),
-            }
-        }));
+        // 1. Identificar qué dianas van a limpiar su matchId (release) y cuáles van a asignarse (occupy)
+        const boards = playingArea.getBoards();
 
-        // Prisma ejecuta TODO esto en una sola transacción nativa implícita de base de datos
+        // Dianas que quedan libres (matchId es null)
+        const releasingBoards = boards.filter(b => b.getMatchId() === null);
+        // Dianas que se van a ocupar (matchId tiene valor)
+        const occupyingBoards = boards.filter(b => b.getMatchId() !== null);
+
+        // 2. Mapeador auxiliar para no repetir código de persistencia
+        const mapBoardData = (board: any) => ({
+            number: board.getNumber(),
+            status: board.getStatus() as any,
+            matchId: board.getMatchId(),
+        });
+
+        // 3. Primero eliminamos del agregado las dianas que ya no existan en el dominio
         await this.client.playingArea.update({
             where: { id: playingArea.getId() },
             data: {
                 tournamentId: playingArea.getTournamentId(),
                 boards: {
-                    // 1. Borra automáticamente las dianas que ya no están en tu modelo de dominio
                     deleteMany: {
-                        id: { notIn: playingArea.getBoards().map(b => b.getId()) }
-                    },
-                    // 2. Hace un upsert individual optimizado por ID para cada diana
-                    // Si existe la actualiza, si no existe la crea. ¡Sin duplicar llamadas!
-                    upsert: boardUpsertOperations
+                        id: { notIn: boards.map(b => b.getId()) }
+                    }
                 }
             }
         });
+
+        // 4. Actualizar primero las que LIBERAN el partido
+        for (const board of releasingBoards) {
+            await this.client.board.upsert({
+                where: { id: board.getId() },
+                update: mapBoardData(board),
+                create: { id: board.getId(), playingAreaId: playingArea.getId(), ...mapBoardData(board) }
+            });
+        }
+
+        // 5. Ahora que el matchId está libre en toda la tabla, actualizamos las que OCUPAN el partido
+        for (const board of occupyingBoards) {
+            await this.client.board.upsert({
+                where: { id: board.getId() },
+                update: mapBoardData(board),
+                create: { id: board.getId(), playingAreaId: playingArea.getId(), ...mapBoardData(board) }
+            });
+        }
     }
 
     async delete(id: string): Promise<void> {
