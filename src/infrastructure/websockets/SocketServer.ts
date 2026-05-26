@@ -27,6 +27,13 @@ export const initializeSocketServer = (server: HttpServer): void => {
                 if (matchId) {
                     console.log(`[SocketServer] Diana ${boardId} ya tiene el partido ${matchId} asignado. Notificando al cliente...`);
                     socket.emit('match_assigned', { matchId });
+
+                    const latestState = await MatchStateCache.getLatestState(matchId);
+
+                    if (latestState) {
+                        console.log(`[SocketServer] Enviando estado inicial de Redis al cliente ${socket.id}`);
+                        socket.emit('initial_state', { matchId, throwData: latestState });
+                    }
                 }
 
             } catch (error) {

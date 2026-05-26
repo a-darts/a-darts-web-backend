@@ -40,6 +40,27 @@ export class MatchStateCache {
     }
 
     /**
+     * Recupera el último estado guardado del partido (la última tirada)
+     */
+    static async getLatestState(matchId: string): Promise<any | null> {
+        const key = `match:${matchId}:throws`;
+
+        // Usamos el índice -1 para obtener el último elemento insertado eficientemente
+        const lastThrow = await redis.lindex(key, -1);
+
+        if (!lastThrow) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(lastThrow);
+        } catch (error) {
+            console.error(`[MatchStateCache] Error al parsear el último estado del match ${matchId}:`, error);
+            return null;
+        }
+    }
+
+    /**
      * Borra los datos del partido cuando termina
      */
     static async clearMatch(matchId: string): Promise<void> {
