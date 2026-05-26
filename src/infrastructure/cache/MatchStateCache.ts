@@ -94,6 +94,50 @@ export class MatchStateCache {
     }
 
     /**
+     * Vacía el historial viejo de tiradas de un match en Redis y guarda el nuevo listado corregido
+     */
+    static async rebuildHistory(matchId: string, newHistory: any[]): Promise<void> {
+        const key = `match:${matchId}:throws`;
+
+        if (!newHistory || newHistory.length === 0) {
+            console.warn(`[MatchStateCache] Intento de reconstrucción con historial vacío para matchId: ${matchId}. Abortando.`);
+            return;
+        }
+
+        try {
+            // Usamos MULTI para abrir una transacción transaccional real y aislada en Redis
+            const tx = redis.multi();
+
+            // 1. Borramos de forma segura el listado antiguo
+            tx.del(key);
+
+            // 2. Insertamos uno a uno los nuevos objetos mapeados con sus scores correspondientes
+            newHistory.forEach(throwData => {
+                if (throwData) {
+                    tx.rpush(key, JSON.stringify(throwData));
+                }
+            });
+
+            // 3. Re-configuramos el TTL de seguridad (24 horas)
+            tx.expire(key, 60 * 60 * 24);
+
+            // Ejecutamos la transacción de forma atómica
+            const results = await tx.exec();
+
+            // Validamos que ningún comando de la transacción haya fallado
+            const hasErrors = results?.some(res => res[0] !== null);
+            if (hasErrors) {
+                console.error(`[MatchStateCache] Errores en la transacción MULTI de rebuild para ${matchId}:`, results);
+            } else {
+                console.log(`[MatchStateCache] Caché reconstruida con éxito de forma atómica. ${newHistory.length} estados guardados para matchId: ${matchId}`);
+            }
+        } catch (error) {
+            console.error(`[MatchStateCache] Error crítico en rebuildHistory para matchId ${matchId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
      * Guarda el estado actual del partido (READY, IN_PROGRESS, etc.)
      */
     static async setMatchStatus(matchId: string, status: string): Promise<void> {

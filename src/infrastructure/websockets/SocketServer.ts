@@ -82,6 +82,37 @@ export const initializeSocketServer = (server: HttpServer): void => {
             }
         });
 
+        socket.on('score_edit', async (data: { boardId: string, matchId: string, historyThrows: any[] }) => {
+            const { boardId, matchId, historyThrows } = data;
+            console.log(`[SocketServer] Recibida edición de tiro para matchId: ${matchId}. Reconstruyendo caché...`);
+            console.log("HistoryThrows:", historyThrows);
+            try {
+                if (!historyThrows || historyThrows.length === 0) {
+                    console.warn(`[SocketServer] Historial recibido vacío para matchId: ${matchId}`);
+                    return;
+                }
+
+                // 1. Obtenemos el último estado modificado para actualizar los widgets/pantallas principales
+                const latestThrow = historyThrows[historyThrows.length - 1];
+
+                // 2. Sobrescribimos el historial de Redis en bloque de forma segura
+                await MatchStateCache.rebuildHistory(matchId, historyThrows);
+
+                // 3. Retransmitimos a la sala de la diana
+                const roomName = `room_board_${boardId}`;
+                io.to(roomName).emit('score_edit_confirmed', {
+                    matchId,
+                    throwData: latestThrow,
+                    historyThrows: historyThrows
+                });
+
+                console.log(`[SocketServer] score_edit_confirmed emitido con éxito a la sala ${roomName}`);
+
+            } catch (error) {
+                console.error(`[SocketServer] Error procesando score_edit:`, error);
+            }
+        });
+
         socket.on('disconnect', () => {
             console.log(`Client disconnected: ${socket.id}`);
         });
