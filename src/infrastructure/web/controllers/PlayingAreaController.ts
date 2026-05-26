@@ -6,7 +6,7 @@ import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/U
 import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException, MatchAlreadyAssignedToBoardException, PlayingAreaHasNoBoardsException, BoardOccupiedException, BoardPairedWithTabletException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
 import { DisablePlayingAreaBoard } from '../../../application/services/playingArea/DisablePlayingAreaBoard.js';
-import { OccupyPlayingAreaBoard } from '../../../application/services/playingArea/OccupyPlayingAreaBoard.js';
+// import { OccupyPlayingAreaBoard } from '../../../application/services/playingArea/OccupyPlayingAreaBoard.js';
 import { ReleasePlayingAreaBoard } from '../../../application/services/playingArea/ReleasePlayingAreaBoard.js';
 import { EnablePlayingAreaBoard } from '../../../application/services/playingArea/EnablePlayingAreaBoard.js';
 import { MatchNotFoundException } from '../../../domain/exceptions/MatchExceptions.js';
@@ -21,7 +21,7 @@ const unitOfWork = new PrismaUnitOfWork(prisma);
 const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
 
-const occupyPlayingAreaBoard = new OccupyPlayingAreaBoard(unitOfWork, playingAreaRepository, matchRepository);
+// const occupyPlayingAreaBoard = new OccupyPlayingAreaBoard(unitOfWork, playingAreaRepository, matchRepository);
 const releasePlayingAreaBoard = new ReleasePlayingAreaBoard(playingAreaRepository);
 const disablePlayingAreaBoard = new DisablePlayingAreaBoard(playingAreaRepository);
 const enablePlayingAreaBoard = new EnablePlayingAreaBoard(playingAreaRepository);
@@ -67,187 +67,6 @@ const removeLastBoardFromPlayingArea = new RemoveLastBoardFromPlayingArea(playin
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  */
 export class PlayingAreaController {
-
-
-  /**
-   * @swagger
-   * /api/playing-areas/{id}/boards/{boardNumber}/occupy:
-   *   post:
-   *     summary: Occupy a board in a playing area
-   *     tags: [PlayingAreas]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - name: id
-   *         in: path
-   *         required: true
-   *         description: Playing area ID
-   *         schema:
-   *           type: string
-   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *       - name: boardNumber
-   *         in: path
-   *         required: true
-   *         description: Board number
-   *         schema:
-   *           type: number
-   *           example: 1
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/OccupyPlayingAreaRequest'
-   *     responses:
-   *       200:
-   *         description: Board occupied successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Board occupied successfully
-   *                 data:
-   *                   type: string
-   *                   example: null
-   *       400:
-   *         description: Bad Request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: All fields are required
-   *       401:
-   *         description: Unauthorized
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: No token provided
-   *       403:
-   *         description: Forbidden
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: You do not have permission to perform this action
-   *       404:
-   *         description: Not Found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Playing area not found
-   *       409:
-   *         description: Conflict
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Board is already occupied
-   *       500:
-   *         description: Internal Server Error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Internal server error
-   */
-  async occupyPlayingAreaBoard(req: AuthRequest, res: Response) {
-    try {
-      const { id, boardNumber } = req.params;
-      if (!id || !boardNumber || typeof id !== 'string' || typeof boardNumber !== 'string') {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      const { matchId } = req.body;
-      if (!matchId || typeof matchId !== 'string') {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      await occupyPlayingAreaBoard.execute({
-        id: id,
-        boardNumber: Number(boardNumber),
-        matchId: matchId,
-      });
-      res.status(200).json(
-        ApiResponseBuilder.success(
-          null,
-          'Board occupied successfully',
-        )
-      );
-    } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
-        return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (
-        error instanceof PlayingAreaNotFoundException ||
-        error instanceof BoardNotFoundException ||
-        error instanceof MatchNotFoundException
-      ) {
-        return res.status(404).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (
-        error instanceof BoardAlreadyOccupiedException ||
-        error instanceof BoardDisabledException ||
-        error instanceof MatchAlreadyAssignedToBoardException
-      ) {
-        return res.status(409).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-
-      console.error('[ERROR]:', error);
-      res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
-      );
-    }
-  }
 
 
   /**

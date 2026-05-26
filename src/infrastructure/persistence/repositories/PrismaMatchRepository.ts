@@ -36,13 +36,20 @@ export class PrismaMatchRepository implements MatchRepository {
     }
 
     async findAll(): Promise<Match[]> {
-        const matchesData = await this.client.match.findMany();
+        const matchesData = await this.client.match.findMany({
+            include: {
+                board: true,
+            },
+        });
         return matchesData.map(MatchMapper.toDomain);
     }
 
     async findById(id: string): Promise<Match | null> {
         const matchData = await this.client.match.findUnique({
             where: { id },
+            include: {
+                board: true,
+            },
         });
         return matchData ? MatchMapper.toDomain(matchData) : null;
     }
@@ -57,6 +64,7 @@ export class PrismaMatchRepository implements MatchRepository {
                 participant2: {
                     include: { player: { include: { user: true } } }
                 },
+                board: true,
             },
         });
         if (!matchesData) return null;
@@ -70,7 +78,10 @@ export class PrismaMatchRepository implements MatchRepository {
 
     async findManyByIds(ids: string[]): Promise<Match[]> {
         const matchesData = await this.client.match.findMany({
-            where: { id: { in: ids } }
+            where: { id: { in: ids } },
+            include: {
+                board: true,
+            },
         });
         return matchesData.map(MatchMapper.toDomain);
     }
@@ -90,6 +101,9 @@ export class PrismaMatchRepository implements MatchRepository {
                     },
                 ],
             },
+            include: {
+                board: true,
+            },
         });
         return matchData ? MatchMapper.toDomain(matchData) : null;
     }
@@ -97,6 +111,9 @@ export class PrismaMatchRepository implements MatchRepository {
     async findManyByTournamentId(tournamentId: string): Promise<Match[]> {
         const matchesData = await this.client.match.findMany({
             where: { tournamentId: tournamentId },
+            include: {
+                board: true,
+            },
         });
 
         return matchesData.map(data => MatchMapper.toDomain(data));
@@ -112,7 +129,9 @@ export class PrismaMatchRepository implements MatchRepository {
                 participant2: {
                     include: { player: { include: { user: true } } }
                 },
+                board: true,
             },
+
         });
 
         return matchesData.map(data => ({
@@ -128,6 +147,9 @@ export class PrismaMatchRepository implements MatchRepository {
                 tournamentId: tournamentId,
                 round: round,
                 matchIndex: matchIndex,
+            },
+            include: {
+                board: true,
             },
         });
         return matchData ? MatchMapper.toDomain(matchData) : null;

@@ -7,7 +7,7 @@ let io: Server;
 export const initializeSocketServer = (server: HttpServer): void => {
     io = new Server(server, {
         cors: {
-            origin: '*', // En producción debería restringirse
+            origin: '*', // MIRAR: En producción debería restringirse
             methods: ['GET', 'POST']
         }
     });
@@ -21,7 +21,7 @@ export const initializeSocketServer = (server: HttpServer): void => {
             await socket.join(roomName);
             console.log(`[SocketServer] Client ${socket.id} successfully joined ${roomName}`);
 
-            // Opcional: Podríamos emitir el historial actual si hay un partido activo
+            // MIRAR: emitir el historial actual si hay un partido activo
             // const matchId = await MatchStateCache.getActiveMatchForBoard(boardId);
             // if (matchId) {
             //     const throws = await MatchStateCache.getThrows(matchId);

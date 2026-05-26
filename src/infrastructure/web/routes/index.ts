@@ -93,8 +93,7 @@ router.post('/matches/:id/finish', authMiddleware, isAdmin, matchController.fini
 router.post('/matches/:id/cancel', authMiddleware, isAdmin, matchController.cancelMatch);
 router.post('/matches/:id/suspend', authMiddleware, isAdmin, matchController.suspendMatch);
 router.post('/matches/:id/resume', authMiddleware, isAdmin, matchController.resumeMatch);
-router.post('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.setMatchBoardNumber);
-router.put('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.updateMatchBoardNumber);
+router.put('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.setMatchBoardNumber);
 router.post('/matches/:id/sets', authMiddleware, isAdmin, matchController.registerSetWin);
 router.post('/matches/:id/legs', authMiddleware, isAdmin, matchController.registerLegWin);
 router.post('/matches/:id/result', authMiddleware, isAdmin, matchController.setMatchResult);
@@ -108,7 +107,6 @@ router.post('/brackets/:id/publish', authMiddleware, isAdmin, bracketController.
 router.delete('/brackets/:id', authMiddleware, isAdmin, bracketController.deleteBracket);
 
 // PlayingArea routes
-router.post('/playing-areas/:id/boards/:boardNumber/occupy', authMiddleware, isAdmin, playingAreaController.occupyPlayingAreaBoard);
 router.post('/playing-areas/:id/boards/:boardNumber/release', authMiddleware, isAdmin, playingAreaController.releasePlayingAreaBoard);
 router.post('/playing-areas/:id/boards/:boardNumber/disable', authMiddleware, isAdmin, playingAreaController.disablePlayingAreaBoard);
 router.post('/playing-areas/:id/boards/:boardNumber/enable', authMiddleware, isAdmin, playingAreaController.enablePlayingAreaBoard);

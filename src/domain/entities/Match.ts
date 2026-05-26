@@ -102,10 +102,6 @@ export class Match {
     // --------------------------------------------------------------------
     // HELPERS
     // --------------------------------------------------------------------
-    public assignBoardNumber(boardNumber: number): void {
-        this.boardNumber = boardNumber;
-    }
-
     public addWinSet(participantId: string): void {
         if (this.status !== MatchStatus.IN_PROGRESS) {
             throw new MatchNotInProgressException();

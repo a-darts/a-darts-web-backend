@@ -3,17 +3,16 @@ import { PlayingAreaNotFoundException } from '../../../../domain/exceptions/Play
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
 import { PlayingAreaRepository } from '../../../../domain/repositories/PlayingAreaRepository.js';
 import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
-import { UpdateMatchBoardNumberRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
 import { getSocketServer } from '../../../../infrastructure/websockets/SocketServer.js';
+import { SetMatchBoardNumberRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
 
 export class SetMatchBoardNumber {
   constructor(
-    private readonly unitOfWork: UnitOfWork,
     private readonly matchRepository: MatchRepository,
     private readonly playingAreaRepository: PlayingAreaRepository,
   ) { }
 
-  public async execute(request: UpdateMatchBoardNumberRequestDTO): Promise<void> {
+  public async execute(request: SetMatchBoardNumberRequestDTO): Promise<void> {
     // 1. Rehydrate the match from the DB
     const match = await this.matchRepository.findById(request.id);
     if (!match) {
@@ -26,20 +25,18 @@ export class SetMatchBoardNumber {
       throw new PlayingAreaNotFoundException();
     }
 
-    // 3. Set the boardNumber in the match object and assign the match to the board in the playing area
-    match.assignBoardNumber(request.newBoardNumber);
-    playingArea.assignMatchToBoard(request.id, request.newBoardNumber);
+    // 3. Assign the match to the board in the playing area
+    playingArea.assignMatchToBoard(request.id, request.boardNumber);
 
     // 4. Persist the changes in the DB
-    await this.unitOfWork.transaction(async () => {
-      await this.playingAreaRepository.update(playingArea);
-      await this.matchRepository.update(match);
-    });
+    await this.playingAreaRepository.update(playingArea);
 
     // 5. Notify the board via socket
-    const boardId = playingArea.findBoardByNumber(request.newBoardNumber).getId();
+    const boardId = playingArea.findBoardByNumber(request.boardNumber).getId();
     console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardId} with matchId: ${request.id}`);
     const roomName = `room_board_${boardId}`;
     getSocketServer().to(roomName).emit('match_assigned', { matchId: request.id });
+
+    // MIRAR: notificar si se ha desasignado el partido de la diana previa via socket
   }
 }

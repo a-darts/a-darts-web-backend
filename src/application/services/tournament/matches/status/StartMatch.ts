@@ -23,16 +23,16 @@ export class StartMatch {
     await this.matchRepository.update(match);
 
     // 4. Notify the board via socket
-    console.log(`[StartMatch] Checking if match has a board assigned... Board number:`, match.getBoardNumber());
-    if (match.getBoardNumber() !== null && match.getBoardNumber() !== undefined) {
-      const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
-      if (playingArea) {
-        const board = playingArea.getBoards().find(b => b.getNumber() === match.getBoardNumber());
-        if (board) {
-          const roomName = `room_board_${board.getId()}`;
-          console.log(`[StartMatch] Sending match_started to ${roomName} with matchId: ${id}`);
-          getSocketServer().to(roomName).emit('match_started', { matchId: id });
-        }
+    const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
+    if (playingArea) {
+      try {
+        const boardId = await playingArea.findBoardByMatchId(id);
+        console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardId} with matchId: ${id}`);
+        const roomName = `room_board_${boardId}`;
+        console.log(`[StartMatch] Sending match_started to ${roomName} with matchId: ${id}`);
+        getSocketServer().to(roomName).emit('match_started', { matchId: id });
+      } catch (error) {
+        console.log("Error while fetching the match board in the playing area");
       }
     }
   }

@@ -186,13 +186,12 @@ model RegisteredParticipant {
 }
 
 model Match {
-  id          String      @id @default(uuid()) @db.Uuid
-  round       Int
-  matchIndex  Int
-  boardNumber Int?
-  startedAt   DateTime?
-  finishedAt  DateTime?
-  status      MatchStatus @default(PENDING)
+  id         String      @id @default(uuid()) @db.Uuid
+  round      Int
+  matchIndex Int
+  startedAt  DateTime?
+  finishedAt DateTime?
+  status     MatchStatus @default(PENDING)
 
   participant1Id String? @db.Uuid
   participant2Id String? @db.Uuid
@@ -212,7 +211,7 @@ model Match {
   tournament   Tournament             @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   participant1 RegisteredParticipant? @relation("MatchParticipant1", fields: [participant1Id], references: [id])
   participant2 RegisteredParticipant? @relation("MatchParticipant2", fields: [participant2Id], references: [id])
-  boards       Board[]
+  board        Board?
 
   // Índices para consultas más rápidas
   @@index([participant1Id])
@@ -262,12 +261,11 @@ model PlayingArea {
 }
 
 model Board {
-  id      String      @id @default(uuid()) @db.Uuid
-  number  Int
-  status  BoardStatus
-  matchId String?     @db.Uuid
-
-  playingAreaId String @db.Uuid
+  id            String      @id @default(uuid()) @db.Uuid
+  number        Int
+  status        BoardStatus
+  matchId       String?     @unique @db.Uuid
+  playingAreaId String      @db.Uuid
 
   playingArea PlayingArea @relation(fields: [playingAreaId], references: [id], onDelete: Cascade)
   match       Match?      @relation(fields: [matchId], references: [id])

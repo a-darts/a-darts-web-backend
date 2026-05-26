@@ -226,7 +226,7 @@ const getTournamentResults = new GetTournamentResults(tournamentRepository, tour
  *           example: 1
  *         boardNumber:
  *           type: number
- *           example: 4
+ *           example: 1
  *         startedAt:
  *           type: string
  *           format: date-time

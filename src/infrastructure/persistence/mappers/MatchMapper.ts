@@ -1,4 +1,4 @@
-import { MatchStatus as PrismaMatchStatus, Match as PrismaMatch } from '@prisma/client';
+import { MatchStatus as PrismaMatchStatus, Match as PrismaMatch, Board as PrismaBoard } from '@prisma/client';
 import { Match, MatchStatus } from '../../../domain/entities/Match.js';
 import { prisma } from '../client.js';
 
@@ -27,12 +27,12 @@ export class MatchMapper {
     }
 
     // From Prisma Object to Domain Entity
-    static toDomain(prismaMatch: PrismaMatch): Match {
+    static toDomain(prismaMatch: PrismaMatch & { board?: PrismaBoard | null; }): Match {
         return Match.rehydrate({
             id: prismaMatch.id,
             round: prismaMatch.round,
             matchIndex: prismaMatch.matchIndex,
-            boardNumber: prismaMatch.boardNumber,
+            boardNumber: prismaMatch.board?.number ?? null,
             startedAt: prismaMatch.startedAt,
             finishedAt: prismaMatch.finishedAt,
             status: prismaMatch.status as MatchStatus,

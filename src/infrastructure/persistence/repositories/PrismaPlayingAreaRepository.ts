@@ -22,8 +22,6 @@ export class PrismaPlayingAreaRepository implements PlayingAreaRepository {
     }
 
     async update(playingArea: PlayingArea): Promise<void> {
-        console.log("Updating playing area...", playingArea);
-
         await this.client.$transaction(async (tx) => {
             // Update the main playing area fields
             await tx.playingArea.update({

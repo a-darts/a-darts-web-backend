@@ -56,22 +56,23 @@ export class PlayingArea {
         this.boards.pop();
     }
 
+    // Assign the match to the board or reassign the match if already assigned to a board
     public assignMatchToBoard(matchId: string, boardNumber: number): void {
-        const isMatchAssigned = this.boards.some(b => b.getMatchId() === matchId);
-        if (isMatchAssigned) {
-            throw new MatchAlreadyAssignedToBoardException();
+        const currentBoard = this.findBoardByMatchId(matchId);
+        if (currentBoard) {
+            currentBoard.release();
         }
 
-        const board = this.findBoardByNumber(boardNumber);
-        board.occupy(matchId);
-    }
-
-    public reassignMatchToBoard(matchId: string, boardNumber: number): void {
-        const currentBoard = this.findBoardByMatchId(matchId);
         const newBoard = this.findBoardByNumber(boardNumber);
-        currentBoard.release();
         newBoard.occupy(matchId);
     }
+
+    // public reassignMatchToBoard(matchId: string, boardNumber: number): void {
+    //     const currentBoard = this.findBoardByMatchId(matchId);
+    //     const newBoard = this.findBoardByNumber(boardNumber);
+    //     currentBoard.release();
+    //     newBoard.occupy(matchId);
+    // }
 
     public releaseBoard(boardNumber: number): void {
         const board = this.findBoardByNumber(boardNumber);
@@ -104,7 +105,7 @@ export class PlayingArea {
         return board;
     }
 
-    private findBoardByMatchId(matchId: string): Board {
+    public findBoardByMatchId(matchId: string): Board {
         const board = this.boards.find(b => b.getMatchId() === matchId);
         if (!board) {
             throw new BoardNotFoundException();
