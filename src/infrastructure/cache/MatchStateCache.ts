@@ -7,6 +7,7 @@ export class MatchStateCache {
      * Guarda una tirada en la lista de tiradas del partido
      */
     static async addThrow(matchId: string, throwData: any): Promise<void> {
+        console.log(`[CACHE] addThrow(throwData: ${throwData})`);
         const key = `match:${matchId}:throws`;
         await redis.rpush(key, JSON.stringify(throwData));
         // Opcional: configurar un TTL para que no viva eternamente si falla el borrado
