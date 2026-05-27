@@ -103,7 +103,7 @@ export const initializeSocketServer = (server: HttpServer): void => {
                 io.to(roomName).emit('score_edit_confirmed', {
                     matchId,
                     throwData: latestThrow,
-                    historyThrows: historyThrows
+                    historyThrows: historyThrows,
                 });
 
                 console.log(`[SocketServer] score_edit_confirmed emitido con éxito a la sala ${roomName}`);
