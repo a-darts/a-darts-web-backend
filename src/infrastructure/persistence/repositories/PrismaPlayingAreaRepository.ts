@@ -31,6 +31,7 @@ export class PrismaPlayingAreaRepository implements PlayingAreaRepository {
 
         // 2. Mapeador auxiliar para no repetir código de persistencia
         const mapBoardData = (board: any) => ({
+            shortId: board.getShortId(),
             number: board.getNumber(),
             status: board.getStatus() as any,
             matchId: board.getMatchId(),

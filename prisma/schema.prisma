@@ -263,6 +263,7 @@ model PlayingArea {
 
 model Board {
   id            String      @id @default(uuid()) @db.Uuid
+  shortId       String      @unique
   number        Int
   status        BoardStatus
   matchId       String?     @unique @db.Uuid

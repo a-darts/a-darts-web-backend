@@ -7,7 +7,7 @@ export class PlayingAreaMapper {
     ): PlayingArea {
         const boards = prismaPlayingArea.boards.map(b => new Board(
             b.id,
-            Board.generateShortId(b.number, prismaPlayingArea.shortId),
+            b.shortId,
             b.number,
             b.status as unknown as DomainBoardStatus,
             b.matchId,
@@ -28,11 +28,26 @@ export class PlayingAreaMapper {
             tournamentId: domainPlayingArea.getTournamentId(),
             boards: {
                 create: domainPlayingArea.getBoards().map((b) => ({
+                    id: b.getId(),
+                    shortId: b.getShortId(),
                     number: b.getNumber(),
                     status: b.getStatus() as unknown as PrismaBoardStatus,
                     matchId: b.getMatchId(),
+                    playingAreaId: domainPlayingArea.getId(),
                 }))
             }
         };
+    }
+
+    public static boardToDomain(
+        board: PrismaBoard
+    ): Board {
+        return new Board(
+            board.id,
+            board.shortId,
+            board.number,
+            board.status as unknown as DomainBoardStatus,
+            board.matchId,
+        );
     }
 }

@@ -227,6 +227,12 @@ const getTournamentResults = new GetTournamentResults(tournamentRepository, tour
  *         boardNumber:
  *           type: number
  *           example: 1
+ *         boardId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         boardShortId:
+ *           type: string
+ *           example: S548-D001
  *         startedAt:
  *           type: string
  *           format: date-time

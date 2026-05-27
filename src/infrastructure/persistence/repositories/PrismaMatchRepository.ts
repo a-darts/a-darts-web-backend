@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { Match } from '../../../domain/entities/Match.js';
 import { MatchMapper } from '../mappers/MatchMapper.js';
 import { RegisteredParticipantMapper } from '../mappers/RegisteredParticipantMapper.js';
+import { PlayingAreaMapper } from '../mappers/PlayingAreaMapper.js';
 import { MatchRepository, MatchWithParticipants } from '../../../domain/repositories/MatchRepository.js';
 import { transactionStorage } from '../TransactionContext.js';
 
@@ -73,6 +74,7 @@ export class PrismaMatchRepository implements MatchRepository {
             match: MatchMapper.toDomain(matchesData),
             participant1: matchesData.participant1 ? RegisteredParticipantMapper.toDomain(matchesData.participant1) : null,
             participant2: matchesData.participant2 ? RegisteredParticipantMapper.toDomain(matchesData.participant2) : null,
+            board: matchesData.board ? PlayingAreaMapper.boardToDomain(matchesData.board) : null,
         };
     }
 
@@ -138,6 +140,7 @@ export class PrismaMatchRepository implements MatchRepository {
             match: MatchMapper.toDomain(data),
             participant1: data.participant1 ? RegisteredParticipantMapper.toDomain(data.participant1) : null,
             participant2: data.participant2 ? RegisteredParticipantMapper.toDomain(data.participant2) : null,
+            board: data.board ? PlayingAreaMapper.boardToDomain(data.board) : null,
         }));
     }
 

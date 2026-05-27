@@ -5,6 +5,8 @@ export interface MatchResponseDTO {
     round: number;
     matchIndex: number;
     boardNumber: number | null;
+    boardId: string | null;
+    boardShortId: string | null;
     startedAt: Date | null;
     finishedAt: Date | null;
     status: MatchStatus;

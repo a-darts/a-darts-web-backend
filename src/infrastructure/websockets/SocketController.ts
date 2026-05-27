@@ -28,18 +28,18 @@ export class SocketController {
         console.log(`[SocketServer] Client ${socket.id} successfully joined ${roomName}`);
 
         try {
-            // Check if there's an active match for the board
+            // 1. Check if there's an active match for the board
             const matchId = await MatchStateCache.getActiveMatchForBoard(boardShortId);
             if (matchId) {
-                // If there's an active match, fetch the current status and history of throws
+                // 1.1. If there's an active match, fetch the current status and history of throws
                 const status = await MatchStateCache.getMatchStatus(matchId);
                 const historyThrows = await MatchStateCache.getThrows(matchId);
 
-                // If the match is IN_PROGRESS, send the full history of throws
+                // 1.1.1. If the match is IN_PROGRESS, send the full history of throws
                 if (status === 'IN_PROGRESS') {
                     socket.emit('match_restored', { matchId, historyThrows });
                 }
-                // Else, if the match is not IN_PROGRESS, just send the match assignment
+                // 1.1.2. Else, if the match is not IN_PROGRESS, just send the match assignment
                 else {
                     socket.emit('match_assigned', { matchId });
                 }
@@ -52,13 +52,13 @@ export class SocketController {
     private async handleScoreUpdate(socket: Socket, io: Server, data: any): Promise<void> {
         const { boardShortId, matchId, throwData } = data;
         try {
-            // Fetch the last throw to compare if the score has actually changed
+            // 1. Fetch the last throw to compare if the score has actually changed
             const lastThrow = await MatchStateCache.getLastThrow(matchId);
 
-            // Save the current throw in Redis
+            // 2. Save the current throw in Redis
             await MatchStateCache.addThrow(matchId, throwData);
 
-            // Update the match score executing the use case only if there's a change in legs or sets won
+            // 3. Update the match score executing the use case only if there's a change in legs or sets won
             const hasScoreChanged = !lastThrow || 
                 throwData.participant1.legsWon !== lastThrow.participant1.legsWon ||
                 throwData.participant1.setsWon !== lastThrow.participant1.setsWon ||
@@ -74,13 +74,13 @@ export class SocketController {
                 });
             }
 
-            // If the match is finished, execute the finish match use case and clear the cache
+            // 4. If the match is finished, execute the finish match use case and clear the cache
             if (throwData.status === 'FINISHED') {
                 await this.finishMatchUseCase.execute(matchId);
                 await MatchStateCache.clearMatch(matchId, boardShortId);
             }
 
-            // Broadcast the score update to all clients in the same board room except the sender
+            // 5. Broadcast the score update to all clients in the same board room except the sender
             const roomName = `room_board_${boardShortId}`;
             socket.to(roomName).emit('score_update_confirmed', { matchId, throwData });
         } catch (error) {
@@ -91,13 +91,13 @@ export class SocketController {
     private async handleScoreUndo(socket: Socket, data: any): Promise<void> {
         const { boardShortId, matchId } = data;
         try {
-            // Remove the last throw from Redis
+            // 1. Remove the last throw from Redis
             await MatchStateCache.removeLastThrow(matchId);
 
-            // Fetch the remaining throws after the undo operation
+            // 2. Fetch the remaining throws after the undo operation
             const remainingThrows = await MatchStateCache.getThrows(matchId);
 
-            // Broadcast the score undo confirmation along with the remaining throws to all clients in the same board room except the sender
+            // 3. Broadcast the score undo confirmation along with the remaining throws to all clients in the same board room except the sender
             const roomName = `room_board_${boardShortId}`;
             socket.to(roomName).emit('score_undo_confirmed', {
                 matchId,
@@ -111,11 +111,17 @@ export class SocketController {
     private async handleScoreEdit(io: Server, data: any): Promise<void> {
         const { boardShortId, matchId, historyThrows } = data;
         try {
-            if (!historyThrows || historyThrows.length === 0) return;
+            if (!historyThrows || historyThrows.length === 0) {
+                console.warn(`[SocketServer] Received empty historyThrows: ${matchId}`);
+                return;
+            };  
 
+            // 1. Rebuild the match history in Redis with the provided edited history
+            // (without the first empty throw)
             const latestThrow = historyThrows[historyThrows.length - 1];
             await MatchStateCache.rebuildHistory(matchId, historyThrows);
 
+            // 2. Broadcast the score edit confirmation along with the latest throw and the full edited history to all clients in the same board room except the sender
             const roomName = `room_board_${boardShortId}`;
             io.to(roomName).emit('score_edit_confirmed', {
                 matchId,

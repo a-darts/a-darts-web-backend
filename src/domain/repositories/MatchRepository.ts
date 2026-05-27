@@ -1,10 +1,13 @@
 import { Match } from '../entities/Match.js';
 import { RegisteredParticipant } from '../entities/Participant.js';
+import { Board } from '../entities/PlayingArea.js';
+
 
 export interface MatchWithParticipants {
   match: Match;
   participant1: RegisteredParticipant | null;
   participant2: RegisteredParticipant | null;
+  board: Board | null;
 }
 
 export interface MatchRepository {

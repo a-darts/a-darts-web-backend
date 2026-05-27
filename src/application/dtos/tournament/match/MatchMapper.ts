@@ -7,7 +7,7 @@ export class MatchMapper {
     public static toResponse(
         matchData: MatchWithParticipants,
     ): MatchResponseDTO {
-        const { match, participant1, participant2 } = matchData;
+        const { match, participant1, participant2, board } = matchData;
 
         const participant1Score = match.getMatchScore().getParticipant1Score();
         const participant2Score = match.getMatchScore().getParticipant2Score();
@@ -17,6 +17,8 @@ export class MatchMapper {
             round: match.getRound(),
             matchIndex: match.getMatchIndex(),
             boardNumber: match.getBoardNumber(),
+            boardId: board?.getId() ?? null,
+            boardShortId: board?.getShortId() ?? null,
             startedAt: match.getStartedAt(),
             finishedAt: match.getFinishedAt(),
             status: match.getStatus(),

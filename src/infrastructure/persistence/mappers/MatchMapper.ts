@@ -1,6 +1,7 @@
 import { MatchStatus as PrismaMatchStatus, Match as PrismaMatch, Board as PrismaBoard } from '@prisma/client';
 import { Match, MatchStatus } from '../../../domain/entities/Match.js';
 import { prisma } from '../client.js';
+import { Board } from '../../../domain/entities/PlayingArea.js';
 
 export class MatchMapper {
     // From Domain Entity to Prisma Object
@@ -32,6 +33,8 @@ export class MatchMapper {
             round: prismaMatch.round,
             matchIndex: prismaMatch.matchIndex,
             boardNumber: prismaMatch.board?.number ?? null,
+            boardId: prismaMatch.board?.id ?? null,
+            boardShortId: prismaMatch.board?.shortId ?? null,
             startedAt: prismaMatch.startedAt,
             finishedAt: prismaMatch.finishedAt,
             status: prismaMatch.status as MatchStatus,
