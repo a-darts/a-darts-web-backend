@@ -2,6 +2,7 @@ import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { MatchStateCache } from '../cache/MatchStateCache.js';
 import { UpdateMatchScore } from '../../application/services/tournament/matches/UpdateMatchScore.js';
+import { FinishMatch } from '../../application/services/tournament/matches/status/FinishMatch.js';
 
 
 let io: Server;
@@ -9,6 +10,7 @@ let io: Server;
 export const initializeSocketServer = (
     server: HttpServer,
     updateMatchScoreUseCase: UpdateMatchScore,
+    finishMatchUseCase: FinishMatch,
 ): void => {
     io = new Server(server, {
         cors: {
@@ -65,6 +67,7 @@ export const initializeSocketServer = (
 
                 if (hasScoreChanged) {
                     console.log(`[SocketServer] Cambio de marcador detectado en ${matchId}. Persistiendo...`);
+                    console.log(`[SocketServer] Status: ${throwData.status}`);
                     await updateMatchScoreUseCase.execute({
                         id: matchId,
                         participant1Sets: throwData.participant1.setsWon,
@@ -72,6 +75,13 @@ export const initializeSocketServer = (
                         participant2Sets: throwData.participant2.setsWon,
                         participant2Legs: throwData.participant2.legsWon,
                     });
+                }
+
+                // Si ha acabado el match, actualizamos el estado en Redis y lanzamos la finalización
+                if (throwData.status === 'FINISHED') {
+                    console.log(`[SocketServer] Finalizando partida ${matchId} vía score_update`);
+                    await finishMatchUseCase.execute(matchId);
+                    await MatchStateCache.clearMatch(matchId, boardShortId);
                 }
 
                 // Retransmitimos a la web el último tiro
