@@ -28,12 +28,11 @@ export class StartMatch {
     const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
     if (playingArea) {
       try {
-        const board = await playingArea.findBoardByMatchId(id);
-        const boardShortId = board.getId();
+        const boardShortId = await playingArea.findBoardByMatchId(id).getShortId();
         console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardShortId} with matchId: ${id}`);
         const roomName = `room_board_${boardShortId}`;
-        console.log(`[StartMatch] Sending match_started to ${roomName} with matchId: ${id}`);
-        getSocketServer().to(roomName).emit('match_started', { matchId: id });
+        console.log(`[StartMatch] Sending match_started_confirmed to ${roomName} with matchId: ${id}`);
+        getSocketServer().to(roomName).emit('match_started_confirmed', { matchId: id });
       } catch (error) {
         console.log("Error while fetching the match board in the playing area");
       }
