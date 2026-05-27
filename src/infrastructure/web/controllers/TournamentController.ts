@@ -326,6 +326,9 @@ const getTournamentResults = new GetTournamentResults(tournamentRepository, tour
  *         id:
  *           type: string
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         shortId:
+ *           type: string
+ *           example: S56A
  *         tournamentId:
  *           type: string
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42

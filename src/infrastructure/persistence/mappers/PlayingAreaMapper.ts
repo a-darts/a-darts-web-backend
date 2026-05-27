@@ -7,6 +7,7 @@ export class PlayingAreaMapper {
     ): PlayingArea {
         const boards = prismaPlayingArea.boards.map(b => new Board(
             b.id,
+            Board.generateShortId(b.number, prismaPlayingArea.shortId),
             b.number,
             b.status as unknown as DomainBoardStatus,
             b.matchId,
@@ -14,6 +15,7 @@ export class PlayingAreaMapper {
 
         return new PlayingArea(
             prismaPlayingArea.id,
+            prismaPlayingArea.shortId,
             prismaPlayingArea.tournamentId,
             boards
         );
@@ -22,6 +24,7 @@ export class PlayingAreaMapper {
     public static toPersistence(domainPlayingArea: PlayingArea) {
         return {
             id: domainPlayingArea.getId(),
+            shortId: domainPlayingArea.getShortId(),
             tournamentId: domainPlayingArea.getTournamentId(),
             boards: {
                 create: domainPlayingArea.getBoards().map((b) => ({

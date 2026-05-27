@@ -6,6 +6,7 @@ export class PlayingAreaMapper {
 
         return {
             id: playingArea.getId(),
+            shortId: playingArea.getShortId(),
             tournamentId: playingArea.getTournamentId(),
             boards: playingArea.getBoards().map(board => ({
                 id: board.getId(),

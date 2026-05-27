@@ -39,6 +39,9 @@ const removeLastBoardFromPlayingArea = new RemoveLastBoardFromPlayingArea(playin
  *         id:
  *           type: string
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         shortId:
+ *           type: string
+ *           example: S55F
  *         tournamentId:
  *           type: string
  *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42

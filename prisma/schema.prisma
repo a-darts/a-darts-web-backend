@@ -252,6 +252,7 @@ model BracketPosition {
 
 model PlayingArea {
   id           String @id @default(uuid()) @db.Uuid
+  shortId      String @unique
   tournamentId String @unique @db.Uuid
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)

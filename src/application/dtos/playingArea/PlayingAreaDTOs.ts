@@ -2,6 +2,7 @@ import { BoardStatus } from "../../../domain/entities/PlayingArea.js";
 
 export interface PlayingAreaResponseDTO {
     id: string;
+    shortId: string;
     tournamentId: string;
     boards: BoardDTO[];
 }

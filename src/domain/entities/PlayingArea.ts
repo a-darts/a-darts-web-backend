@@ -9,15 +9,18 @@ export enum BoardStatus {
 
 export class PlayingArea {
     private readonly id: string;
+    private readonly shortId: string;
     private tournamentId: string;
     private boards: Board[];
 
     constructor(
         id: string,
+        shortId: string,
         tournamentId: string,
         boards: Board[],
     ) {
         this.id = id;
+        this.shortId = shortId;
         this.tournamentId = tournamentId;
         this.boards = boards;
     }
@@ -27,12 +30,19 @@ export class PlayingArea {
     // FACTORY METHOD
     // --------------------------------------------------------------------
     public static create(tournamentId: string, numbBoards: number): PlayingArea {
-        const boards = Array.from({ length: numbBoards }, (_, i) => Board.create(i + 1));
+        const shortId = this.generateShortId();
+        const boards = Array.from({ length: numbBoards }, (_, i) => Board.create(i + 1, shortId));
         return new PlayingArea(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
+            shortId,
             tournamentId,
             boards,
         );
+    }
+
+    private static generateShortId(): string {
+        const randomPart = crypto.randomUUID().split('-')[0].toUpperCase();
+        return "S" + randomPart.substring(0, 3);
     }
 
 
@@ -40,7 +50,7 @@ export class PlayingArea {
     // DOMAIN METHODS
     // --------------------------------------------------------------------
     public addBoard(): void {
-        this.boards.push(Board.create(this.boards.length + 1));
+        this.boards.push(Board.create(this.boards.length + 1, this.shortId));
     }
 
     public removeLastBoard(): void {
@@ -115,6 +125,10 @@ export class PlayingArea {
         return this.id;
     }
 
+    public getShortId(): string {
+        return this.shortId;
+    }
+
     public getTournamentId(): string {
         return this.tournamentId;
     }
@@ -128,17 +142,20 @@ export class PlayingArea {
 
 export class Board {
     private readonly id: string;
+    private readonly shortId: string;
     private readonly number: number;
     private status: BoardStatus;
     private matchId: string | null;
 
     constructor(
         id: string,
+        shortId: string,
         number: number,
         status: BoardStatus,
         matchId: string | null,
     ) {
         this.id = id;
+        this.shortId = shortId;
         this.number = number;
         this.status = status;
         this.matchId = matchId;
@@ -148,13 +165,20 @@ export class Board {
     // --------------------------------------------------------------------
     // FACTORY METHOD
     // --------------------------------------------------------------------
-    public static create(number: number): Board {
+    public static create(number: number, areaShortId: string): Board {
         return new Board(
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
+            this.generateShortId(number, areaShortId),
             number,
             BoardStatus.AVAILABLE,
             null,
         );
+    }
+
+
+    private static generateShortId(number: number, areaShortId: string): string {
+        const paddedNumber = number.toString().padStart(3, '0');
+        return `${areaShortId}-D${paddedNumber}`;
     }
 
 
@@ -211,6 +235,10 @@ export class Board {
     // --------------------------------------------------------------------
     public getId(): string {
         return this.id;
+    }
+
+    public getShortId(): string {
+        return this.shortId;
     }
 
     public getNumber(): number {
