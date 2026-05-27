@@ -10,6 +10,7 @@ export class PlayingAreaMapper {
             tournamentId: playingArea.getTournamentId(),
             boards: playingArea.getBoards().map(board => ({
                 id: board.getId(),
+                shortId: board.getShortId(),
                 number: board.getNumber(),
                 status: board.getStatus(),
                 matchId: board.getMatchId(),
