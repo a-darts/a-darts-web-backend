@@ -59,7 +59,7 @@ export class MatchStateCache {
     /**
      * Recupera el último estado guardado del partido (la última tirada)
      */
-    static async getLatestState(matchId: string): Promise<any | null> {
+    static async getLastThrow(matchId: string): Promise<any | null> {
         const key = `match:${matchId}:throws`;
 
         // Usamos el índice -1 para obtener el último elemento insertado eficientemente

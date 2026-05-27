@@ -1,10 +1,15 @@
 import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { MatchStateCache } from '../cache/MatchStateCache.js';
+import { UpdateMatchScore } from '../../application/services/tournament/matches/UpdateMatchScore.js';
+
 
 let io: Server;
 
-export const initializeSocketServer = (server: HttpServer): void => {
+export const initializeSocketServer = (
+    server: HttpServer,
+    updateMatchScoreUseCase: UpdateMatchScore,
+): void => {
     io = new Server(server, {
         cors: {
             origin: '*',
@@ -46,8 +51,28 @@ export const initializeSocketServer = (server: HttpServer): void => {
             console.log(`[SocketServer] ${throwData.score}, ${throwData.status}, activeIndex: ${throwData.activePlayerIndex}, throwerIndex: ${throwData.throwerPlayerIndex}, ${throwData.participant1.remainingScore}, ${throwData.participant2.remainingScore}`);
 
             try {
+                // Obtenemos el ultimo estado
+                const lastThrow = await MatchStateCache.getLastThrow(matchId);
+
                 // Guardar la tirada actual en la lista de Redis
                 await MatchStateCache.addThrow(matchId, throwData);
+
+                const hasScoreChanged = !lastThrow || 
+                    throwData.participant1.legsWon !== lastThrow.participant1.legsWon ||
+                    throwData.participant1.setsWon !== lastThrow.participant1.setsWon ||
+                    throwData.participant2.legsWon !== lastThrow.participant2.legsWon ||
+                    throwData.participant2.setsWon !== lastThrow.participant2.setsWon;
+
+                if (hasScoreChanged) {
+                    console.log(`[SocketServer] Cambio de marcador detectado en ${matchId}. Persistiendo...`);
+                    await updateMatchScoreUseCase.execute({
+                        id: matchId,
+                        participant1Sets: throwData.participant1.setsWon,
+                        participant1Legs: throwData.participant1.legsWon,
+                        participant2Sets: throwData.participant2.setsWon,
+                        participant2Legs: throwData.participant2.legsWon,
+                    });
+                }
 
                 // Retransmitimos a la web el último tiro
                 const roomName = `room_board_${boardShortId}`;

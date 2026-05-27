@@ -39,7 +39,7 @@ export class SetMatchResultAndPromote {
     }
 
     // 4. Set final score and finish the match
-    match.setFinalScore(
+    match.setScore(
       request.participant1Sets,
       request.participant1Legs,
       request.participant2Sets,

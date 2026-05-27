@@ -36,22 +36,20 @@ export interface UpdateMatchStatusRequestDTO {
     newStatus: MatchStatus;
 }
 
-export interface RegisterLegWinRequestDTO {
-    id: string;
-    participantId: string;
-}
-
-export interface RegisterSetWinRequestDTO {
-    id: string;
-    participantId: string;
-}
-
 export interface SetMatchBoardNumberRequestDTO {
     id: string;
     boardNumber: number;
 }
 
 export interface SetMatchResultRequestDTO {
+    id: string;
+    participant1Sets: number;
+    participant1Legs: number;
+    participant2Sets: number;
+    participant2Legs: number;
+}
+
+export interface UpdateMatchScoreRequestDTO {
     id: string;
     participant1Sets: number;
     participant1Legs: number;

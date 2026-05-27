@@ -2,6 +2,9 @@ import 'dotenv/config';
 import http from 'http';
 import app from './app.js';
 import { prisma } from './src/infrastructure/persistence/client.js';
+import { MatchRepository } from './src/domain/repositories/MatchRepository.js';
+import { UpdateMatchScore } from './src/application/services/tournament/matches/UpdateMatchScore.js';
+import { PrismaMatchRepository } from './src/infrastructure/persistence/repositories/PrismaMatchRepository.js';
 
 const PORT = process.env.PORT || 3000;
 
@@ -20,11 +23,16 @@ async function startServer() {
         const { registrationScheduler } = await import('./src/infrastructure/jobs/RegistrationScheduler.js');
         registrationScheduler.start();
 
+        // Inicialización del servidor de WebSockets
+        // 1. Instanciamos los repositorios y casos de uso
+        const matchRepository = new PrismaMatchRepository(prisma); 
+        const updateMatchScoreUseCase = new UpdateMatchScore(matchRepository);
+
         const server = http.createServer(app);
         
-        // Carga dinámica de initializeSocketServer para evitar ciclos o problemas con env vars no listas
+        // 2. Pasamos el caso de uso al inicializador
         const { initializeSocketServer } = await import('./src/infrastructure/websockets/SocketServer.js');
-        initializeSocketServer(server);
+        initializeSocketServer(server, updateMatchScoreUseCase);
 
         server.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT}`);

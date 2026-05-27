@@ -94,8 +94,7 @@ router.post('/matches/:id/cancel', authMiddleware, isAdmin, matchController.canc
 router.post('/matches/:id/suspend', authMiddleware, isAdmin, matchController.suspendMatch);
 router.post('/matches/:id/resume', authMiddleware, isAdmin, matchController.resumeMatch);
 router.put('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.setMatchBoardNumber);
-router.post('/matches/:id/sets', authMiddleware, isAdmin, matchController.registerSetWin);
-router.post('/matches/:id/legs', authMiddleware, isAdmin, matchController.registerLegWin);
+router.put('/matches/:id/score', authMiddleware, isAdmin, matchController.updateMatchScore);
 router.post('/matches/:id/result', authMiddleware, isAdmin, matchController.setMatchResult);
 
 // Bracket routes

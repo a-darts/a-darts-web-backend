@@ -120,7 +120,7 @@ export class Match {
         this.matchScore = this.matchScore.addWinLeg(position);
     }
 
-    public setFinalScore(p1Sets: number, p1Legs: number, p2Sets: number, p2Legs: number): void {
+    public setScore(p1Sets: number, p1Legs: number, p2Sets: number, p2Legs: number): void {
         this.matchScore = new MatchScore(
             new ParticipantScore(p1Sets, p1Legs),
             new ParticipantScore(p2Sets, p2Legs)

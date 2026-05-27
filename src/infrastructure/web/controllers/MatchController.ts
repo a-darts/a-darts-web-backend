@@ -7,8 +7,6 @@ import { MatchAlreadyFinishedException, MatchBoardNumberRequiredException, Match
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { GetMatchById } from '../../../application/services/tournament/matches/GetMatchById.js';
 import { StartMatch } from '../../../application/services/tournament/matches/status/StartMatch.js';
-import { RegisterLegWin } from '../../../application/services/tournament/matches/RegisterLegWin.js';
-import { RegisterSetWin } from '../../../application/services/tournament/matches/RegisterSetWin.js';
 import { FinishMatch } from '../../../application/services/tournament/matches/status/FinishMatch.js';
 import { CancelMatch } from '../../../application/services/tournament/matches/status/CancelMatch.js';
 import { SuspendMatch } from '../../../application/services/tournament/matches/status/SuspendMatch.js';
@@ -22,6 +20,7 @@ import { PrismaPlayingAreaRepository } from '../../persistence/repositories/Pris
 import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { SingleEliminationMatchGenerator } from '../../../domain/services/SingleEliminationMatchGenerator.js';
 import { SetMatchBoardNumber } from '../../../application/services/tournament/matches/SetMatchBoardNumber.js';
+import { UpdateMatchScore } from '../../../application/services/tournament/matches/UpdateMatchScore.js';
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
@@ -38,9 +37,8 @@ const cancelMatch = new CancelMatch(matchRepository);
 const suspendMatch = new SuspendMatch(matchRepository);
 const resumeMatch = new ResumeMatch(matchRepository);
 const setMatchBoardNumber = new SetMatchBoardNumber(matchRepository, playingAreaRepository);
-const registerLegWin = new RegisterLegWin(matchRepository);
-const registerSetWin = new RegisterSetWin(matchRepository);
 const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, playingAreaRepository, matchGenerator, globalEventBus);
+const updateMatchScore = new UpdateMatchScore(matchRepository);
 
 
 /**
@@ -1157,9 +1155,9 @@ export class MatchController {
 
   /**
    * @swagger
-   * /api/matches/{id}/sets:
-   *   post:
-   *     summary: Update match sets won by participant id
+   * /api/matches/{id}/score:
+   *   put:
+   *     summary: Update the current match score
    *     tags: [Matches]
    *     security:
    *       - bearerAuth: []
@@ -1176,10 +1174,24 @@ export class MatchController {
    *       content:
    *         application/json:
    *           schema:
-   *             $ref: '#/components/schemas/RegisterSetWinRequest'
+   *             type: object
+   *             required:
+   *               - p1Sets
+   *               - p1Legs
+   *               - p2Sets
+   *               - p2Legs
+   *             properties:
+   *               p1Sets:
+   *                 type: number
+   *               p1Legs:
+   *                 type: number
+   *               p2Sets:
+   *                 type: number
+   *               p2Legs:
+   *                 type: number
    *     responses:
    *       200:
-   *         description: Set win registered successfully
+   *         description: Match score updated successfully
    *         content:
    *           application/json:
    *             schema:
@@ -1190,7 +1202,6 @@ export class MatchController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Set win registered updated successfully
    *                 data:
    *                   type: string
    *                   example: null
@@ -1246,19 +1257,6 @@ export class MatchController {
    *                 message:
    *                   type: string
    *                   example: Match not found
-   *       409:
-   *         description: Conflict
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Participant not found in this match
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1273,41 +1271,52 @@ export class MatchController {
    *                   type: string
    *                   example: Internal server error
    */
-  async registerSetWin(req: AuthRequest, res: Response) {
+  async updateMatchScore(req: AuthRequest, res: Response) {
     try {
       const id = req.params.id;
-      if (!id || typeof id !== 'string') {
+      const { p1Sets, p1Legs, p2Sets, p2Legs } = req.body;
+
+      if (id === undefined || p1Sets === undefined || p1Legs === undefined || p2Sets === undefined || p2Legs === undefined) {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const { participantId } = req.body;
-      if (!participantId) {
-        throw new MissingRequiredUserFieldsException();
+      if (
+        typeof id !== 'string' ||
+        typeof p1Sets !== 'number' ||
+        typeof p1Legs !== 'number' ||
+        typeof p2Sets !== 'number' ||
+        typeof p2Legs !== 'number'
+      ) {
+        throw new InvalidUserFieldsException();
       }
 
-      await registerSetWin.execute({
+      await updateMatchScore.execute({
         id: id,
-        participantId: participantId,
+        participant1Sets: p1Sets,
+        participant1Legs: p1Legs,
+        participant2Sets: p2Sets,
+        participant2Legs: p2Legs,
       });
       res.status(200).json(
-        ApiResponseBuilder.success(null, 'Set win registered successfully')
+        ApiResponseBuilder.success(
+          null,
+          'Match score updated successfully',
+        )
       );
     } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
+      if (
+        error instanceof MissingRequiredUserFieldsException ||
+        error instanceof InvalidUserFieldsException
+      ) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof MatchNotFoundException) {
-        return res.status(404).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
       if (
-        error instanceof ParticipantNotFoundInMatchException ||
-        error instanceof MatchNotInProgressException
+        error instanceof MatchNotFoundException ||
+        error instanceof BracketNotFoundException
       ) {
-        return res.status(409).json(
+        return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );
       }
@@ -1318,169 +1327,6 @@ export class MatchController {
     }
   }
 
-
-  /**
-   * @swagger
-   * /api/matches/{id}/legs:
-   *   post:
-   *     summary: Update match legs won by participant id
-   *     tags: [Matches]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - name: id
-   *         in: path
-   *         required: true
-   *         description: Match ID
-   *         schema:
-   *           type: string
-   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/RegisterLegWinRequest'
-   *     responses:
-   *       200:
-   *         description: Leg win registered successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Leg win registered updated successfully
-   *                 data:
-   *                   type: string
-   *                   example: null
-   *       400:
-   *         description: Bad Request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: All fields are required
-   *       401:
-   *         description: Unauthorized
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: No token provided
-   *       403:
-   *         description: Forbidden
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: You do not have permission to perform this action
-   *       404:
-   *         description: Not Found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Match not found
-   *       409:
-   *         description: Conflict
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Participant not found in this match
-   *       500:
-   *         description: Internal Server Error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Internal server error
-   */
-  async registerLegWin(req: AuthRequest, res: Response) {
-    try {
-      const id = req.params.id;
-      if (!id || typeof id !== 'string') {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      const { participantId } = req.body;
-      if (!participantId) {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      await registerLegWin.execute({
-        id: id,
-        participantId: participantId,
-      });
-      res.status(200).json(
-        ApiResponseBuilder.success(null, 'Leg win registered successfully')
-      );
-    } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
-        return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (error instanceof MatchNotFoundException) {
-        return res.status(404).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (
-        error instanceof ParticipantNotFoundInMatchException ||
-        error instanceof MatchNotInProgressException
-      ) {
-        return res.status(409).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      console.error('[ERROR]:', error);
-      res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
-      );
-    }
-  }
 
   /**
    * @swagger
