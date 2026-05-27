@@ -33,12 +33,12 @@ export class SetMatchBoardNumber {
     await this.playingAreaRepository.update(playingArea);
 
     // 5. Notify the board via socket
-    const boardId = playingArea.findBoardByNumber(request.boardNumber).getId();
+    const boardShortId = playingArea.findBoardByNumber(request.boardNumber).getShortId();
 
-    await MatchStateCache.setActiveMatchForBoard(boardId, request.id);
+    await MatchStateCache.setActiveMatchForBoard(boardShortId, request.id);
 
-    console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardId} with matchId: ${request.id}`);
-    const roomName = `room_board_${boardId}`;
+    console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardShortId} with matchId: ${request.id}`);
+    const roomName = `room_board_${boardShortId}`;
     getSocketServer().to(roomName).emit('match_assigned', { matchId: request.id });
 
     // MIRAR: notificar si se ha desasignado el partido de la diana previa via socket

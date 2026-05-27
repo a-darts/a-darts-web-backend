@@ -29,9 +29,9 @@ export class StartMatch {
     if (playingArea) {
       try {
         const board = await playingArea.findBoardByMatchId(id);
-        const boardId = board.getId();
-        console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardId} with matchId: ${id}`);
-        const roomName = `room_board_${boardId}`;
+        const boardShortId = board.getId();
+        console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardShortId} with matchId: ${id}`);
+        const roomName = `room_board_${boardShortId}`;
         console.log(`[StartMatch] Sending match_started to ${roomName} with matchId: ${id}`);
         getSocketServer().to(roomName).emit('match_started', { matchId: id });
       } catch (error) {

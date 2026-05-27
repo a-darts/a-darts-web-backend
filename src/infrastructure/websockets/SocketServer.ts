@@ -15,13 +15,13 @@ export const initializeSocketServer = (server: HttpServer): void => {
     io.on('connection', (socket: Socket) => {
         console.log(`Client connected: ${socket.id}`);
 
-        socket.on('join_board', async (boardId: string) => {
-            const roomName = `room_board_${boardId}`;
+        socket.on('join_board', async (boardShortId: string) => {
+            const roomName = `room_board_${boardShortId}`;
             await socket.join(roomName);
             console.log(`[SocketServer] Client ${socket.id} successfully joined ${roomName}`);
 
             try {
-                const matchId = await MatchStateCache.getActiveMatchForBoard(boardId);
+                const matchId = await MatchStateCache.getActiveMatchForBoard(boardShortId);
                 if (matchId) {
                     // Recuperamos todo el historial de tiradas acumuladas
                     const status = await MatchStateCache.getMatchStatus(matchId);
@@ -36,13 +36,13 @@ export const initializeSocketServer = (server: HttpServer): void => {
                     }
                 }
             } catch (error) {
-                console.error(`[SocketServer] Error al verificar partido activo en la diana ${boardId}:`, error);
+                console.error(`[SocketServer] Error al verificar partido activo en la diana ${boardShortId}:`, error);
             }
         });
 
-        socket.on('score_update', async (data: { boardId: string, matchId: string, throwData: any }) => {
-            const { boardId, matchId, throwData } = data;
-            console.log(`[SocketServer] Received score_update para matchId: ${matchId}`);
+        socket.on('score_update', async (data: { boardShortId: string, matchId: string, throwData: any }) => {
+            const { boardShortId, matchId, throwData } = data;
+            console.log(`[SocketServer] Received score_update para matchId: ${matchId} y boardShortId: ${boardShortId}`);
             console.log(`[SocketServer] ${throwData.score}, ${throwData.status}, activeIndex: ${throwData.activePlayerIndex}, throwerIndex: ${throwData.throwerPlayerIndex}, ${throwData.participant1.remainingScore}, ${throwData.participant2.remainingScore}`);
 
             try {
@@ -50,7 +50,7 @@ export const initializeSocketServer = (server: HttpServer): void => {
                 await MatchStateCache.addThrow(matchId, throwData);
 
                 // Retransmitimos a la web el último tiro
-                const roomName = `room_board_${boardId}`;
+                const roomName = `room_board_${boardShortId}`;
                 socket.to(roomName).emit('score_update', {
                     matchId,
                     throwData,
@@ -60,8 +60,8 @@ export const initializeSocketServer = (server: HttpServer): void => {
             }
         });
 
-        socket.on('score_undo', async (data: { boardId: string, matchId: string }) => {
-            const { boardId, matchId } = data;
+        socket.on('score_undo', async (data: { boardShortId: string, matchId: string }) => {
+            const { boardShortId, matchId } = data;
             console.log(`[SocketServer] Received score_undo para matchId: ${matchId}`);
 
             try {
@@ -72,7 +72,7 @@ export const initializeSocketServer = (server: HttpServer): void => {
                 const remainingThrows = await MatchStateCache.getThrows(matchId);
 
                 // 3. Retransmitimos a la sala web el evento informando el nuevo historial
-                const roomName = `room_board_${boardId}`;
+                const roomName = `room_board_${boardShortId}`;
                 socket.to(roomName).emit('score_undo_confirmed', {
                     matchId,
                     historyThrows: remainingThrows
@@ -82,8 +82,8 @@ export const initializeSocketServer = (server: HttpServer): void => {
             }
         });
 
-        socket.on('score_edit', async (data: { boardId: string, matchId: string, historyThrows: any[] }) => {
-            const { boardId, matchId, historyThrows } = data;
+        socket.on('score_edit', async (data: { boardShortId: string, matchId: string, historyThrows: any[] }) => {
+            const { boardShortId, matchId, historyThrows } = data;
             console.log(`[SocketServer] Recibida edición de tiro para matchId: ${matchId}. Reconstruyendo caché...`);
             console.log("HistoryThrows:", historyThrows);
             try {
@@ -99,7 +99,7 @@ export const initializeSocketServer = (server: HttpServer): void => {
                 await MatchStateCache.rebuildHistory(matchId, historyThrows);
 
                 // 3. Retransmitimos a la sala de la diana
-                const roomName = `room_board_${boardId}`;
+                const roomName = `room_board_${boardShortId}`;
                 io.to(roomName).emit('score_edit_confirmed', {
                     matchId,
                     throwData: latestThrow,

@@ -42,8 +42,8 @@ export class MatchStateCache {
     /**
      * Vincula un partido activo a una diana específica
      */
-    static async setActiveMatchForBoard(boardId: string, matchId: string): Promise<void> {
-        const key = `board:${boardId}:active_match`;
+    static async setActiveMatchForBoard(boardShortId: string, matchId: string): Promise<void> {
+        const key = `board:${boardShortId}:active_match`;
         await redis.set(key, matchId);
         await redis.expire(key, 60 * 60 * 24); // 24 horas de seguridad
     }
@@ -51,8 +51,8 @@ export class MatchStateCache {
     /**
      * Recupera el ID del partido activo asignado a una diana
      */
-    static async getActiveMatchForBoard(boardId: string): Promise<string | null> {
-        const key = `board:${boardId}:active_match`;
+    static async getActiveMatchForBoard(boardShortId: string): Promise<string | null> {
+        const key = `board:${boardShortId}:active_match`;
         return await redis.get(key);
     }
 
@@ -80,15 +80,15 @@ export class MatchStateCache {
     /**
      * Borra los datos del partido cuando termina
      */
-    static async clearMatch(matchId: string, boardId?: string): Promise<void> {
+    static async clearMatch(matchId: string, boardShortId?: string): Promise<void> {
         const throwsKey = `match:${matchId}:throws`;
         const statusKey = `match:${matchId}:status`;
 
         await redis.del(throwsKey);
         await redis.del(statusKey);
 
-        if (boardId) {
-            const boardKey = `board:${boardId}:active_match`;
+        if (boardShortId) {
+            const boardKey = `board:${boardShortId}:active_match`;
             await redis.del(boardKey);
         }
     }
