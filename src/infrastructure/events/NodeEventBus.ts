@@ -11,6 +11,11 @@ export class NodeEventBus implements EventBus {
         }
     }
 
+    public subscribe(eventClass: new (...args: any[]) => IDomainEvent, listener: (event: any) => void): void {
+        const eventName = eventClass.prototype.getEventName?.() ?? eventClass.name;
+        this.emitter.on(eventName, listener);
+    }
+
     public register(eventName: string, listener: (event: any) => void): void {
         this.emitter.on(eventName, listener);
     }
