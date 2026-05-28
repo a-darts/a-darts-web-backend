@@ -94,6 +94,14 @@ export class MatchStateCache {
     }
 
     /**
+     * Libera una diana eliminando su vinculación con cualquier partido activo
+     */
+    static async clearBoardActiveMatch(boardShortId: string): Promise<void> {
+        const boardKey = `board:${boardShortId}:active_match`;
+        await redis.del(boardKey);
+    }
+
+    /**
      * Vacía el historial viejo de tiradas de un match en Redis y guarda el nuevo listado corregido
      */
     static async rebuildHistory(matchId: string, newHistory: any[]): Promise<void> {
