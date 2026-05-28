@@ -1,11 +1,11 @@
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
-import { BracketRepository } from '../../../../domain/repositories/BracketRepository.js';
+import { IBracketRepository } from '../../../../domain/repositories/IBracketRepository.js';
 import { TournamentRepository } from '../../../../domain/repositories/TournamentRepository.js';
 
 export class OpenRegistration {
     constructor(
         private readonly tournamentRepository: TournamentRepository,
-        private readonly bracketRepository: BracketRepository,
+        private readonly bracketRepository: IBracketRepository,
     ) { }
 
     public async execute(id: string): Promise<void> {

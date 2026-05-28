@@ -1,4 +1,4 @@
-import { BracketRepository } from "../../domain/repositories/BracketRepository.js";
+import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
 import { MatchRepository } from "../../domain/repositories/MatchRepository.js";
 import { TournamentResultRepository } from "../../domain/repositories/TournamentResultRepository.js";
 import { TournamentFinishedEvent } from "../../domain/events/TournamentFinishedEvent.js";
@@ -8,7 +8,7 @@ export class CalculateResultsOnTournamentFinished {
     private calculateService: CalculateTournamentResultsService;
 
     constructor(
-        private readonly bracketRepository: BracketRepository,
+        private readonly bracketRepository: IBracketRepository,
         private readonly matchRepository: MatchRepository,
         private readonly tournamentResultRepository: TournamentResultRepository,
     ) {

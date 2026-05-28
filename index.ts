@@ -2,16 +2,6 @@ import 'dotenv/config';
 import http from 'http';
 import app from './app.js';
 import { prisma } from './src/infrastructure/persistence/client.js';
-import { UpdateMatchScore } from './src/application/services/tournament/matches/UpdateMatchScore.js';
-import { PrismaMatchRepository } from './src/infrastructure/persistence/repositories/PrismaMatchRepository.js';
-import { FinishMatch } from './src/application/services/tournament/matches/status/FinishMatch.js';
-import { PrismaUnitOfWork } from './src/infrastructure/persistence/PrismaUnitOfWork.js';
-import { PrismaBracketRepository } from './src/infrastructure/persistence/repositories/PrismaBracketRepository.js';
-import { PrismaPlayingAreaRepository } from './src/infrastructure/persistence/repositories/PrismaPlayingAreaRepository.js';
-import { SingleEliminationMatchGenerator } from './src/domain/services/SingleEliminationMatchGenerator.js';
-import { globalEventBus } from './src/infrastructure/events/eventBusInstance.js';
-import { SocketController } from './src/infrastructure/websockets/SocketController.js';
-import { initializeSocketServer } from './src/infrastructure/websockets/SocketServer.js';
 import { SocketFactory } from './src/infrastructure/websockets/SocketFactory.js';
 
 const PORT = process.env.PORT || 3000;

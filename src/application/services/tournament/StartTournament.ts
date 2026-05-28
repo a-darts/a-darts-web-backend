@@ -1,6 +1,6 @@
 import { BracketNotFoundException, BracketUnfinishedException } from '../../../domain/exceptions/BracketExceptions.js';
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
-import { BracketRepository } from '../../../domain/repositories/BracketRepository.js';
+import { IBracketRepository } from '../../../domain/repositories/IBracketRepository.js';
 import { MatchRepository } from '../../../domain/repositories/MatchRepository.js';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
 import { UnitOfWork } from '../../../domain/repositories/UnitOfWork.js';
@@ -10,7 +10,7 @@ export class StartTournament {
   constructor(
     private readonly unitOfWork: UnitOfWork,
     private readonly tournamentRepository: TournamentRepository,
-    private readonly bracketRepository: BracketRepository,
+    private readonly bracketRepository: IBracketRepository,
     private readonly matchRepository: MatchRepository,
     private readonly matchGenerator: SingleEliminationMatchGenerator,
   ) { }

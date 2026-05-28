@@ -1,6 +1,6 @@
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
-import { BracketRepository } from '../../../domain/repositories/BracketRepository.js';
+import { IBracketRepository } from '../../../domain/repositories/IBracketRepository.js';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
 import { BracketResponseDTO } from '../../dtos/bracket/BracketDTOs.js';
 import { BracketMapper } from '../../dtos/bracket/BracketMapper.js';
@@ -8,7 +8,7 @@ import { BracketMapper } from '../../dtos/bracket/BracketMapper.js';
 export class GetTournamentBracket {
   constructor(
     private readonly tournamentRepository: TournamentRepository,
-    private readonly bracketRepository: BracketRepository,
+    private readonly bracketRepository: IBracketRepository,
   ) { }
 
   public async execute(id: string): Promise<BracketResponseDTO> {

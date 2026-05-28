@@ -2,7 +2,7 @@ import { EventBus } from '../../../../domain/events/EventBus.js';
 import { BracketNotFoundException } from '../../../../domain/exceptions/BracketExceptions.js';
 import { MatchNotFoundException, MatchNotInProgressException } from '../../../../domain/exceptions/MatchExceptions.js';
 import { SingleEliminationMatchGenerator } from '../../../../domain/services/SingleEliminationMatchGenerator.js';
-import { BracketRepository } from '../../../../domain/repositories/BracketRepository.js';
+import { IBracketRepository } from '../../../../domain/repositories/IBracketRepository.js';
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
 import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
 import { SetMatchResultRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
@@ -15,7 +15,7 @@ export class SetMatchResultAndPromote {
   constructor(
     private readonly unitOfWork: UnitOfWork,
     private readonly matchRepository: MatchRepository,
-    private readonly bracketRepository: BracketRepository,
+    private readonly bracketRepository: IBracketRepository,
     private readonly playingAreaRepository: PlayingAreaRepository,
     private readonly matchCacheRepository: MatchCacheRepository,
     private readonly matchGenerator: SingleEliminationMatchGenerator,

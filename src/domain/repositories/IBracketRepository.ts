@@ -1,6 +1,6 @@
 import { Bracket } from '../entities/Bracket.js';
 
-export interface BracketRepository {
+export interface IBracketRepository {
   create(bracket: Bracket): Promise<void>;
   update(bracket: Bracket): Promise<void>;
   delete(id: string): Promise<void>;

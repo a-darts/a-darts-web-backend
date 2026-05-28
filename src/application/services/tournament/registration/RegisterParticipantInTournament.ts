@@ -3,7 +3,7 @@ import { ParticipantAlreadyRegisteredException } from '../../../../domain/except
 import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from '../../../../domain/exceptions/PlayerExceptions.js';
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
 import { UserNotFoundException } from '../../../../domain/exceptions/UserExceptions.js';
-import { BracketRepository } from '../../../../domain/repositories/BracketRepository.js';
+import { IBracketRepository } from '../../../../domain/repositories/IBracketRepository.js';
 import { PlayerRepository } from '../../../../domain/repositories/PlayerRepository.js';
 import { RegisteredParticipantRepository } from '../../../../domain/repositories/RegisteredParticipantRepository.js';
 import { TournamentRepository } from '../../../../domain/repositories/TournamentRepository.js';
@@ -14,7 +14,7 @@ import { RegisterParticipantInTournamentRequestDTO } from '../../../dtos/tournam
 export class RegisterParticipantInTournament {
     constructor(
         private readonly tournamentRepository: TournamentRepository,
-        private readonly bracketRepository: BracketRepository,
+        private readonly bracketRepository: IBracketRepository,
         private readonly registeredParticipantRepository: RegisteredParticipantRepository,
         private readonly playerRepository: PlayerRepository,
         private readonly userRepository: UserRepository,

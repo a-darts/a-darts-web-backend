@@ -38,8 +38,6 @@ import { CloseRegistration } from '../../../application/services/tournament/regi
 import { GetTournamentBracket } from '../../../application/services/tournament/GetTournamentBracket.js';
 import { UserRoles } from '../../../domain/entities/User.js';
 import { GetUnregisteredPlayersByTournamentId } from '../../../application/services/tournament/GetUnregisteredPlayersByTournamentId.js';
-import { CreateBracketAutomatically } from '../../../application/services/bracket/CreateBracketAutomatically.js';
-import { CreateBracketManually } from '../../../application/services/bracket/CreateBracketManually.js';
 import { BracketStatus } from '@prisma/client';
 import { PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
@@ -50,6 +48,14 @@ import { PrismaTournamentResultRepository } from '../../persistence/repositories
 import { TournamentResultNotFoundException } from '../../../domain/exceptions/TournamentResultException.js';
 import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
 import { SingleEliminationMatchGenerator } from '../../../domain/services/SingleEliminationMatchGenerator.js';
+import BracketServiceFactory from '../../factories/BracketServiceFactory.js';
+
+
+
+const bracketService = BracketServiceFactory.getInstance();
+
+
+
 
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
@@ -85,8 +91,6 @@ const doCheckInParticipant = new DoCheckInParticipant(tournamentRepository, regi
 const undoCheckInParticipant = new UndoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
 const getMatchesByTournamentId = new GetMatchesByTournamentId(tournamentRepository, matchRepository);
-const createBracketAutomatically = new CreateBracketAutomatically(unitOfWork, bracketRepository, tournamentRepository, registeredParticipantRepository, seedingService);
-const createBracketManually = new CreateBracketManually(unitOfWork, bracketRepository, tournamentRepository, seedingService);
 const getTournamentBracket = new GetTournamentBracket(tournamentRepository, bracketRepository);
 const getUnregisteredPlayersByTournamentId = new GetUnregisteredPlayersByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository);
 const getTournamentPlayingArea = new GetTournamentPlayingArea(tournamentRepository, playingAreaRepository);
@@ -3313,7 +3317,7 @@ export class TournamentController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const bracket = await createBracketAutomatically.execute({
+      const bracket = await bracketService.createAutomatically({
         id: id,
       });
       res.status(201).json(
@@ -3472,7 +3476,7 @@ export class TournamentController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const bracket = await createBracketManually.execute({
+      const bracket = await bracketService.createManually({
         id: id,
       });
       res.status(201).json(

@@ -1,12 +1,12 @@
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
-import { BracketRepository } from '../../../../domain/repositories/BracketRepository.js';
+import { IBracketRepository } from '../../../../domain/repositories/IBracketRepository.js';
 import { TournamentRepository } from '../../../../domain/repositories/TournamentRepository.js';
 import { UpdateTournamentRegistrationPeriodRequestDTO } from '../../../dtos/tournament/TournamentDTOs.js';
 
 export class UpdateTournamentRegistrationPeriod {
     constructor(
         private readonly tournamentRepository: TournamentRepository,
-        private readonly bracketRepository: BracketRepository,
+        private readonly bracketRepository: IBracketRepository,
     ) { }
 
     public async execute(request: UpdateTournamentRegistrationPeriodRequestDTO): Promise<void> {

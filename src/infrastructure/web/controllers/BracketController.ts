@@ -1,30 +1,22 @@
 import { Response } from 'express';
 import { ApiResponseBuilder } from "../../../application/dtos/common/ApiResponse.js";
-import { BracketAlreadyFinishedException, BracketInProgressException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotPublishedException, DuplicateParticipantsException, InvalidPositionsException } from "../../../domain/exceptions/BracketExceptions.js";
+import {
+    BracketAlreadyFinishedException,
+    BracketInProgressException,
+    BracketNotFoundException,
+    BracketNotInDraftException,
+    BracketNotInDraftOrPublisedException,
+    BracketNotPublishedException,
+    DuplicateParticipantsException,
+    InvalidPositionsException,
+} from "../../../domain/exceptions/BracketExceptions.js";
 import { MissingRequiredUserFieldsException } from "../../../domain/exceptions/UserExceptions.js";
-import { prisma } from "../../persistence/client.js";
-import { PrismaBracketRepository } from "../../persistence/repositories/PrismaBracketRepository.js";
 import { AuthRequest } from "../middlewares/authMiddleware.js";
-import { ReshuffleBracket } from '../../../application/services/bracket/ReshuffleBracket.js';
-import { PublishBracket } from '../../../application/services/bracket/PublishBracket.js';
-import { UnpublishBracket } from '../../../application/services/bracket/UnpublishBracket.js';
-import { AssignParticipantsToBracketPositions } from '../../../application/services/bracket/AssignParticipantsToBracketPositions.js';
-import { PrismaRegisteredParticipantRepository } from '../../persistence/repositories/PrismaRegisteredParticipantRepository.js';
 import { RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
-import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
-import { DeleteBracket } from '../../../application/services/bracket/DeleteBracket.js';
+import BracketServiceFactory from '../../factories/BracketServiceFactory.js';
 
+const bracketService = BracketServiceFactory.getInstance();
 
-const bracketRepository = new PrismaBracketRepository(prisma);
-const registeredParticipantRepository = new PrismaRegisteredParticipantRepository(prisma);
-
-const seedingService = new BracketSeedingService();
-
-const assignParticipantsToBracketPositions = new AssignParticipantsToBracketPositions(bracketRepository, registeredParticipantRepository);
-const reshuffleBracket = new ReshuffleBracket(bracketRepository, seedingService);
-const publishBracket = new PublishBracket(bracketRepository);
-const unpublishBracket = new UnpublishBracket(bracketRepository);
-const deleteBracket = new DeleteBracket(bracketRepository);
 
 /**
  * @swagger
@@ -233,7 +225,7 @@ export class BracketController {
                 }
             }
 
-            await assignParticipantsToBracketPositions.execute({
+            await bracketService.assignParticipantToBracketPosition({
                 id: id,
                 newPositions: newPositions.map(item => ({
                     position: item.position,
@@ -398,7 +390,7 @@ export class BracketController {
                 throw new MissingRequiredUserFieldsException();
             }
 
-            const bracket = await reshuffleBracket.execute({
+            const bracket = await bracketService.reshuffle({
                 id: id,
             });
             res.status(200).json(
@@ -550,7 +542,7 @@ export class BracketController {
                 throw new MissingRequiredUserFieldsException();
             }
 
-            await publishBracket.execute(id);
+            await bracketService.publish(id);
             res.status(200).json(
                 ApiResponseBuilder.success(
                     null,
@@ -701,7 +693,7 @@ export class BracketController {
                 throw new MissingRequiredUserFieldsException();
             }
 
-            await unpublishBracket.execute(id);
+            await bracketService.unpublish(id);
             res.status(200).json(
                 ApiResponseBuilder.success(
                     null,
@@ -852,7 +844,7 @@ export class BracketController {
                 throw new MissingRequiredUserFieldsException();
             }
 
-            await deleteBracket.execute(id);
+            await bracketService.delete(id);
             res.status(200).json(
                 ApiResponseBuilder.success(
                     null,

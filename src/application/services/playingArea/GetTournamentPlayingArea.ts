@@ -1,11 +1,7 @@
-import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
 import { PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
-import { BracketRepository } from '../../../domain/repositories/BracketRepository.js';
 import { PlayingAreaRepository } from '../../../domain/repositories/PlayingAreaRepository.js';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
-import { BracketResponseDTO } from '../../dtos/bracket/BracketDTOs.js';
-import { BracketMapper } from '../../dtos/bracket/BracketMapper.js';
 import { PlayingAreaResponseDTO } from '../../dtos/playingArea/PlayingAreaDTOs.js';
 import { PlayingAreaMapper } from '../../dtos/playingArea/PlayingAreaMapper.js';
 

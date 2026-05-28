@@ -1,6 +1,6 @@
 import { RegisteredParticipantNotFoundException } from '../../../../domain/exceptions/ParticipantExceptions.js';
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
-import { BracketRepository } from '../../../../domain/repositories/BracketRepository.js';
+import { IBracketRepository } from '../../../../domain/repositories/IBracketRepository.js';
 import { RegisteredParticipantRepository } from '../../../../domain/repositories/RegisteredParticipantRepository.js';
 import { TournamentRepository } from '../../../../domain/repositories/TournamentRepository.js';
 import { UnregisterParticipantInTournamentRequestDTO } from '../../../dtos/tournament/TournamentDTOs.js';
@@ -9,7 +9,7 @@ import { UnregisterParticipantInTournamentRequestDTO } from '../../../dtos/tourn
 export class UnregisterParticipantFromTournament {
     constructor(
         private readonly tournamentRepository: TournamentRepository,
-        private readonly bracketRepository: BracketRepository,
+        private readonly bracketRepository: IBracketRepository,
         private readonly registeredParticipantRepository: RegisteredParticipantRepository,
     ) { }
 
