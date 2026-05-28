@@ -21,23 +21,25 @@ import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotFoundExc
 import { SingleEliminationMatchGenerator } from '../../../domain/services/SingleEliminationMatchGenerator.js';
 import { SetMatchBoardNumber } from '../../../application/services/tournament/matches/SetMatchBoardNumber.js';
 import { UpdateMatchScore } from '../../../application/services/tournament/matches/UpdateMatchScore.js';
+import { RedisMatchCacheRepository } from '../../persistence/repositories/RedisMatchCacheRepository.js';
 
 const unitOfWork = new PrismaUnitOfWork(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
 const bracketRepository = new PrismaBracketRepository(prisma);
 const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
+const matchCacheRepository = new RedisMatchCacheRepository();
 
 const matchGenerator = new SingleEliminationMatchGenerator();
 
 
 const getMatchById = new GetMatchById(matchRepository);
-const startMatch = new StartMatch(matchRepository, playingAreaRepository);
-const finishMatch = new FinishMatch(unitOfWork, matchRepository, bracketRepository, playingAreaRepository, matchGenerator, globalEventBus);
-const cancelMatch = new CancelMatch(matchRepository);
-const suspendMatch = new SuspendMatch(matchRepository, playingAreaRepository, globalEventBus);
-const resumeMatch = new ResumeMatch(matchRepository, playingAreaRepository, globalEventBus);
-const setMatchBoardNumber = new SetMatchBoardNumber(matchRepository, playingAreaRepository);
-const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, playingAreaRepository, matchGenerator, globalEventBus);
+const startMatch = new StartMatch(matchRepository, playingAreaRepository, matchCacheRepository);
+const finishMatch = new FinishMatch(unitOfWork, matchRepository, bracketRepository, playingAreaRepository, matchCacheRepository, matchGenerator, globalEventBus);
+const cancelMatch = new CancelMatch(matchRepository, matchCacheRepository);
+const suspendMatch = new SuspendMatch(matchRepository, playingAreaRepository, matchCacheRepository, globalEventBus);
+const resumeMatch = new ResumeMatch(matchRepository, playingAreaRepository, matchCacheRepository, globalEventBus);
+const setMatchBoardNumber = new SetMatchBoardNumber(matchRepository, playingAreaRepository, matchCacheRepository);
+const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, playingAreaRepository, matchCacheRepository, matchGenerator, globalEventBus);
 const updateMatchScore = new UpdateMatchScore(matchRepository);
 
 

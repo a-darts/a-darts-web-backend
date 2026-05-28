@@ -1,3 +1,5 @@
+import { IDomainEvent } from "../events/IDomainEvent.js";
+import { MatchFinishedEvent } from "../events/MatchEvents.js";
 import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchAlreadyFinishedException, ParticipantNotFoundInMatchException, MatchNotReadyException, MatchBoardNumberRequiredException } from "../exceptions/MatchExceptions.js";
 
 
@@ -28,6 +30,8 @@ export class Match {
     private matchScore: MatchScore;
 
     private readonly tournamentId: string;
+
+    private domainEvents: IDomainEvent[] = [];
 
 
     constructor(
@@ -190,6 +194,14 @@ export class Match {
 
         this.status = MatchStatus.FINISHED;
         this.finishedAt = new Date();
+
+        this.record(
+            new MatchFinishedEvent(
+                this.id,
+                this.boardNumber,
+                this.tournamentId,
+            )
+        );
     }
 
     public cancel() {
@@ -214,6 +226,20 @@ export class Match {
         }
 
         this.status = MatchStatus.IN_PROGRESS;
+    }
+
+
+    // --------------------------------------------------------------------
+    // DOMAIN EVENTS
+    // --------------------------------------------------------------------
+    public pullEvents(): IDomainEvent[] {
+        const events = [...this.domainEvents];
+        this.domainEvents = [];
+        return events;
+    }
+
+    protected record(event: IDomainEvent): void {
+        this.domainEvents.push(event);
     }
 
 

@@ -1,10 +1,13 @@
 import { MatchStatus } from '../../../../../domain/entities/Match.js';
 import { MatchNotFoundException } from '../../../../../domain/exceptions/MatchExceptions.js';
 import { MatchRepository } from '../../../../../domain/repositories/MatchRepository.js';
-import { MatchStateCache } from '../../../../../infrastructure/cache/MatchStateCache.js';
+import { MatchCacheRepository } from '../../../../../domain/repositories/MatchCacheRepository.js';
 
 export class CancelMatch {
-  constructor(private readonly matchRepository: MatchRepository) { }
+  constructor(
+    private readonly matchRepository: MatchRepository,
+    private readonly matchCacheRepository: MatchCacheRepository,
+  ) { }
 
   public async execute(id: string): Promise<void> {
     // 1. Rehydrate the match from the DB
@@ -20,6 +23,6 @@ export class CancelMatch {
     await this.matchRepository.update(match);
 
     // 4. Save the match status in Redis
-    await MatchStateCache.setMatchStatus(id, MatchStatus.CANCELLED);
+    await this.matchCacheRepository.setMatchStatus(id, MatchStatus.CANCELLED);
   }
 }

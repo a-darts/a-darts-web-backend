@@ -3,8 +3,7 @@ import { MatchNotFoundException } from '../../../../domain/exceptions/MatchExcep
 import { PlayingAreaNotFoundException } from '../../../../domain/exceptions/PlayingAreaExceptions.js';
 import { MatchRepository } from '../../../../domain/repositories/MatchRepository.js';
 import { PlayingAreaRepository } from '../../../../domain/repositories/PlayingAreaRepository.js';
-import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
-import { MatchStateCache } from '../../../../infrastructure/cache/MatchStateCache.js';
+import { MatchCacheRepository } from '../../../../domain/repositories/MatchCacheRepository.js';
 import { getSocketServer } from '../../../../infrastructure/websockets/SocketServer.js';
 import { SetMatchBoardNumberRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
 
@@ -12,6 +11,7 @@ export class SetMatchBoardNumber {
   constructor(
     private readonly matchRepository: MatchRepository,
     private readonly playingAreaRepository: PlayingAreaRepository,
+    private readonly matchCacheRepository: MatchCacheRepository,
   ) { }
 
   public async execute(request: SetMatchBoardNumberRequestDTO): Promise<void> {
@@ -47,7 +47,7 @@ export class SetMatchBoardNumber {
     // 6. Notify the old board about the unassignment
     if (oldBoard) {
       const oldBoardShortId = oldBoard.getShortId();
-      await MatchStateCache.clearBoardActiveMatch(oldBoardShortId);
+      await this.matchCacheRepository.clearBoardActiveMatch(oldBoardShortId);
 
       console.log(`[ReleasePlayingAreaBoard] Sending match_unassigned to room_board_${oldBoardShortId} with matchId: ${request.id}`);
       const oldRoomName = `room_board_${oldBoardShortId}`;
@@ -56,10 +56,10 @@ export class SetMatchBoardNumber {
 
     // 7. Notify the board about the new match assignment
     const boardShortId = playingArea.findBoardByNumber(request.boardNumber).getShortId();
-    await MatchStateCache.setActiveMatchForBoard(boardShortId, request.id);
+    await this.matchCacheRepository.setActiveMatchForBoard(boardShortId, request.id);
     
-    const status = await MatchStateCache.getMatchStatus(request.id);
-    const historyThrows = await MatchStateCache.getThrows(request.id);
+    const status = await this.matchCacheRepository.getMatchStatus(request.id);
+    const historyThrows = await this.matchCacheRepository.getThrows(request.id);
 
     const roomName = `room_board_${boardShortId}`;
     

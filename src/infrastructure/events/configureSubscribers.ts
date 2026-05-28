@@ -8,6 +8,8 @@ import { PrismaTournamentResultRepository } from '../persistence/repositories/Pr
 import { FinishTournamentOnBracketFinished } from '../../application/subscribers/FinishTournamentOnBracketFinished.js';
 import { DeletePlayingAreaOnTournamentFinished } from '../../application/subscribers/DeletePlayingAreaOnTournamentFinished.js';
 import { CalculateResultsOnTournamentFinished } from '../../application/subscribers/CalculateResultsOnTournamentFinished.js';
+import { UpdateCacheOnMatchFinished } from '../../application/subscribers/UpdateCacheOnMatchFinished.js';
+import { RedisMatchCacheRepository } from '../persistence/repositories/RedisMatchCacheRepository.js';
 
 export function configureSubscribers(eventBus: NodeEventBus): void {
     const tournamentRepository = new PrismaTournamentRepository(prisma);
@@ -15,18 +17,24 @@ export function configureSubscribers(eventBus: NodeEventBus): void {
     const bracketRepository = new PrismaBracketRepository(prisma);
     const matchRepository = new PrismaMatchRepository(prisma);
     const tournamentResultRepository = new PrismaTournamentResultRepository(prisma);
+    const matchCacheRepository = new RedisMatchCacheRepository();
     
     const finishTournamentOnBracketFinished = new FinishTournamentOnBracketFinished(tournamentRepository, eventBus);
     const deletePlayingAreaOnTournamentFinished = new DeletePlayingAreaOnTournamentFinished(playingAreaRepository);
     const calculateResultsOnTournamentFinished = new CalculateResultsOnTournamentFinished(bracketRepository, matchRepository, tournamentResultRepository);
+    const updateCacheOnMatchFinished = new UpdateCacheOnMatchFinished(matchCacheRepository);
 
     // Registramos todos los eventos globales aquí
-    eventBus.register('tournament.bracket.finished', async (event) => {
+    eventBus.register('bracket.finished', async (event) => {
         await finishTournamentOnBracketFinished.on(event);
     });
 
     eventBus.register('tournament.finished', async (event) => {
         await deletePlayingAreaOnTournamentFinished.on(event);
         await calculateResultsOnTournamentFinished.on(event);
+    });
+
+    eventBus.register('match.finished', async (event) => {
+        await updateCacheOnMatchFinished.on(event);
     });
 }

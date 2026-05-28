@@ -1,12 +1,13 @@
 import { Redis } from 'ioredis';
+import { MatchCacheRepository } from '../../../domain/repositories/MatchCacheRepository.js';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
-export class MatchStateCache {
+export class RedisMatchCacheRepository implements MatchCacheRepository {
     /**
      * Guarda una tirada en la lista de tiradas del partido
      */
-    static async addThrow(matchId: string, throwData: any): Promise<void> {
+    public async addThrow(matchId: string, throwData: any): Promise<void> {
         const key = `match:${matchId}:throws`;
         await redis.rpush(key, JSON.stringify(throwData));
         // Opcional: configurar un TTL para que no viva eternamente si falla el borrado
@@ -16,7 +17,7 @@ export class MatchStateCache {
     /**
      * Elimina y retorna la última tirada de la lista de Redis (Undo)
      */
-    static async removeLastThrow(matchId: string): Promise<any | null> {
+    public async removeLastThrow(matchId: string): Promise<any | null> {
         const key = `match:${matchId}:throws`;
         const lastThrow = await redis.rpop(key); // RPOP remueve y devuelve el último elemento
 
@@ -25,7 +26,7 @@ export class MatchStateCache {
         try {
             return JSON.parse(lastThrow);
         } catch (error) {
-            console.error(`[MatchStateCache] Error al parsear tirada eliminada ${matchId}:`, error);
+            console.error(`[RedisMatchCacheRepository] Error al parsear tirada eliminada ${matchId}:`, error);
             return null;
         }
     }
@@ -33,7 +34,7 @@ export class MatchStateCache {
     /**
      * Recupera todas las tiradas de un partido
      */
-    static async getThrows(matchId: string): Promise<any[]> {
+    public async getThrows(matchId: string): Promise<any[]> {
         const key = `match:${matchId}:throws`;
         const data = await redis.lrange(key, 0, -1);
         return data.map(item => JSON.parse(item));
@@ -42,7 +43,7 @@ export class MatchStateCache {
     /**
      * Vincula un partido activo a una diana específica
      */
-    static async setActiveMatchForBoard(boardShortId: string, matchId: string): Promise<void> {
+    public async setActiveMatchForBoard(boardShortId: string, matchId: string): Promise<void> {
         const key = `board:${boardShortId}:active_match`;
         await redis.set(key, matchId);
         await redis.expire(key, 60 * 60 * 24); // 24 horas de seguridad
@@ -51,7 +52,7 @@ export class MatchStateCache {
     /**
      * Recupera el ID del partido activo asignado a una diana
      */
-    static async getActiveMatchForBoard(boardShortId: string): Promise<string | null> {
+    public async getActiveMatchForBoard(boardShortId: string): Promise<string | null> {
         const key = `board:${boardShortId}:active_match`;
         return await redis.get(key);
     }
@@ -59,7 +60,7 @@ export class MatchStateCache {
     /**
      * Recupera el último estado guardado del partido (la última tirada)
      */
-    static async getLastThrow(matchId: string): Promise<any | null> {
+    public async getLastThrow(matchId: string): Promise<any | null> {
         const key = `match:${matchId}:throws`;
 
         // Usamos el índice -1 para obtener el último elemento insertado eficientemente
@@ -72,7 +73,7 @@ export class MatchStateCache {
         try {
             return JSON.parse(lastThrow);
         } catch (error) {
-            console.error(`[MatchStateCache] Error al parsear el último estado del match ${matchId}:`, error);
+            console.error(`[RedisMatchCacheRepository] Error al parsear el último estado del match ${matchId}:`, error);
             return null;
         }
     }
@@ -80,7 +81,7 @@ export class MatchStateCache {
     /**
      * Borra los datos del partido cuando termina
      */
-    static async clearMatch(matchId: string, boardShortId?: string): Promise<void> {
+    public async clearMatch(matchId: string, boardShortId?: string): Promise<void> {
         const throwsKey = `match:${matchId}:throws`;
         const statusKey = `match:${matchId}:status`;
 
@@ -96,7 +97,7 @@ export class MatchStateCache {
     /**
      * Libera una diana eliminando su vinculación con cualquier partido activo
      */
-    static async clearBoardActiveMatch(boardShortId: string): Promise<void> {
+    public async clearBoardActiveMatch(boardShortId: string): Promise<void> {
         const boardKey = `board:${boardShortId}:active_match`;
         await redis.del(boardKey);
     }
@@ -104,11 +105,11 @@ export class MatchStateCache {
     /**
      * Vacía el historial viejo de tiradas de un match en Redis y guarda el nuevo listado corregido
      */
-    static async rebuildHistory(matchId: string, newHistory: any[]): Promise<void> {
+    public async rebuildHistory(matchId: string, newHistory: any[]): Promise<void> {
         const key = `match:${matchId}:throws`;
 
         if (!newHistory || newHistory.length === 0) {
-            console.warn(`[MatchStateCache] Intento de reconstrucción con historial vacío para matchId: ${matchId}. Abortando.`);
+            console.warn(`[RedisMatchCacheRepository] Intento de reconstrucción con historial vacío para matchId: ${matchId}. Abortando.`);
             return;
         }
 
@@ -135,12 +136,12 @@ export class MatchStateCache {
             // Validamos que ningún comando de la transacción haya fallado
             const hasErrors = results?.some(res => res[0] !== null);
             if (hasErrors) {
-                console.error(`[MatchStateCache] Errores en la transacción MULTI de rebuild para ${matchId}:`, results);
+                console.error(`[RedisMatchCacheRepository] Errores en la transacción MULTI de rebuild para ${matchId}:`, results);
             } else {
-                console.log(`[MatchStateCache] Caché reconstruida con éxito de forma atómica. ${newHistory.length} estados guardados para matchId: ${matchId}`);
+                console.log(`[RedisMatchCacheRepository] Caché reconstruida con éxito de forma atómica. ${newHistory.length} estados guardados para matchId: ${matchId}`);
             }
         } catch (error) {
-            console.error(`[MatchStateCache] Error crítico en rebuildHistory para matchId ${matchId}:`, error);
+            console.error(`[RedisMatchCacheRepository] Error crítico en rebuildHistory para matchId ${matchId}:`, error);
             throw error;
         }
     }
@@ -148,7 +149,7 @@ export class MatchStateCache {
     /**
      * Guarda el estado actual del partido (READY, IN_PROGRESS, etc.)
      */
-    static async setMatchStatus(matchId: string, status: string): Promise<void> {
+    public async setMatchStatus(matchId: string, status: string): Promise<void> {
         const key = `match:${matchId}:status`;
         await redis.set(key, status);
         await redis.expire(key, 60 * 60 * 24); // 24 horas de seguridad
@@ -157,7 +158,7 @@ export class MatchStateCache {
     /**
      * Recupera el estado actual del partido
      */
-    static async getMatchStatus(matchId: string): Promise<string | null> {
+    public async getMatchStatus(matchId: string): Promise<string | null> {
         const key = `match:${matchId}:status`;
         return await redis.get(key);
     }

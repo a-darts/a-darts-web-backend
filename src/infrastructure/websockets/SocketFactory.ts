@@ -12,6 +12,7 @@ import { SocketController } from './SocketController.js';
 import { initializeSocketServer } from './SocketServer.js';
 import { Server } from 'socket.io';
 import { MatchResumedEvent, MatchSuspendedEvent } from '../../domain/events/MatchEvents.js';
+import { RedisMatchCacheRepository } from '../persistence/repositories/RedisMatchCacheRepository.js';
 
 export class SocketFactory {
     static compose(server: HttpServer, prisma: PrismaClient): Server {
@@ -19,6 +20,7 @@ export class SocketFactory {
         const unitOfWork = new PrismaUnitOfWork(prisma);
         const bracketRepository = new PrismaBracketRepository(prisma);
         const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
+        const matchCacheRepository = new RedisMatchCacheRepository();
         const matchGenerator = new SingleEliminationMatchGenerator();
 
         const updateMatchScoreUseCase = new UpdateMatchScore(matchRepository);
@@ -27,6 +29,7 @@ export class SocketFactory {
             matchRepository,
             bracketRepository,
             playingAreaRepository,
+            matchCacheRepository,
             matchGenerator,
             globalEventBus,
         );
@@ -34,6 +37,7 @@ export class SocketFactory {
         const socketController = new SocketController(
             updateMatchScoreUseCase,
             finishMatchUseCase,
+            matchCacheRepository,
         );
 
         const io = initializeSocketServer(server, socketController);

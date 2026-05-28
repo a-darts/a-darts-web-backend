@@ -4,12 +4,7 @@ export enum GameModes {
     MEN_SINGLES = 'MEN_SINGLES',
     MIXED_SINGLES = 'MIXED_SINGLES',
     YOUTH_SINGLES = 'YOUTH_SINGLES',
-    PAIRS = 'PAIRS',
-    WOMEN_PAIRS = 'WOMEN_PAIRS',
-    MEN_PAIRS = 'MEN_PAIRS',
-    MIXED_PAIRS = 'MIXED_PAIRS',
-    YOUTH_PAIRS = 'YOUTH_PAIRS',
-    TEAMS = 'TEAMS',
+    OTHER = 'OTHER',
 }
 
 export enum ScheduleTypes {

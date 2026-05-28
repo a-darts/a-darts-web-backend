@@ -1,12 +1,13 @@
 import { Server, Socket } from 'socket.io';
-import { MatchStateCache } from '../cache/MatchStateCache.js';
+import { MatchCacheRepository } from '../../domain/repositories/MatchCacheRepository.js';
 import { UpdateMatchScore } from '../../application/services/tournament/matches/UpdateMatchScore.js';
 import { FinishMatch } from '../../application/services/tournament/matches/status/FinishMatch.js';
 
 export class SocketController {
     constructor(
         private updateMatchScoreUseCase: UpdateMatchScore,
-        private finishMatchUseCase: FinishMatch
+        private finishMatchUseCase: FinishMatch,
+        private matchCacheRepository: MatchCacheRepository,
     ) {}
 
     public handleConnection(socket: Socket, io: Server): void {
@@ -29,11 +30,11 @@ export class SocketController {
 
         try {
             // 1. Check if there's an active match for the board
-            const matchId = await MatchStateCache.getActiveMatchForBoard(boardShortId);
+            const matchId = await this.matchCacheRepository.getActiveMatchForBoard(boardShortId);
             if (matchId) {
                 // 1.1. If there's an active match, fetch the current status and history of throws
-                const status = await MatchStateCache.getMatchStatus(matchId);
-                const historyThrows = await MatchStateCache.getThrows(matchId);
+                const status = await this.matchCacheRepository.getMatchStatus(matchId);
+                const historyThrows = await this.matchCacheRepository.getThrows(matchId);
 
                 // 1.1.1. If the match is IN_PROGRESS, send the full history of throws
                 if (status === 'IN_PROGRESS') {
@@ -53,10 +54,10 @@ export class SocketController {
         const { boardShortId, matchId, throwData } = data;
         try {
             // 1. Fetch the last throw to compare if the score has actually changed
-            const lastThrow = await MatchStateCache.getLastThrow(matchId);
+            const lastThrow = await this.matchCacheRepository.getLastThrow(matchId);
 
             // 2. Save the current throw in Redis
-            await MatchStateCache.addThrow(matchId, throwData);
+            await this.matchCacheRepository.addThrow(matchId, throwData);
 
             // 3. Update the match score executing the use case only if there's a change in legs or sets won
             const hasScoreChanged = !lastThrow || 
@@ -77,7 +78,7 @@ export class SocketController {
             // 4. If the match is finished, execute the finish match use case and clear the cache
             if (throwData.status === 'FINISHED') {
                 await this.finishMatchUseCase.execute(matchId);
-                await MatchStateCache.clearMatch(matchId, boardShortId);
+                await this.matchCacheRepository.clearMatch(matchId, boardShortId);
             }
 
             // 5. Broadcast the score update to all clients in the same board room except the sender
@@ -92,10 +93,10 @@ export class SocketController {
         const { boardShortId, matchId } = data;
         try {
             // 1. Remove the last throw from Redis
-            await MatchStateCache.removeLastThrow(matchId);
+            await this.matchCacheRepository.removeLastThrow(matchId);
 
             // 2. Fetch the remaining throws after the undo operation
-            const remainingThrows = await MatchStateCache.getThrows(matchId);
+            const remainingThrows = await this.matchCacheRepository.getThrows(matchId);
 
             // 3. Broadcast the score undo confirmation along with the remaining throws to all clients in the same board room except the sender
             const roomName = `room_board_${boardShortId}`;
@@ -119,7 +120,7 @@ export class SocketController {
             // 1. Rebuild the match history in Redis with the provided edited history
             // (without the first empty throw)
             const latestThrow = historyThrows[historyThrows.length - 1];
-            await MatchStateCache.rebuildHistory(matchId, historyThrows);
+            await this.matchCacheRepository.rebuildHistory(matchId, historyThrows);
 
             // 2. Broadcast the score edit confirmation along with the latest throw and the full edited history to all clients in the same board room except the sender
             const roomName = `room_board_${boardShortId}`;

@@ -15,6 +15,6 @@ export class BracketFinishedEvent implements IDomainEvent {
     }
 
     public getEventName(): string {
-        return 'tournament.bracket.finished';
+        return 'bracket.finished';
     }
 }

@@ -39,12 +39,7 @@ enum GameModes {
   MEN_SINGLES
   MIXED_SINGLES
   YOUTH_SINGLES
-  PAIRS
-  WOMEN_PAIRS
-  MEN_PAIRS
-  MIXED_PAIRS
-  YOUTH_PAIRS
-  TEAMS
+  OTHER
 }
 
 enum ScheduleTypes {

@@ -7,8 +7,8 @@ import { MatchRepository } from '../../../../../domain/repositories/MatchReposit
 import { UnitOfWork } from '../../../../../domain/repositories/UnitOfWork.js';
 import { PlayingAreaRepository } from '../../../../../domain/repositories/PlayingAreaRepository.js';
 import { PlayingAreaNotFoundException } from '../../../../../domain/exceptions/PlayingAreaExceptions.js';
-import { MatchStateCache } from '../../../../../infrastructure/cache/MatchStateCache.js';
 import { MatchStatus } from '../../../../../domain/entities/Match.js';
+import { MatchCacheRepository } from '../../../../../domain/repositories/MatchCacheRepository.js';
 
 export class FinishMatch {
   constructor(
@@ -16,6 +16,7 @@ export class FinishMatch {
     private readonly matchRepository: MatchRepository,
     private readonly bracketRepository: BracketRepository,
     private readonly playingAreaRepository: PlayingAreaRepository,
+    private readonly matchCacheRepository: MatchCacheRepository,
     private readonly matchGenerator: SingleEliminationMatchGenerator,
     private readonly eventBus: EventBus,
   ) { }
@@ -89,7 +90,14 @@ export class FinishMatch {
       await this.eventBus.publish(events);
     }
 
-    // 4. Save the match status in Redis
-    await MatchStateCache.setMatchStatus(id, MatchStatus.FINISHED);
+    const bracketEvents = bracket.pullEvents();
+    const matchEvents = match.pullEvents(); 
+    const nextMatchEvents = nextMatch ? nextMatch.pullEvents() : [];
+    
+    const allEvents = [...bracketEvents, ...matchEvents, ...nextMatchEvents];
+
+    if (allEvents.length > 0) {
+      await this.eventBus.publish(allEvents);
+    }
   }
 }

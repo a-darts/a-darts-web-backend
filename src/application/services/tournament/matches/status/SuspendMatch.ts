@@ -5,12 +5,13 @@ import { MatchNotFoundException } from '../../../../../domain/exceptions/MatchEx
 import { PlayingAreaNotFoundException } from '../../../../../domain/exceptions/PlayingAreaExceptions.js';
 import { MatchRepository } from '../../../../../domain/repositories/MatchRepository.js';
 import { PlayingAreaRepository } from '../../../../../domain/repositories/PlayingAreaRepository.js';
-import { MatchStateCache } from '../../../../../infrastructure/cache/MatchStateCache.js';
+import { MatchCacheRepository } from '../../../../../domain/repositories/MatchCacheRepository.js';
 
 export class SuspendMatch {
   constructor(
     private readonly matchRepository: MatchRepository,
     private readonly playingAreaRepository: PlayingAreaRepository,
+    private readonly matchCacheRepository: MatchCacheRepository,
     private readonly eventBus: EventBus,
   ) { }
 
@@ -36,7 +37,7 @@ export class SuspendMatch {
     await this.matchRepository.update(match);
 
     // 5. Save the match status in Redis
-    await MatchStateCache.setMatchStatus(id, MatchStatus.SUSPENDED);
+    await this.matchCacheRepository.setMatchStatus(id, MatchStatus.SUSPENDED);
 
     // 6. Publish the event
     this.eventBus.publish([

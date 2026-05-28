@@ -8,6 +8,8 @@ import { UnitOfWork } from '../../../../domain/repositories/UnitOfWork.js';
 import { SetMatchResultRequestDTO } from '../../../dtos/tournament/match/MatchDTOs.js';
 import { PlayingAreaRepository } from '../../../../domain/repositories/PlayingAreaRepository.js';
 import { PlayingAreaNotFoundException } from '../../../../domain/exceptions/PlayingAreaExceptions.js';
+import { MatchCacheRepository } from '../../../../domain/repositories/MatchCacheRepository.js';
+import { MatchStatus } from '../../../../domain/entities/Match.js';
 
 export class SetMatchResultAndPromote {
   constructor(
@@ -15,6 +17,7 @@ export class SetMatchResultAndPromote {
     private readonly matchRepository: MatchRepository,
     private readonly bracketRepository: BracketRepository,
     private readonly playingAreaRepository: PlayingAreaRepository,
+    private readonly matchCacheRepository: MatchCacheRepository,
     private readonly matchGenerator: SingleEliminationMatchGenerator,
     private readonly eventBus: EventBus,
   ) { }
@@ -87,9 +90,15 @@ export class SetMatchResultAndPromote {
       await this.playingAreaRepository.update(playingArea);
     });
 
-    const events = bracket.pullEvents();
-    if (events.length > 0) {
-      await this.eventBus.publish(events);
+    // 8. Publish events
+    const bracketEvents = bracket.pullEvents();
+    const matchEvents = match.pullEvents();
+    const nextMatchEvents = nextMatch ? nextMatch.pullEvents() : [];
+
+    const allEvents = [...bracketEvents, ...matchEvents, ...nextMatchEvents];
+
+    if (allEvents.length > 0) {
+      await this.eventBus.publish(allEvents);
     }
   }
 }

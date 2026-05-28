@@ -2,13 +2,14 @@ import { MatchStatus } from '../../../../../domain/entities/Match.js';
 import { MatchNotFoundException } from '../../../../../domain/exceptions/MatchExceptions.js';
 import { MatchRepository } from '../../../../../domain/repositories/MatchRepository.js';
 import { PlayingAreaRepository } from '../../../../../domain/repositories/PlayingAreaRepository.js';
-import { MatchStateCache } from '../../../../../infrastructure/cache/MatchStateCache.js';
 import { getSocketServer } from '../../../../../infrastructure/websockets/SocketServer.js';
+import { MatchCacheRepository } from '../../../../../domain/repositories/MatchCacheRepository.js';
 
 export class StartMatch {
   constructor(
     private readonly matchRepository: MatchRepository,
     private readonly playingAreaRepository: PlayingAreaRepository,
+    private readonly matchCacheRepository: MatchCacheRepository,
   ) { }
 
   public async execute(id: string): Promise<void> {
@@ -39,6 +40,6 @@ export class StartMatch {
     }
 
     // 5. Save the match status in Redis
-    await MatchStateCache.setMatchStatus(id, MatchStatus.IN_PROGRESS);
+    await this.matchCacheRepository.setMatchStatus(id, MatchStatus.IN_PROGRESS);
   }
 }
