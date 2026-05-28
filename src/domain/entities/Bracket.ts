@@ -101,31 +101,6 @@ export class Bracket {
     // --------------------------------------------------------------------
     // DOMAIN METHODS
     // --------------------------------------------------------------------
-    public swapPositions(pos1: number, pos2: number): void {
-        // 1. Validar que esté en borrador o publicado
-        if (this.status !== BracketStatus.DRAFT && this.status !== BracketStatus.PUBLISHED) {
-            throw new BracketNotInDraftOrPublisedException();
-        }
-
-        // 2. Encontrar los índices en el array
-        const index1 = this.positions.findIndex(p => p.getPosition() === pos1);
-        const index2 = this.positions.findIndex(p => p.getPosition() === pos2);
-
-        // 3. Validar que ambas posiciones existan
-        if (index1 === -1 || index2 === -1) {
-            throw new InvalidPositionsException();
-        }
-
-        // 4. Obtener los participantes actuales
-        const participant1 = this.positions[index1].getParticipant();
-        const participant2 = this.positions[index2].getParticipant();
-
-        // 5. Realizar el intercambio creando nuevas instancias de BracketPosition
-        // Mantenemos el número de posición original pero cambiamos el participante
-        this.positions[index1] = BracketPosition.create(participant2, pos1);
-        this.positions[index2] = BracketPosition.create(participant1, pos2);
-    }
-
     public assignParticipant(position: number, participant: IParticipant): void {
         // 1. Validar que esté en borrador o publicado
         if (this.status !== BracketStatus.DRAFT && this.status !== BracketStatus.PUBLISHED) {

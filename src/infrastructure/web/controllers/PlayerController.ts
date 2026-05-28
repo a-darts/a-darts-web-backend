@@ -4,7 +4,7 @@ import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { GetAllPlayers } from '../../../application/services/player/GetAllPlayers.js';
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
-import { GetPlayerData } from '../../../application/services/player/GetPlayerData.js';
+import { GetPlayerById } from '../../../application/services/player/GetPlayerById.js';
 import { InvalidSeasonException, InvalidYearException, PlayerAlreadyExistsException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
 import { InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { CreatePlayer } from '../../../application/services/player/CreatePlayer.js';
@@ -16,7 +16,7 @@ const playerRepository = new PrismaPlayerRepository(prisma);
 const userRepository = new PrismaUserRepository(prisma);
 
 const getAllPlayers = new GetAllPlayers(playerRepository);
-const getPlayerData = new GetPlayerData(playerRepository);
+const getPlayerById = new GetPlayerById(playerRepository);
 const getPlayerByUserIdAndSeason = new GetPlayerByUserIdAndSeason(playerRepository);
 const createPlayer = new CreatePlayer(playerRepository, userRepository);
 const updatePlayerFederation = new UpdatePlayerFederation(playerRepository);
@@ -285,7 +285,7 @@ export class PlayerController {
    *                   type: string
    *                   example: Internal server error
    */
-  async getPlayerData(req: AuthRequest, res: Response) {
+  async getPlayerById(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       if (!id) {
@@ -295,7 +295,7 @@ export class PlayerController {
         throw new InvalidUserFieldsException();
       }
 
-      const player = await getPlayerData.execute(id);
+      const player = await getPlayerById.execute(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           player,

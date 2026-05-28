@@ -1,6 +1,5 @@
 import { Response } from 'express';
 import { ApiResponseBuilder } from "../../../application/dtos/common/ApiResponse.js";
-import { SwapBracketPositions } from "../../../application/services/bracket/SwapBracketPositions.js";
 import { BracketAlreadyFinishedException, BracketInProgressException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotPublishedException, DuplicateParticipantsException, InvalidPositionsException } from "../../../domain/exceptions/BracketExceptions.js";
 import { MissingRequiredUserFieldsException } from "../../../domain/exceptions/UserExceptions.js";
 import { prisma } from "../../persistence/client.js";
@@ -21,7 +20,6 @@ const registeredParticipantRepository = new PrismaRegisteredParticipantRepositor
 
 const seedingService = new BracketSeedingService();
 
-const swapBracketPositions = new SwapBracketPositions(bracketRepository);
 const assignParticipantsToBracketPositions = new AssignParticipantsToBracketPositions(bracketRepository, registeredParticipantRepository);
 const reshuffleBracket = new ReshuffleBracket(bracketRepository, seedingService);
 const publishBracket = new PublishBracket(bracketRepository);
@@ -96,174 +94,6 @@ const deleteBracket = new DeleteBracket(bracketRepository);
  *                 example: 1
  */
 export class BracketController {
-
-    /**
-     * @swagger
-     * /api/brackets/{id}/swapPositions:
-     *   put:
-     *     summary: Swap positions in the bracket
-     *     tags: [Brackets]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - name: id
-     *         in: path
-     *         required: true
-     *         description: Bracket ID
-     *         schema:
-     *           type: string
-     *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/UpdateBracketPositionsRequest'
-     *     responses:
-     *       200:
-     *         description: Positions swapped successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: success
-     *                 message:
-     *                   type: string
-     *                   example: Positions swapped successfully
-     *                 data:
-     *                   type: string
-     *                   example: null
-     *       400:
-     *         description: Bad Request
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: error
-     *                 message:
-     *                   type: string
-     *                   example: All fields are required
-     *       401:
-     *         description: Unauthorized
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: error
-     *                 message:
-     *                   type: string
-     *                   example: No token provided
-     *       403:
-     *         description: Forbidden
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: error
-     *                 message:
-     *                   type: string
-     *                   example: You do not have permission to perform this action
-     *       404:
-     *         description: Not Found
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: error
-     *                 message:
-     *                   type: string
-     *                   example: Bracket not found
-     *       409:
-     *         description: Conflict
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: error
-     *                 message:
-     *                   type: string
-     *                   example: Bracket not in draft or published
-     *       500:
-     *         description: Internal Server Error
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: error
-     *                 message:
-     *                   type: string
-     *                   example: Internal server error
-     */
-    async swapPositions(req: AuthRequest, res: Response) {
-        try {
-            const id = req.params.id;
-            if (!id || typeof id !== 'string') {
-                throw new MissingRequiredUserFieldsException();
-            }
-
-            const { position1, position2 } = req.body;
-            if (!position1 || !position2 || typeof position1 !== 'number' || typeof position2 !== 'number') {
-                throw new MissingRequiredUserFieldsException();
-            }
-
-            await swapBracketPositions.execute({
-                id: id,
-                position1: position1,
-                position2: position2,
-            });
-            res.status(200).json(
-                ApiResponseBuilder.success(
-                    null,
-                    'Positions swapped successfully',
-                )
-            );
-        } catch (error: any) {
-            if (
-                error instanceof MissingRequiredUserFieldsException ||
-                error instanceof InvalidPositionsException
-            ) {
-                return res.status(400).json(
-                    ApiResponseBuilder.error(error.message)
-                );
-            }
-            if (error instanceof BracketNotFoundException) {
-                return res.status(404).json(
-                    ApiResponseBuilder.error(error.message)
-                );
-            }
-            if (error instanceof BracketNotInDraftOrPublisedException) {
-                return res.status(409).json(
-                    ApiResponseBuilder.error(error.message)
-                );
-            }
-            console.error('[ERROR]:', error);
-            res.status(500).json(
-                ApiResponseBuilder.error('Internal server error')
-            );
-        }
-    }
-
 
     /**
      * @swagger

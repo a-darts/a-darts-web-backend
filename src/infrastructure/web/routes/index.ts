@@ -50,7 +50,7 @@ router.post('/users/:id/restore', authMiddleware, isAdmin, userController.restor
 
 // Player routes
 router.get('/players', authMiddleware, playerController.getAllPlayers);
-router.get('/players/:id', authMiddleware, playerController.getPlayerData);
+router.get('/players/:id', authMiddleware, playerController.getPlayerById);
 router.get('/players/user/:userId/season/:seasonStartYear', authMiddleware, playerController.getPlayerByUserIdAndSeason);
 router.post('/players', authMiddleware, isAdmin, playerController.createPlayer);
 router.put('/players/:id/federation', authMiddleware, isAdmin, playerController.updatePlayerFederation);
@@ -98,7 +98,6 @@ router.put('/matches/:id/score', authMiddleware, isAdmin, matchController.update
 router.post('/matches/:id/result', authMiddleware, isAdmin, matchController.setMatchResult);
 
 // Bracket routes
-router.put('/brackets/:id/swapPositions', authMiddleware, isAdmin, bracketController.swapPositions);
 router.put('/brackets/:id/setupPositions', authMiddleware, isAdmin, bracketController.setupPositions);
 router.post('/brackets/:id/reshuffle', authMiddleware, isAdmin, bracketController.reshuffleBracket);
 router.post('/brackets/:id/unpublish', authMiddleware, isAdmin, bracketController.unpublishBracket);

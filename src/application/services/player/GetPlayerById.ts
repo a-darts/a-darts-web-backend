@@ -1,9 +1,9 @@
 import { PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
 import { PlayerRepository } from '../../../domain/repositories/PlayerRepository.js';
-import { PlayerResponseDTO, PlayerWithUserResponseDTO } from '../../../application/dtos/player/PlayerDTOs.js';
-import { PlayerMapper } from '../../../application/dtos/player/PlayerMapper.js';
+import { PlayerResponseDTO, PlayerWithUserResponseDTO } from '../../dtos/player/PlayerDTOs.js';
+import { PlayerMapper } from '../../dtos/player/PlayerMapper.js';
 
-export class GetPlayerData {
+export class GetPlayerById {
   constructor(private readonly playerRepository: PlayerRepository) { }
 
   public async execute(id: string): Promise<PlayerWithUserResponseDTO> {
