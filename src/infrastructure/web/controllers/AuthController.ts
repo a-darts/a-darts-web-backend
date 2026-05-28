@@ -1,16 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { RegisterUser } from '../../../application/services/user/RegisterUser.js';
-import { LoginUser } from '../../../application/services/user/LoginUser.js';
-import { ActivateAccount } from '../../../application/services/user/ActivateAccount.js';
-import { CreateTemporaryPassword } from '../../../application/services/user/CreateTemporaryPassword.js';
-import { NodemailerMailer } from '../../adapters/NodemailerMailer.js';
-
-
-import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
-import { BcryptPasswordHasher } from '../../security/BcryptPasswordHasher.js';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
-import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { redis } from '../../redis/redisClient.js';
 import {
@@ -26,20 +16,11 @@ import {
   UserNotInactiveException
 
 } from '../../../domain/exceptions/UserExceptions.js';
-import { GetUserData } from '../../../application/services/user/GetUserData.js';
 import { MailerSendException } from '../../../domain/exceptions/MailerExceptions.js';
+import UserServiceFactory from '../../factories/UserServiceFactory.js';
 
-const userRepository = new PrismaUserRepository(prisma);
-const passwordHasher = new BcryptPasswordHasher();
 
-const getUserData = new GetUserData(userRepository);
-const registerUser = new RegisterUser(userRepository, passwordHasher);
-const loginUser = new LoginUser(userRepository, passwordHasher);
-const activateAccount = new ActivateAccount(userRepository, passwordHasher);
-
-const mailer = new NodemailerMailer();
-const createTemporaryPassword = new CreateTemporaryPassword(userRepository, passwordHasher, mailer);
-
+const userService = UserServiceFactory.getInstance();
 
 
 /**
@@ -203,7 +184,7 @@ export class AuthController {
    */
   async register(req: Request, res: Response) {
     try {
-      const user = await registerUser.execute(req.body);
+      const user = await userService.registerSelf(req.body);
       return res.status(201).json(
         ApiResponseBuilder.success(
           user,
@@ -325,7 +306,7 @@ export class AuthController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const user = await loginUser.execute(req.body);
+      const user = await userService.login(req.body);
 
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
@@ -524,7 +505,7 @@ export class AuthController {
           ApiResponseBuilder.error('User not authenticated')
         );
       }
-      const user = await getUserData.execute(req.user.id);
+      const user = await userService.getById(req.user.id);
       res.status(200).json(
         ApiResponseBuilder.success(
           user,
@@ -647,7 +628,7 @@ export class AuthController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await activateAccount.execute({ email, temporaryPassword, newPassword });
+      await userService.activateAccount({ email, temporaryPassword, newPassword });
 
       res.status(200).json(
         ApiResponseBuilder.success(
@@ -802,7 +783,7 @@ export class AuthController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await createTemporaryPassword.execute({ email });
+      await userService.createTemporaryPassword({ email });
 
       res.status(200).json(
         ApiResponseBuilder.success(

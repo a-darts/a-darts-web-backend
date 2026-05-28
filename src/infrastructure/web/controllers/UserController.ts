@@ -1,11 +1,5 @@
 import { Request, Response } from 'express';
-import { UpdateUserAlias } from '../../../application/services/user/UpdateUserAlias.js';
-import { UpdateUserEmail } from '../../../application/services/user/UpdateUserEmail.js';
-import { UpdateUserPassword } from '../../../application/services/user/UpdateUserPassword.js';
-import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
-import { BcryptPasswordHasher } from '../../security/BcryptPasswordHasher.js';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
-import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import {
   EmailAlreadyInUseException,
@@ -19,36 +13,13 @@ import {
   UserNotBlockedException,
   UserNotDeletedException,
   UserNotFoundException,
-  UserNotInactiveException
+  UserNotInactiveException,
 } from '../../../domain/exceptions/UserExceptions.js';
-import { GetAllUsers } from '../../../application/services/user/GetAllUsers.js';
-import { RegisterUserByAdmin } from '../../../application/services/user/RegisterUserByAdmin.js';
-import { NodemailerMailer } from '../../adapters/NodemailerMailer.js';
 import { MailerSendException } from '../../../domain/exceptions/MailerExceptions.js';
-import { GetUserData } from '../../../application/services/user/GetUserData.js';
-import { ActivateUser } from '../../../application/services/user/ActivateUser.js';
-import { BlockUser } from '../../../application/services/user/BlockUser.js';
-import { UnblockUser } from '../../../application/services/user/UnblockUser.js';
-import { DeleteUser } from '../../../application/services/user/DeleteUser.js';
-import { RestoreUser } from '../../../application/services/user/RestoreUser.js';
+import UserServiceFactory from '../../factories/UserServiceFactory.js';
 
 
-const userRepository = new PrismaUserRepository(prisma);
-
-const passwordHasher = new BcryptPasswordHasher();
-const mailer = new NodemailerMailer();
-
-const getAllUsers = new GetAllUsers(userRepository);
-const getUserById = new GetUserData(userRepository);
-const createUser = new RegisterUserByAdmin(userRepository, passwordHasher, mailer);
-const updateUserAlias = new UpdateUserAlias(userRepository);
-const updateUserEmail = new UpdateUserEmail(userRepository);
-const updateUserPassword = new UpdateUserPassword(userRepository, passwordHasher);
-const activateUser = new ActivateUser(userRepository);
-const blockUser = new BlockUser(userRepository);
-const unblockUser = new UnblockUser(userRepository);
-const deleteUser = new DeleteUser(userRepository);
-const restoreUser = new RestoreUser(userRepository, passwordHasher, mailer);
+const userService = UserServiceFactory.getInstance();
 
 
 /**
@@ -227,7 +198,7 @@ export class UserController {
         return res.status(400).json(ApiResponseBuilder.error('Invalid limit number'));
       }
 
-      const users = await getAllUsers.execute(page, limit);
+      const users = await userService.getAll(page, limit);
       res.status(200).json(
         ApiResponseBuilder.success(
           users,
@@ -322,7 +293,7 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      let user = await getUserById.execute(id);
+      let user = await userService.getById(id);
 
       res.status(200).json(
         ApiResponseBuilder.success(
@@ -435,7 +406,7 @@ export class UserController {
    */
   async createUser(req: Request, res: Response) {
     try {
-      const user = await createUser.execute(req.body);
+      const user = await userService.registerByAdmin(req.body);
       return res.status(201).json(
         ApiResponseBuilder.success(
           user,
@@ -596,7 +567,7 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await updateUserEmail.execute({
+      await userService.updateEmail({
         id: userId,
         newEmail: newEmail,
       });
@@ -748,7 +719,7 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await updateUserPassword.execute({
+      await userService.updatePassword({
         id: userId,
         oldPassword: oldPassword,
         newPassword: newPassword,
@@ -901,7 +872,7 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await updateUserAlias.execute({
+      await userService.updateAlias({
         id: userId,
         newAlias: newAlias,
       });
@@ -924,135 +895,6 @@ export class UserController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      console.error('[ERROR]:', error);
-      res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
-      );
-    }
-  }
-
-
-  /**
-   * @swagger
-   * /api/users/{id}/activate:
-   *   post:
-   *     summary: Activate user
-   *     tags: [Users]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - name: id
-   *         in: path
-   *         required: true
-   *         description: User ID
-   *         schema:
-   *           type: string
-   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *     responses:
-   *       200:
-   *         description: User activated successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: User activated successfully
-   *                 data:
-   *                   type: string
-   *                   example: null
-   *       400:
-   *         description: Bad Request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: All fields are required
-   *       404:
-   *         description: Not Found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: User not found
-   *       409:
-   *         description: Conflict
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: User not inactive
-   *       500:
-   *         description: Internal Server Error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Internal server error
-   */
-  async activateUser(req: AuthRequest, res: Response) {
-    try {
-      const id = req.params.id;
-      if (!id || typeof id !== 'string') {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      await activateUser.execute(id);
-
-      res.status(200).json(
-        ApiResponseBuilder.success(
-          null,
-          'User activated successfully',
-        )
-      );
-    } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
-        return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (error instanceof UserNotFoundException) {
-        return res.status(404).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (
-        error instanceof UserNotInactiveException ||
-        error instanceof UserAlreadyActiveException
-      ) {
-        return res.status(409).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')
@@ -1154,7 +996,7 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await blockUser.execute(id);
+      await userService.block(id);
 
       res.status(200).json(
         ApiResponseBuilder.success(
@@ -1282,7 +1124,7 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await unblockUser.execute(id);
+      await userService.unblock(id);
 
       res.status(200).json(
         ApiResponseBuilder.success(
@@ -1408,7 +1250,7 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await deleteUser.execute(id);
+      await userService.delete(id);
 
       res.status(200).json(
         ApiResponseBuilder.success(
@@ -1549,7 +1391,7 @@ export class UserController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await restoreUser.execute({
+      await userService.restore({
         id: id,
         email: email,
       });
