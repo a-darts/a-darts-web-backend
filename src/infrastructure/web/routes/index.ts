@@ -63,6 +63,8 @@ router.put('/players/:id/federation', authMiddleware, isAdmin, playerController.
 router.get('/tournaments', optionalAuthMiddleware, tournamentController.getAllTournaments);
 router.get('/tournaments/:id', optionalAuthMiddleware, tournamentController.getTournamentById);
 router.post('/tournaments', authMiddleware, isAdmin, tournamentController.createTournament);
+router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
+router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
 
 router.post('/tournaments/:id/unpublish', authMiddleware, isAdmin, tournamentController.unpublishTournament);
 router.post('/tournaments/:id/publish', authMiddleware, isAdmin, tournamentController.publishTournament);
@@ -73,10 +75,7 @@ router.post('/tournaments/:id/registration/open', authMiddleware, isAdmin, tourn
 router.post('/tournaments/:id/registration/close', authMiddleware, isAdmin, tournamentController.closeRegistration);
 router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationPeriod);
 
-router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
-router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
-
-router.get('/tournaments/:id/unregisteredPlayers', authMiddleware, isAdmin, tournamentController.getUnregisteredPlayersByTournamentId);
+router.get('/tournaments/:id/unregisteredPlayers', authMiddleware, isAdmin, playerController.getUnregisteredPlayersByTournamentId);
 
 router.post('/tournaments/:id/participants', authMiddleware, isSelfOrAdmin, registeredParticipantController.registerParticipant);
 router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isSelfOrAdmin, registeredParticipantController.unregisterParticipant);

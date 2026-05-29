@@ -6,13 +6,9 @@ import { BracketNotFoundException, BracketUnfinishedException } from "../../doma
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
 import { MatchRepository } from "../../domain/repositories/MatchRepository.js";
-import { PlayerRepository } from "../../domain/repositories/PlayerRepository.js";
-import { RegisteredParticipantRepository } from "../../domain/repositories/RegisteredParticipantRepository.js";
 import { TournamentRepository } from "../../domain/repositories/TournamentRepository.js";
 import { UnitOfWork } from "../../domain/repositories/UnitOfWork.js";
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
-import { PlayerWithUserResponseDTO } from "../dtos/player/PlayerDTOs.js";
-import { PlayerMapper } from "../dtos/player/PlayerMapper.js";
 import {
     CreateTournamentRequestDTO,
     TournamentResponseDTO,
@@ -28,8 +24,6 @@ export class TournamentService {
         private readonly tournamentRepository: TournamentRepository,
         private readonly bracketRepository: IBracketRepository,
         private readonly matchRepository: MatchRepository,
-        private readonly registeredParticipantRepository: RegisteredParticipantRepository,
-        private readonly playerRepository: PlayerRepository,
         private readonly matchGenerator: SingleEliminationMatchGenerator,
         private readonly unitOfWork: UnitOfWork,
     ) { }
@@ -55,34 +49,6 @@ export class TournamentService {
 
         // 2. Return the tournament data
         return TournamentMapper.toResponse(tournament);
-    }
-
-
-    public async getUnregisteredPlayersInTournament(id: string): Promise<PlayerWithUserResponseDTO[]> {
-        // 1. Rehydrate the tournament from the DB
-        const tournament = await this.tournamentRepository.findById(id);
-        if (!tournament) {
-          throw new TournamentNotFoundException();
-        }
-    
-        // 2. Rehydrate the registered participants in the tournament from the DB
-        const registeredParticipants = await this.registeredParticipantRepository.findAllByTournamentId(id);
-        if (!registeredParticipants) {
-          return [];
-        }
-    
-        // 3. Rehydrate the players registered in the same season from the DB
-        const allPlayers = await this.playerRepository.findAllBySeasonWithUser(tournament.getSeason().getStartYear());
-        if (!allPlayers) {
-          return [];
-        }
-    
-        // 4. Filter players that are not registered in the tournament
-        const registeredPlayerIds = registeredParticipants.map(participant => participant.getPlayerId());
-        const unregisteredPlayers = allPlayers.filter(player => !registeredPlayerIds.includes(player.player.getId()));
-    
-        // 5. Return the players data
-        return unregisteredPlayers.map(player => PlayerMapper.toResponseWithUser(player));
     }
 
 
