@@ -478,7 +478,7 @@ export class PlayingAreaController {
 
   /**
    * @swagger
-   * /api/playing-areas/{id}/boards/{boardNumber}/disable:
+   * /api/playing-areas/{id}/boards/{boardId}/disable:
    *   post:
    *     summary: Disable a board in a playing area
    *     tags: [PlayingAreas]
@@ -492,13 +492,13 @@ export class PlayingAreaController {
    *         schema:
    *           type: string
    *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *       - name: boardNumber
+   *       - name: boardId
    *         in: path
    *         required: true
-   *         description: Board number
+   *         description: Board ID
    *         schema:
-   *           type: number
-   *           example: 1
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
    *     responses:
    *       200:
    *         description: Board disabled successfully
@@ -599,14 +599,14 @@ export class PlayingAreaController {
    */
   async disablePlayingAreaBoard(req: AuthRequest, res: Response) {
     try {
-      const { id, boardNumber } = req.params;
-      if (!id || !boardNumber || typeof id !== 'string' || typeof boardNumber !== 'string') {
+      const { id, boardId } = req.params;
+      if (!id || !boardId || typeof id !== 'string' || typeof boardId !== 'string') {
         throw new MissingRequiredUserFieldsException();
       }
 
       await playingAreaService.disableBoard({
         id: id,
-        boardNumber: Number(boardNumber),
+        boardId: boardId,
       });
       res.status(200).json(
         ApiResponseBuilder.success(

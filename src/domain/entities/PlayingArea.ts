@@ -75,8 +75,7 @@ export class PlayingArea {
         board.release();
     }
 
-    public disableBoard(boardNumber: number): void {
-        const board = this.findBoardByNumber(boardNumber);
+    public disableBoard(board: Board): void {
         board.disable();
     }
 

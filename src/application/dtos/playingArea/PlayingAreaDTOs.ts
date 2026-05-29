@@ -33,7 +33,7 @@ export interface ReleasePlayingAreaBoardRequestDTO {
 
 export interface DisablePlayingAreaBoardRequestDTO {
     id: string; // Playing Area ID
-    boardNumber: number;
+    boardId: string;
 }
 
 export interface EnablePlayingAreaBoardRequestDTO {
