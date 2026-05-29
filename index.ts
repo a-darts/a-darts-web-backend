@@ -3,6 +3,10 @@ import http from 'http';
 import app from './app.js';
 import { prisma } from './src/infrastructure/persistence/client.js';
 import { SocketFactory } from './src/infrastructure/websockets/SocketFactory.js';
+import { RegistrationScheduler } from './src/infrastructure/jobs/RegistrationScheduler.js';
+import { TournamentService } from './src/application/services/TournamentService.js';
+import { PrismaTournamentRepository } from './src/infrastructure/persistence/repositories/PrismaTournamentRepository.js';
+import TournamentServiceFactory from './src/infrastructure/factories/TournamentServiceFactory.js';
 
 const PORT = process.env.PORT || 3000;
 
@@ -18,8 +22,10 @@ async function startServer() {
         console.log('Database connection established successfully.');
 
         // Start background jobs
-        const { registrationScheduler } = await import('./src/infrastructure/jobs/RegistrationScheduler.js');
+        const tournamentService = TournamentServiceFactory.getInstance();
+        const registrationScheduler = new RegistrationScheduler(tournamentService);
         registrationScheduler.start();
+        //
 
         const server = http.createServer(app);
 

@@ -10,6 +10,7 @@ import { isAdmin, isSelfOrAdmin } from '../middlewares/authorizer.js';
 import { MatchController } from '../controllers/MatchController.js';
 import { BracketController } from '../controllers/BracketController.js';
 import { PlayingAreaController } from '../controllers/PlayingAreaController.js';
+import { RegisteredParticipantController } from '../controllers/RegisteredParticipantController.js';
 
 const router = Router();
 const userController = new UserController();
@@ -19,7 +20,7 @@ const tournamentController = new TournamentController();
 const matchController = new MatchController();
 const bracketController = new BracketController();
 const playingAreaController = new PlayingAreaController();
-
+const registeredParticipantController = new RegisteredParticipantController();
 
 // Health check route
 router.get('/health', getHealth);
@@ -71,12 +72,13 @@ router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, to
 router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
 router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
 
-router.post('/tournaments/:id/participants', authMiddleware, isSelfOrAdmin, tournamentController.registerParticipant);
-router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isSelfOrAdmin, tournamentController.unregisterParticipant);
-router.post('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, tournamentController.doCheckInParticipant);
-router.delete('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, tournamentController.undoCheckInParticipant);
 router.get('/tournaments/:id/unregisteredPlayers', authMiddleware, isAdmin, tournamentController.getUnregisteredPlayersByTournamentId);
-router.get('/tournaments/:id/participants', tournamentController.getParticipantsByTournamentId);
+
+router.post('/tournaments/:id/participants', authMiddleware, isSelfOrAdmin, registeredParticipantController.registerParticipant);
+router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isSelfOrAdmin, registeredParticipantController.unregisterParticipant);
+router.post('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, registeredParticipantController.doCheckInParticipant);
+router.delete('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, registeredParticipantController.undoCheckInParticipant);
+router.get('/tournaments/:id/participants', registeredParticipantController.getParticipantsByTournamentId);
 
 router.get('/tournaments/:id/matches', matchController.getMatchesByTournamentId);
 
