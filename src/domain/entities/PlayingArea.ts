@@ -66,9 +66,8 @@ export class PlayingArea {
         this.boards.pop();
     }
 
-    public assignMatchToBoard(matchId: string, boardNumber: number): void {
-        const newBoard = this.findBoardByNumber(boardNumber);
-        newBoard.occupy(matchId);
+    public assignMatchToBoard(matchId: string, board: Board): void {
+        board.occupy(matchId);
     }
 
     public releaseBoard(board: Board): void {

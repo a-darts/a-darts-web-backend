@@ -117,11 +117,14 @@ export class MatchService {
           // The match was not previously assigned to any board (ignore error)
         }
     
-        // 4. Assign the match to the board in the playing area and release the previous board if assigned
+        // 4. Release the old board if assigned
         if (oldBoard) {
           playingArea.releaseBoard(oldBoard);
         }
-        playingArea.assignMatchToBoard(request.id, request.boardNumber);
+      
+        // 5. Assign the match to the new board
+        const newBoard = playingArea.findBoardByNumber(request.boardNumber);
+        playingArea.assignMatchToBoard(request.id, newBoard);
     
         // 5. Persist the changes in the DB
         await this.playingAreaRepository.update(playingArea);
@@ -137,7 +140,7 @@ export class MatchService {
         }
     
         // 7. Notify the board about the new match assignment
-        const boardShortId = playingArea.findBoardByNumber(request.boardNumber).getShortId();
+        const boardShortId = newBoard.getShortId();
         await this.matchCacheRepository.setActiveMatchForBoard(boardShortId, request.id);
         
         const status = await this.matchCacheRepository.getMatchStatus(request.id);
