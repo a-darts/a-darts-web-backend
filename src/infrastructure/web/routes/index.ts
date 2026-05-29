@@ -70,18 +70,23 @@ router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, to
 
 router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
 router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
+
 router.post('/tournaments/:id/participants', authMiddleware, isSelfOrAdmin, tournamentController.registerParticipant);
 router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isSelfOrAdmin, tournamentController.unregisterParticipant);
 router.post('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, tournamentController.doCheckInParticipant);
 router.delete('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, tournamentController.undoCheckInParticipant);
 router.get('/tournaments/:id/unregisteredPlayers', authMiddleware, isAdmin, tournamentController.getUnregisteredPlayersByTournamentId);
 router.get('/tournaments/:id/participants', tournamentController.getParticipantsByTournamentId);
+
 router.get('/tournaments/:id/matches', tournamentController.getMatchesByTournamentId);
+
 router.post('/tournaments/:id/bracket/automatic', authMiddleware, isAdmin, tournamentController.createBracketAutomatically);
 router.post('/tournaments/:id/bracket/manual', authMiddleware, isAdmin, tournamentController.createBracketManually);
 router.get('/tournaments/:id/bracket', optionalAuthMiddleware, tournamentController.getTournamentBracket);
-router.get('/tournaments/:id/playing-areas', authMiddleware, isAdmin, tournamentController.getTournamentPlayingArea);
-router.post('/tournaments/:id/playing-areas', authMiddleware, isAdmin, tournamentController.createTournamentPlayingArea);
+
+router.get('/tournaments/:id/playing-areas', authMiddleware, isAdmin, playingAreaController.getTournamentPlayingArea);
+router.post('/tournaments/:id/playing-areas', authMiddleware, isAdmin, playingAreaController.createTournamentPlayingArea);
+
 router.get('/tournaments/:id/results', tournamentController.getTournamentResults);
 
 

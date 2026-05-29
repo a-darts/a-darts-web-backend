@@ -39,21 +39,15 @@ import { GetTournamentBracket } from '../../../application/services/tournament/G
 import { UserRoles } from '../../../domain/entities/User.js';
 import { GetUnregisteredPlayersByTournamentId } from '../../../application/services/tournament/GetUnregisteredPlayersByTournamentId.js';
 import { BracketStatus } from '@prisma/client';
-import { PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
-import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
-import { GetTournamentPlayingArea } from '../../../application/services/playingArea/GetTournamentPlayingArea.js';
-import { CreateTournamentPlayingArea } from '../../../application/services/playingArea/CreateTournamentPlayingArea.js';
 import { GetTournamentResults } from '../../../application/services/tournament/GetTournamentResults.js';
 import { PrismaTournamentResultRepository } from '../../persistence/repositories/PrismaTournamentResultRepository.js';
 import { TournamentResultNotFoundException } from '../../../domain/exceptions/TournamentResultException.js';
-import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
 import { SingleEliminationMatchGenerator } from '../../../domain/services/SingleEliminationMatchGenerator.js';
 import BracketServiceFactory from '../../factories/BracketServiceFactory.js';
 
 
 
 const bracketService = BracketServiceFactory.getInstance();
-
 
 
 
@@ -67,10 +61,8 @@ const playerRepository = new PrismaPlayerRepository(prisma);
 const userRepository = new PrismaUserRepository(prisma);
 const matchRepository = new PrismaMatchRepository(prisma);
 const bracketRepository = new PrismaBracketRepository(prisma);
-const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
 const tournamentResultRepository = new PrismaTournamentResultRepository(prisma);
 
-const seedingService = new BracketSeedingService();
 const matchGenerator = new SingleEliminationMatchGenerator();
 
 const getAllTournaments = new GetAllTournaments(tournamentRepository);
@@ -93,8 +85,6 @@ const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tourname
 const getMatchesByTournamentId = new GetMatchesByTournamentId(tournamentRepository, matchRepository);
 const getTournamentBracket = new GetTournamentBracket(tournamentRepository, bracketRepository);
 const getUnregisteredPlayersByTournamentId = new GetUnregisteredPlayersByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository);
-const getTournamentPlayingArea = new GetTournamentPlayingArea(tournamentRepository, playingAreaRepository);
-const createTournamentPlayingArea = new CreateTournamentPlayingArea(tournamentRepository, playingAreaRepository);
 const getTournamentResults = new GetTournamentResults(tournamentRepository, tournamentResultRepository);
 
 
@@ -330,39 +320,6 @@ const getTournamentResults = new GetTournamentResults(tournamentRepository, tour
  *                 type: string
  *                 example: ARAGON
  * 
- *     PlayingArea:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
- *         shortId:
- *           type: string
- *           example: S56A
- *         tournamentId:
- *           type: string
- *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
- *         boards:
- *           type: array
- *           items:
- *             type: object
- *             properties:
- *               id:
- *                 type: string
- *                 example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
- *               shortId:
- *                 type: string
- *                 example: S56A-D001
- *               number:
- *                 type: number
- *                 example: 1
- *               status:
- *                 type: string
- *                 example: OCCUPIED
- *               matchId:
- *                 type: string
- *                 example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
- * 
  *     TournamentResult:
  *       type: object
  *       properties:
@@ -515,15 +472,6 @@ const getTournamentResults = new GetTournamentResults(tournamentRepository, tour
  *           type: number
  *           example: 1
  *         boardNumber:
- *           type: number
- *           example: 4
- * 
- *     CreatePlayingAreaRequest:
- *       type: object
- *       required:
- *         - numBoards
- *       properties:
- *         numBoards:
  *           type: number
  *           example: 4
  */
@@ -3632,241 +3580,7 @@ export class TournamentController {
         ApiResponseBuilder.error('Internal server error')
       );
     }
-  }
-
-
-  /**
-   * @swagger
-   * /api/tournaments/{id}/playing-areas:
-   *   get:
-   *     summary: Get tournament playing area
-   *     tags: [Tournaments]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - name: id
-   *         in: path
-   *         required: true
-   *         description: Tournament ID
-   *         schema:
-   *           type: string
-   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *     responses:
-   *       200:
-   *         description: Playing area fetched successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Playing area fetched successfully
-   *                 data:
-   *                   $ref: '#/components/schemas/PlayingArea'
-   *       400:
-   *         description: Bad Request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: All fields are required
-   *       404:
-   *         description: Not Found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Tournament not found
-   *       500:
-   *         description: Internal Server Error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Internal server error
-   */
-  async getTournamentPlayingArea(req: AuthRequest, res: Response) {
-    try {
-      const id = req.params.id;
-      if (!id || typeof id !== 'string') {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      const playingArea = await getTournamentPlayingArea.execute(id);
-
-      res.status(200).json(
-        ApiResponseBuilder.success(
-          playingArea,
-          'Playing area fetched successfully',
-        )
-      );
-    } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
-        return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (
-        error instanceof TournamentNotFoundException ||
-        error instanceof PlayingAreaNotFoundException
-      ) {
-        return res.status(404).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-
-      console.error('[ERROR]:', error);
-      res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
-      );
-    }
-  }
-
-
-  /**
-   * @swagger
-   * /api/tournaments/{id}/playing-areas:
-   *   post:
-   *     summary: Create the tournament playing area
-   *     tags: [Tournaments]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - name: id
-   *         in: path
-   *         required: true
-   *         description: Tournament ID
-   *         schema:
-   *           type: string
-   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/CreatePlayingAreaRequest'
-   *     responses:
-   *       200:
-   *         description: Playing area created successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Playing area created successfully
-   *                 data:
-   *                   $ref: '#/components/schemas/PlayingArea'
-   *       400:
-   *         description: Bad Request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: All fields are required
-   *       404:
-   *         description: Not Found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Tournament not found
-   *       500:
-   *         description: Internal Server Error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Internal server error
-   */
-  async createTournamentPlayingArea(req: AuthRequest, res: Response) {
-    try {
-      const id = req.params.id;
-      if (!id || typeof id !== 'string') {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      const { numBoards } = req.body;
-      if (!numBoards) {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      const playingArea = await createTournamentPlayingArea.execute({
-        id: id,
-        numBoards: numBoards,
-      });
-
-      res.status(200).json(
-        ApiResponseBuilder.success(
-          playingArea,
-          'Playing area created successfully',
-        )
-      );
-    } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
-        return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (
-        error instanceof TournamentNotFoundException ||
-        error instanceof PlayingAreaAlreadyExistsException
-      ) {
-        return res.status(404).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-
-      console.error('[ERROR]:', error);
-      res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
-      );
-    }
-  }
+  }  
 
 
   /**

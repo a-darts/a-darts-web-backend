@@ -5,29 +5,14 @@ import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException, MatchAlreadyAssignedToBoardException, PlayingAreaHasNoBoardsException, BoardOccupiedException, BoardPairedWithTabletException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
 import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
-import { DisablePlayingAreaBoard } from '../../../application/services/playingArea/DisablePlayingAreaBoard.js';
-// import { OccupyPlayingAreaBoard } from '../../../application/services/playingArea/OccupyPlayingAreaBoard.js';
-import { ReleasePlayingAreaBoard } from '../../../application/services/playingArea/ReleasePlayingAreaBoard.js';
-import { EnablePlayingAreaBoard } from '../../../application/services/playingArea/EnablePlayingAreaBoard.js';
 import { MatchNotFoundException } from '../../../domain/exceptions/MatchExceptions.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
-import { AddBoardInPlayingArea } from '../../../application/services/playingArea/AddBoardInPlayingArea.js';
-import { RemoveLastBoardFromPlayingArea } from '../../../application/services/playingArea/RemoveLastBoardFromPlayingArea.js';
 import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
+import PlayingAreaServiceFactory from '../../factories/PlayingAreaServiceFactory.js';
+import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 
 
-const unitOfWork = new PrismaUnitOfWork(prisma);
-
-const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
-const matchRepository = new PrismaMatchRepository(prisma);
-
-// const occupyPlayingAreaBoard = new OccupyPlayingAreaBoard(unitOfWork, playingAreaRepository, matchRepository);
-const releasePlayingAreaBoard = new ReleasePlayingAreaBoard(playingAreaRepository);
-const disablePlayingAreaBoard = new DisablePlayingAreaBoard(playingAreaRepository);
-const enablePlayingAreaBoard = new EnablePlayingAreaBoard(playingAreaRepository);
-const addBoardInPlayingArea = new AddBoardInPlayingArea(playingAreaRepository);
-const removeLastBoardFromPlayingArea = new RemoveLastBoardFromPlayingArea(playingAreaRepository);
-
+const playingAreaService = PlayingAreaServiceFactory.getInstance();
 
 /**
  * @swagger
@@ -66,6 +51,15 @@ const removeLastBoardFromPlayingArea = new RemoveLastBoardFromPlayingArea(playin
  *                 type: string
  *                 example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  * 
+ *     CreatePlayingAreaRequest:
+ *       type: object
+ *       required:
+ *         - numBoards
+ *       properties:
+ *         numBoards:
+ *           type: number
+ *           example: 4
+ * 
  *     OccupyPlayingAreaRequest:
  *       type: object
  *       required:
@@ -77,6 +71,240 @@ const removeLastBoardFromPlayingArea = new RemoveLastBoardFromPlayingArea(playin
  */
 export class PlayingAreaController {
 
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/playing-areas:
+   *   get:
+   *     summary: Get tournament playing area
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Playing area fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Playing area fetched successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/PlayingArea'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getTournamentPlayingArea(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const playingArea = await playingAreaService.getByTournamentId(id);
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          playingArea,
+          'Playing area fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotFoundException ||
+        error instanceof PlayingAreaNotFoundException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/playing-areas:
+   *   post:
+   *     summary: Create the tournament playing area
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/CreatePlayingAreaRequest'
+   *     responses:
+   *       200:
+   *         description: Playing area created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Playing area created successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/PlayingArea'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async createTournamentPlayingArea(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const { numBoards } = req.body;
+      if (!numBoards) {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const playingArea = await playingAreaService.create({
+        id: id,
+        numBoards: numBoards,
+      });
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          playingArea,
+          'Playing area created successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (
+        error instanceof TournamentNotFoundException ||
+        error instanceof PlayingAreaAlreadyExistsException
+      ) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+  
 
   /**
    * @swagger
@@ -204,7 +432,7 @@ export class PlayingAreaController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await releasePlayingAreaBoard.execute({
+      await playingAreaService.releaseBoard({
         id: id,
         boardNumber: Number(boardNumber),
       });
@@ -368,7 +596,7 @@ export class PlayingAreaController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await disablePlayingAreaBoard.execute({
+      await playingAreaService.disableBoard({
         id: id,
         boardNumber: Number(boardNumber),
       });
@@ -532,7 +760,7 @@ export class PlayingAreaController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await enablePlayingAreaBoard.execute({
+      await playingAreaService.enableBoard({
         id: id,
         boardNumber: Number(boardNumber),
       });
@@ -676,7 +904,7 @@ export class PlayingAreaController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await addBoardInPlayingArea.execute(id);
+      await playingAreaService.addBoard(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           null,
@@ -822,7 +1050,7 @@ export class PlayingAreaController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await removeLastBoardFromPlayingArea.execute(id);
+      await playingAreaService.removeLastBoard(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           null,
