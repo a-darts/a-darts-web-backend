@@ -39,6 +39,10 @@ export class TournamentResult {
         this.legsLost = legsLost;
     }
 
+    
+    // --------------------------------------------------------------------
+    // FACTORY METHOD
+    // --------------------------------------------------------------------
     public static create(
         tournamentId: string,
         participantId: string,
@@ -66,18 +70,58 @@ export class TournamentResult {
         );
     }
 
-    public getId(): string { return this.id; }
-    public getTournamentId(): string { return this.tournamentId; }
-    public getParticipantId(): string { return this.participantId; }
-    public getPlayerId(): string { return this.playerId; }
-    public getFinalPosition(): number { return this.finalPosition; }
-    public getMatchesWon(): number { return this.matchesWon; }
-    public getMatchesLost(): number { return this.matchesLost; }
-    public getSetsWon(): number { return this.setsWon; }
-    public getSetsLost(): number { return this.setsLost; }
-    public getLegsWon(): number { return this.legsWon; }
-    public getLegsLost(): number { return this.legsLost; }
+    
+    // --------------------------------------------------------------------
+    // GETTERS
+    // --------------------------------------------------------------------
+    public getId(): string {
+        return this.id;
+    }
 
+    public getTournamentId(): string {
+        return this.tournamentId;
+    }
+
+    public getParticipantId(): string {
+        return this.participantId;
+    }
+
+    public getPlayerId(): string {
+        return this.playerId;
+    }
+
+    public getFinalPosition(): number {
+        return this.finalPosition;
+    }
+
+    public getMatchesWon(): number {
+        return this.matchesWon;
+    }
+
+    public getMatchesLost(): number {
+        return this.matchesLost;
+    }
+
+    public getSetsWon(): number {
+        return this.setsWon;
+    }
+
+    public getSetsLost(): number {
+        return this.setsLost;
+    }
+
+    public getLegsWon(): number {
+        return this.legsWon;
+    }
+
+    public getLegsLost(): number {
+        return this.legsLost;
+    }
+
+    
+    // --------------------------------------------------------------------
+    // REHYDRATE METHOD
+    // --------------------------------------------------------------------
     static rehydrate(data: any): TournamentResult {
         return new TournamentResult(
             data.id,

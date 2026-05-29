@@ -72,6 +72,7 @@ export class TournamentService {
             request.info.info,
             request.info.federation,
           ),
+          request.userId,
         );
     
         // 4. Persist the tournament in the DB

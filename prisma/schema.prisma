@@ -92,6 +92,7 @@ model User {
   status       UserStatus
 
   playerProfiles Player[]
+  tournaments    Tournament[]
 
   @@map("users")
 }
@@ -121,6 +122,7 @@ model Tournament {
   seasonStartYear Int
   //
   createdAt       DateTime
+  createdBy       String           @db.Uuid
   status          TournamentStatus
 
   // Value object TournamentInfo fields
@@ -149,6 +151,7 @@ model Tournament {
   //
 
   // Integridad referencial
+  user                   User                    @relation(fields: [createdBy], references: [id])
   bracket                Bracket?
   playingArea            PlayingArea?
   registeredParticipants RegisteredParticipant[]

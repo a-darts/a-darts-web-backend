@@ -1,4 +1,3 @@
-import { InvalidSeasonException, InvalidYearException } from "../exceptions/PlayerExceptions.js";
 import { MissingRequiredUserFieldsException } from "../exceptions/UserExceptions.js";
 import { Season } from "./Season.js";
 

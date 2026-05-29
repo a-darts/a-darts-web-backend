@@ -7,6 +7,7 @@ export interface TournamentResponseDTO {
     name: string;
     seasonStartYear: number;
     createdAt: Date;
+    createdBy: string;
     status: TournamentStatus;
     isDelayed: boolean;
     info: TournamentInfoDTO;
@@ -41,6 +42,7 @@ interface RegistrationPeriodDTO {
 }
 
 export interface CreateTournamentRequestDTO {
+    userId: string; // User that creates the tournament
     name: string;
     seasonStartYear: number;
     info: TournamentInfoDTO;

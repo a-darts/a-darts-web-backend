@@ -1,8 +1,10 @@
-import { BracketAlreadyExistsException } from "../exceptions/BracketExceptions.js";
-import { RegistrationCloseDateAfterTournamentException, RegistrationNotClosedException, RegistrationOpenDateInPastException } from "../exceptions/RegistrationExceptions.js";
+import {
+  RegistrationCloseDateAfterTournamentException,
+  RegistrationNotClosedException,
+  RegistrationOpenDateInPastException,
+} from "../exceptions/RegistrationExceptions.js";
 import {
   TournamentAlreadyFinishedException,
-  TournamentAlreadyHasBracketException,
   TournamentMaxPlayersExceededException,
   TournamentNotInDraftException,
   TournamentNotInProgressException,
@@ -30,6 +32,7 @@ export class Tournament {
   private name: string;
   private season: Season;
   private readonly createdAt: Date;
+  private readonly createdBy: string;
   private status: TournamentStatus;
 
   private info: TournamentInfo;
@@ -43,6 +46,7 @@ export class Tournament {
     name: string,
     season: Season,
     createdAt: Date,
+    createdBy: string,
     status: TournamentStatus,
     info: TournamentInfo,
     registration: Registration,
@@ -51,6 +55,7 @@ export class Tournament {
     this.name = name;
     this.season = season;
     this.createdAt = createdAt;
+    this.createdBy = createdBy;
     this.status = status;
     this.info = info;
     this.registration = registration;
@@ -64,6 +69,7 @@ export class Tournament {
     name: string,
     season: Season,
     info: TournamentInfo,
+    createdBy: string,
   ): Tournament {
     if (!name || name.trim() === '' || !info) {
       throw new MissingRequiredUserFieldsException();
@@ -74,6 +80,7 @@ export class Tournament {
       name,
       season,
       new Date(),
+      createdBy,
       TournamentStatus.DRAFT,
       info,
       Registration.create(),
@@ -234,6 +241,10 @@ export class Tournament {
     return this.createdAt;
   }
 
+  public getCreatedBy(): string {
+    return this.createdBy;
+  }
+
   public getStatus(): TournamentStatus {
     return this.status;
   }
@@ -271,6 +282,7 @@ export class Tournament {
       data.name,
       new Season(data.seasonStartYear),
       new Date(data.createdAt),
+      data.createdBy,
       data.status as TournamentStatus,
       new TournamentInfo(
         data.info.place,

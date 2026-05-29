@@ -28,6 +28,7 @@ export class TournamentMapper {
             name: tournament.getName(),
             seasonStartYear: tournament.getSeason().getStartYear(),
             createdAt: tournament.getCreatedAt(),
+            createdBy: tournament.getCreatedBy(),
             status: tournament.getStatus() as PrismaTournamentStatus,
 
             // TournamentInfo fields
@@ -64,6 +65,7 @@ export class TournamentMapper {
             name: prismaTournament.name,
             seasonStartYear: prismaTournament.seasonStartYear,
             createdAt: prismaTournament.createdAt,
+            createdBy: prismaTournament.createdBy,
             status: prismaTournament.status as TournamentStatus,
 
             // Tournament Info

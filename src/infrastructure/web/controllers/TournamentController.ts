@@ -55,6 +55,9 @@ const tournamentService = TournamentServiceFactory.getInstance();
  *           type: string
  *           format: date-time
  *           example: 2026-04-04T13:10:16.841Z
+ *         createdBy:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
  *         status:
  *           type: string
  *           example: PUBLISHED
@@ -461,7 +464,17 @@ export class TournamentController {
    */
   async createTournament(req: AuthRequest, res: Response) {
     try {
-      const tournament = await tournamentService.create(req.body);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json(
+          ApiResponseBuilder.error('Invalid token')
+        );
+      }
+
+      const tournament = await tournamentService.create({
+        userId: userId,
+        ...req.body,
+      });
       res.status(201).json(
         ApiResponseBuilder.success(
           tournament,

@@ -11,6 +11,7 @@ export class TournamentMapper {
             name: tournament.getName(),
             seasonStartYear: tournament.getSeason().getStartYear(),
             createdAt: tournament.getCreatedAt(),
+            createdBy: tournament.getCreatedBy(),
             status: tournament.getStatus(),
             isDelayed: tournament.isDelayed(),
             info: {
