@@ -1,12 +1,10 @@
 import { Server, Socket } from 'socket.io';
 import { MatchCacheRepository } from '../../domain/repositories/MatchCacheRepository.js';
-import { UpdateMatchScore } from '../../application/services/tournament/matches/UpdateMatchScore.js';
-import { FinishMatch } from '../../application/services/tournament/matches/status/FinishMatch.js';
+import { MatchService } from '../../application/services/MatchService.js';
 
 export class SocketController {
     constructor(
-        private updateMatchScoreUseCase: UpdateMatchScore,
-        private finishMatchUseCase: FinishMatch,
+        private matchService: MatchService,
         private matchCacheRepository: MatchCacheRepository,
     ) {}
 
@@ -66,7 +64,7 @@ export class SocketController {
                 throwData.participant2.legsWon !== lastThrow.participant2.legsWon ||
                 throwData.participant2.setsWon !== lastThrow.participant2.setsWon;
             if (hasScoreChanged) {
-                await this.updateMatchScoreUseCase.execute({
+                await this.matchService.updateScore({
                     id: matchId,
                     participant1Sets: throwData.participant1.setsWon,
                     participant1Legs: throwData.participant1.legsWon,
@@ -77,7 +75,7 @@ export class SocketController {
 
             // 4. If the match is finished, execute the finish match use case and clear the cache
             if (throwData.status === 'FINISHED') {
-                await this.finishMatchUseCase.execute(matchId);
+                await this.matchService.finish(matchId);
                 await this.matchCacheRepository.clearMatch(matchId, boardShortId);
             }
 

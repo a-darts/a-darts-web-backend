@@ -24,7 +24,6 @@ import { UndoCheckInParticipant } from '../../../application/services/tournament
 import { GetTournamentById } from '../../../application/services/tournament/GetTournamentById.js';
 import { GetParticipantsByTournamentId } from '../../../application/services/tournament/registration/GetParticipantsByTournamentId.js';
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
-import { GetMatchesByTournamentId } from '../../../application/services/tournament/matches/GetMatchesByTournamentId.js';
 import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
 import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
 import { BracketAlreadyFinishedException, BracketNotFoundException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, BracketUnfinishedException } from '../../../domain/exceptions/BracketExceptions.js';
@@ -44,10 +43,6 @@ import { PrismaTournamentResultRepository } from '../../persistence/repositories
 import { TournamentResultNotFoundException } from '../../../domain/exceptions/TournamentResultException.js';
 import { SingleEliminationMatchGenerator } from '../../../domain/services/SingleEliminationMatchGenerator.js';
 import BracketServiceFactory from '../../factories/BracketServiceFactory.js';
-
-
-
-const bracketService = BracketServiceFactory.getInstance();
 
 
 
@@ -82,8 +77,6 @@ const unregisterParticipantFromTournament = new UnregisterParticipantFromTournam
 const doCheckInParticipant = new DoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const undoCheckInParticipant = new UndoCheckInParticipant(tournamentRepository, registeredParticipantRepository);
 const getParticipantsByTournamentId = new GetParticipantsByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository, userRepository);
-const getMatchesByTournamentId = new GetMatchesByTournamentId(tournamentRepository, matchRepository);
-const getTournamentBracket = new GetTournamentBracket(tournamentRepository, bracketRepository);
 const getUnregisteredPlayersByTournamentId = new GetUnregisteredPlayersByTournamentId(tournamentRepository, registeredParticipantRepository, playerRepository);
 const getTournamentResults = new GetTournamentResults(tournamentRepository, tournamentResultRepository);
 
@@ -3040,112 +3033,7 @@ export class TournamentController {
     }
   }
 
-
-  /**
-   * @swagger
-   * /api/tournaments/{id}/matches:
-   *   get:
-   *     summary: Get matches by tournament id
-   *     tags: [Tournaments]
-   *     parameters:
-   *       - name: id
-   *         in: path
-   *         required: true
-   *         description: Tournament ID
-   *         schema:
-   *           type: string
-   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
-   *     responses:
-   *       200:
-   *         description: Matches fetched successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Matches fetched successfully
-   *                 data:
-   *                   type: array
-   *                   items:
-   *                     $ref: '#/components/schemas/Match'
-   *       400:
-   *         description: Bad Request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: All fields are required
-   *       404:
-   *         description: Not Found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Tournament not found
-   *       500:
-   *         description: Internal Server Error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: error
-   *                 message:
-   *                   type: string
-   *                   example: Internal server error
-   */
-  async getMatchesByTournamentId(req: AuthRequest, res: Response) {
-    try {
-      const id = req.params.id;
-      if (!id || typeof id !== 'string') {
-        throw new MissingRequiredUserFieldsException();
-      }
-
-      const matches = await getMatchesByTournamentId.execute(id);
-      res.status(200).json(
-        ApiResponseBuilder.success(
-          matches,
-          'Matches fetched successfully',
-        )
-      );
-    } catch (error: any) {
-      if (error instanceof MissingRequiredUserFieldsException) {
-        return res.status(400).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-      if (error instanceof TournamentNotFoundException) {
-        return res.status(404).json(
-          ApiResponseBuilder.error(error.message)
-        );
-      }
-
-      console.error('[ERROR]:', error);
-      res.status(500).json(
-        ApiResponseBuilder.error('Internal server error')
-      );
-    }
-  }
-
+  
   /**
    * @swagger
    * /api/tournaments/{id}/results:

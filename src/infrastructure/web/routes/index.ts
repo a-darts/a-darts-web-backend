@@ -78,7 +78,7 @@ router.delete('/tournaments/:id/participants/:participantId/checkIn', authMiddle
 router.get('/tournaments/:id/unregisteredPlayers', authMiddleware, isAdmin, tournamentController.getUnregisteredPlayersByTournamentId);
 router.get('/tournaments/:id/participants', tournamentController.getParticipantsByTournamentId);
 
-router.get('/tournaments/:id/matches', tournamentController.getMatchesByTournamentId);
+router.get('/tournaments/:id/matches', matchController.getMatchesByTournamentId);
 
 router.post('/tournaments/:id/bracket/automatic', authMiddleware, isAdmin, bracketController.createBracketAutomatically);
 router.post('/tournaments/:id/bracket/manual', authMiddleware, isAdmin, bracketController.createBracketManually);

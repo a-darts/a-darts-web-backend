@@ -1,46 +1,29 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
-import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { InvalidUserFieldsException, MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
-import { MatchAlreadyFinishedException, MatchBoardNumberRequiredException, MatchNotFoundException, MatchNotInProgressException, MatchNotPendingException, MatchNotSuspendedException, ParticipantNotFoundInMatchException } from '../../../domain/exceptions/MatchExceptions.js';
-import { PrismaMatchRepository } from '../../persistence/repositories/PrismaMatchRepository.js';
-import { GetMatchById } from '../../../application/services/tournament/matches/GetMatchById.js';
-import { StartMatch } from '../../../application/services/tournament/matches/status/StartMatch.js';
-import { FinishMatch } from '../../../application/services/tournament/matches/status/FinishMatch.js';
-import { CancelMatch } from '../../../application/services/tournament/matches/status/CancelMatch.js';
-import { SuspendMatch } from '../../../application/services/tournament/matches/status/SuspendMatch.js';
-import { ResumeMatch } from '../../../application/services/tournament/matches/status/ResumeMatch.js';
-import { SetMatchResultAndPromote } from '../../../application/services/tournament/matches/SetMatchResultAndPromote.js';
-import { PrismaUnitOfWork } from '../../persistence/PrismaUnitOfWork.js';
-import { PrismaBracketRepository } from '../../persistence/repositories/PrismaBracketRepository.js';
+import {
+  MatchAlreadyFinishedException,
+  MatchBoardNumberRequiredException,
+  MatchNotFoundException,
+  MatchNotInProgressException,
+  MatchNotPendingException,
+  MatchNotSuspendedException,
+  ParticipantNotFoundInMatchException,
+} from '../../../domain/exceptions/MatchExceptions.js';
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
-import { globalEventBus } from '../../events/eventBusInstance.js';
-import { PrismaPlayingAreaRepository } from '../../persistence/repositories/PrismaPlayingAreaRepository.js';
-import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaNotFoundException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
-import { SingleEliminationMatchGenerator } from '../../../domain/services/SingleEliminationMatchGenerator.js';
-import { SetMatchBoardNumber } from '../../../application/services/tournament/matches/SetMatchBoardNumber.js';
-import { UpdateMatchScore } from '../../../application/services/tournament/matches/UpdateMatchScore.js';
-import { RedisMatchCacheRepository } from '../../persistence/repositories/RedisMatchCacheRepository.js';
-
-const unitOfWork = new PrismaUnitOfWork(prisma);
-const matchRepository = new PrismaMatchRepository(prisma);
-const bracketRepository = new PrismaBracketRepository(prisma);
-const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
-const matchCacheRepository = new RedisMatchCacheRepository();
-
-const matchGenerator = new SingleEliminationMatchGenerator();
+import {
+  BoardAlreadyOccupiedException,
+  BoardDisabledException,
+  BoardNotFoundException,
+  BoardNotOccupiedException,
+  PlayingAreaNotFoundException,
+} from '../../../domain/exceptions/PlayingAreaExceptions.js';
+import MatchServiceFactory from '../../factories/MatchServiceFactory.js';
+import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 
 
-const getMatchById = new GetMatchById(matchRepository);
-const startMatch = new StartMatch(matchRepository, playingAreaRepository, matchCacheRepository);
-const finishMatch = new FinishMatch(unitOfWork, matchRepository, bracketRepository, playingAreaRepository, matchCacheRepository, matchGenerator, globalEventBus);
-const cancelMatch = new CancelMatch(matchRepository, matchCacheRepository);
-const suspendMatch = new SuspendMatch(matchRepository, playingAreaRepository, matchCacheRepository, globalEventBus);
-const resumeMatch = new ResumeMatch(matchRepository, playingAreaRepository, matchCacheRepository, globalEventBus);
-const setMatchBoardNumber = new SetMatchBoardNumber(matchRepository, playingAreaRepository, matchCacheRepository);
-const setMatchResultAndPromote = new SetMatchResultAndPromote(unitOfWork, matchRepository, bracketRepository, playingAreaRepository, matchCacheRepository, matchGenerator, globalEventBus);
-const updateMatchScore = new UpdateMatchScore(matchRepository);
+const matchService = MatchServiceFactory.getInstance();
 
 
 /**
@@ -138,6 +121,112 @@ export class MatchController {
 
   /**
    * @swagger
+   * /api/tournaments/{id}/matches:
+   *   get:
+   *     summary: Get matches by tournament id
+   *     tags: [Tournaments]
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Matches fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Matches fetched successfully
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/Match'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getMatchesByTournamentId(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const matches = await matchService.getAllByTournamentId(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          matches,
+          'Matches fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof TournamentNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+  
+
+  /**
+   * @swagger
    * /api/matches/{id}:
    *   get:
    *     summary: Get match by id
@@ -213,7 +302,7 @@ export class MatchController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const match = await getMatchById.execute(id);
+      const match = await matchService.getById(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           match,
@@ -356,7 +445,7 @@ export class MatchController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await startMatch.execute(id);
+      await matchService.start(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           null,
@@ -509,7 +598,7 @@ export class MatchController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await finishMatch.execute(id);
+      await matchService.finish(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           null,
@@ -659,7 +748,7 @@ export class MatchController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await cancelMatch.execute(id);
+      await matchService.cancel(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           null,
@@ -809,7 +898,7 @@ export class MatchController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await suspendMatch.execute(id);
+      await matchService.suspend(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           null,
@@ -959,7 +1048,7 @@ export class MatchController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await resumeMatch.execute(id);
+      await matchService.resume(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           null,
@@ -1121,7 +1210,7 @@ export class MatchController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await setMatchBoardNumber.execute({
+      await matchService.setBoardNumber({
         id: id,
         boardNumber: boardNumber,
       });
@@ -1298,7 +1387,7 @@ export class MatchController {
         throw new InvalidUserFieldsException();
       }
 
-      await updateMatchScore.execute({
+      await matchService.updateScore({
         id: id,
         participant1Sets: p1Sets,
         participant1Legs: p1Legs,
@@ -1486,7 +1575,7 @@ export class MatchController {
         throw new InvalidUserFieldsException();
       }
 
-      await setMatchResultAndPromote.execute({
+      await matchService.setResultAndPromote({
         id: id,
         participant1Sets: p1Sets,
         participant1Legs: p1Legs,
