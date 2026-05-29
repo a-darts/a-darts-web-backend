@@ -39,3 +39,10 @@ export class RegistrationCloseDateAfterTournamentException extends Error {
         this.name = 'RegistrationCloseDateAfterTournamentException';
     }
 }
+
+export class RegistrationCloseDateInPastException extends Error {
+    constructor() {
+        super('Registration closing date in past');
+        this.name = 'RegistrationCloseDateInPastException';
+    }
+}

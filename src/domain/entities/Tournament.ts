@@ -2,6 +2,7 @@ import {
   RegistrationCloseDateAfterTournamentException,
   RegistrationNotClosedException,
   RegistrationOpenDateInPastException,
+  RegistrationCloseDateInPastException,
 } from "../exceptions/RegistrationExceptions.js";
 import {
   TournamentAlreadyFinishedException,
@@ -195,6 +196,10 @@ export class Tournament {
 
     if (openDate && openDate < now) {
       throw new RegistrationOpenDateInPastException();
+    }
+
+    if (closeDate && closeDate <= now) {
+      throw new RegistrationCloseDateInPastException();
     }
 
     if (closeDate && closeDate >= tournamentDate) {

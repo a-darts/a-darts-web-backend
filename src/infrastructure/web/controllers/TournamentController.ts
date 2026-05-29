@@ -17,6 +17,7 @@ import {
   RegistrationCloseDateAfterTournamentException,
   RegistrationNotClosedException,
   RegistrationOpenDateInPastException,
+  RegistrationCloseDateInPastException,
 } from '../../../domain/exceptions/RegistrationExceptions.js';
 import { MatchAlreadyFinishedException } from '../../../domain/exceptions/MatchExceptions.js';
 import {
@@ -1841,6 +1842,7 @@ export class TournamentController {
    *                     - example: Tournament already has a bracket
    *                     - example: Registration opening date in past
    *                     - example: Registration closing date must be before the tournament start date
+   *                     - example: Registration closing date in past
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1892,7 +1894,8 @@ export class TournamentController {
         error instanceof TournamentNotPublishedException ||
         error instanceof TournamentAlreadyHasBracketException ||
         error instanceof RegistrationOpenDateInPastException ||
-        error instanceof RegistrationCloseDateAfterTournamentException
+        error instanceof RegistrationCloseDateAfterTournamentException ||
+        error instanceof RegistrationCloseDateInPastException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
