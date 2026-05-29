@@ -79,8 +79,7 @@ export class PlayingArea {
         board.disable();
     }
 
-    public enableBoard(boardNumber: number): void {
-        const board = this.findBoardByNumber(boardNumber);
+    public enableBoard(board: Board): void {
         board.enable();
     }
 

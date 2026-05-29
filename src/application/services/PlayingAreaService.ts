@@ -119,7 +119,8 @@ export class PlayingAreaService {
     }
 
     // 2. Enable the board in the playing area
-    playingArea.enableBoard(request.boardNumber);
+    const board = playingArea.findBoardById(request.boardId);
+    playingArea.enableBoard(board);
 
     // 3. Persist the changes in the DB
     await this.playingAreaRepository.update(playingArea);
