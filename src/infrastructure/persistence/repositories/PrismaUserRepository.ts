@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-import { UserRepository } from '../../../domain/repositories/UserRepository.js';
+import { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
 import { User } from '../../../domain/entities/User.js';
 import { UserMapper } from '../mappers/UserMapper.js';
 import { transactionStorage } from '../TransactionContext.js';
 
-export class PrismaUserRepository implements UserRepository {
+export class PrismaUserRepository implements IUserRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
     private get client() {

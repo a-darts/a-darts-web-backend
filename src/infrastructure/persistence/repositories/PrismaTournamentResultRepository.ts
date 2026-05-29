@@ -1,11 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { TournamentResult } from '../../../domain/entities/TournamentResult.js';
-import { TournamentResultRepository, TournamentResultWithPlayerAndUser } from '../../../domain/repositories/TournamentResultRepository.js';
+import { ITournamentResultRepository, TournamentResultWithPlayerAndUser } from '../../../domain/repositories/ITournamentResultRepository.js';
 import { TournamentResultMapper } from '../mappers/TournamentResultMapper.js';
 import { PlayerMapper } from '../mappers/PlayerMapper.js';
 import { UserMapper } from '../mappers/UserMapper.js';
 
-export class PrismaTournamentResultRepository implements TournamentResultRepository {
+export class PrismaTournamentResultRepository implements ITournamentResultRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
     async create(result: TournamentResult): Promise<void> {

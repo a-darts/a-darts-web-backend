@@ -1,6 +1,6 @@
 import { User } from '../entities/User.js';
 
-export interface UserRepository {
+export interface IUserRepository {
   create(user: User): Promise<void>;
   update(user: User): Promise<void>;
   delete(id: string): Promise<void>;

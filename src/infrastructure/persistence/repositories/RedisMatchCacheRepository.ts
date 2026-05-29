@@ -1,9 +1,9 @@
 import { Redis } from 'ioredis';
-import { MatchCacheRepository } from '../../../domain/repositories/MatchCacheRepository.js';
+import { IMatchCacheRepository } from '../../../domain/repositories/IMatchCacheRepository.js';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
-export class RedisMatchCacheRepository implements MatchCacheRepository {
+export class RedisMatchCacheRepository implements IMatchCacheRepository {
     /**
      * Guarda una tirada en la lista de tiradas del partido
      */

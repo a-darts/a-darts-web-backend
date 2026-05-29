@@ -1,11 +1,11 @@
 import { Server, Socket } from 'socket.io';
-import { MatchCacheRepository } from '../../domain/repositories/MatchCacheRepository.js';
+import { IMatchCacheRepository } from '../../domain/repositories/IMatchCacheRepository.js';
 import { MatchService } from '../../application/services/MatchService.js';
 
 export class SocketController {
     constructor(
         private matchService: MatchService,
-        private matchCacheRepository: MatchCacheRepository,
+        private matchCacheRepository: IMatchCacheRepository,
     ) {}
 
     public handleConnection(socket: Socket, io: Server): void {

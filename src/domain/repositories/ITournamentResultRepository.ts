@@ -8,7 +8,7 @@ export interface TournamentResultWithPlayerAndUser {
     user: User;
 }
 
-export interface TournamentResultRepository {
+export interface ITournamentResultRepository {
     create(result: TournamentResult): Promise<void>;
     createMany(results: TournamentResult[]): Promise<void>;
     findAllByTournamentIdWithPlayerAndUser(tournamentId: string): Promise<TournamentResultWithPlayerAndUser[]>;

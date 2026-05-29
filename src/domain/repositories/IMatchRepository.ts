@@ -10,7 +10,7 @@ export interface MatchWithParticipants {
   board: Board | null;
 }
 
-export interface MatchRepository {
+export interface IMatchRepository {
   create(match: Match): Promise<void>;
   update(match: Match): Promise<void>;
   delete(id: string): Promise<void>;

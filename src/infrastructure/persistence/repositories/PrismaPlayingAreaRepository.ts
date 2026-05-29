@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { PlayingArea } from '../../../domain/entities/PlayingArea.js';
 import { PlayingAreaMapper } from '../mappers/PlayingAreaMapper.js';
-import { PlayingAreaRepository } from '../../../domain/repositories/PlayingAreaRepository.js';
+import { IPlayingAreaRepository } from '../../../domain/repositories/IPlayingAreaRepository.js';
 import { transactionStorage } from '../TransactionContext.js';
 
-export class PrismaPlayingAreaRepository implements PlayingAreaRepository {
+export class PrismaPlayingAreaRepository implements IPlayingAreaRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
     private get client() {

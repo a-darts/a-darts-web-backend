@@ -1,11 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import { PlayerRepository, PlayerWithUser } from '../../../domain/repositories/PlayerRepository.js';
+import { IPlayerRepository, PlayerWithUser } from '../../../domain/repositories/IPlayerRepository.js';
 import { Player } from '../../../domain/entities/Player.js';
 import { PlayerMapper } from '../mappers/PlayerMapper.js';
 import { transactionStorage } from '../TransactionContext.js';
 import { UserMapper } from '../mappers/UserMapper.js';
 
-export class PrismaPlayerRepository implements PlayerRepository {
+export class PrismaPlayerRepository implements IPlayerRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
     private get client() {

@@ -1,6 +1,6 @@
 import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
-import { MatchRepository } from "../../domain/repositories/MatchRepository.js";
-import { TournamentResultRepository } from "../../domain/repositories/TournamentResultRepository.js";
+import { IMatchRepository } from "../../domain/repositories/IMatchRepository.js";
+import { ITournamentResultRepository } from "../../domain/repositories/ITournamentResultRepository.js";
 import { TournamentFinishedEvent } from "../../domain/events/TournamentFinishedEvent.js";
 import { CalculateTournamentResultsService } from "../../domain/services/CalculateTournamentResultsService.js";
 
@@ -9,8 +9,8 @@ export class CalculateResultsOnTournamentFinished {
 
     constructor(
         private readonly bracketRepository: IBracketRepository,
-        private readonly matchRepository: MatchRepository,
-        private readonly tournamentResultRepository: TournamentResultRepository,
+        private readonly matchRepository: IMatchRepository,
+        private readonly tournamentResultRepository: ITournamentResultRepository,
     ) {
         this.calculateService = new CalculateTournamentResultsService();
     }

@@ -55,7 +55,7 @@ router.post('/users/:id/restore', authMiddleware, isAdmin, userController.restor
 // Player routes
 router.get('/players', authMiddleware, playerController.getAllPlayers);
 router.get('/players/:id', authMiddleware, playerController.getPlayerById);
-router.get('/players/user/:userId/season/:seasonStartYear', authMiddleware, playerController.getPlayerByUserIdAndSeason);
+router.get('/players/users/:userId/seasons/:seasonStartYear', authMiddleware, playerController.getPlayerByUserIdAndSeason);
 router.post('/players', authMiddleware, isAdmin, playerController.createPlayer);
 router.put('/players/:id/federation', authMiddleware, isAdmin, playerController.updatePlayerFederation);
 
@@ -75,12 +75,12 @@ router.post('/tournaments/:id/registration/open', authMiddleware, isAdmin, tourn
 router.post('/tournaments/:id/registration/close', authMiddleware, isAdmin, tournamentController.closeRegistration);
 router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationPeriod);
 
-router.get('/tournaments/:id/unregisteredPlayers', authMiddleware, isAdmin, playerController.getUnregisteredPlayersByTournamentId);
+router.get('/tournaments/:id/unregistered-players', authMiddleware, isAdmin, playerController.getUnregisteredPlayersByTournamentId);
 
 router.post('/tournaments/:id/participants', authMiddleware, isSelfOrAdmin, registeredParticipantController.registerParticipant);
 router.delete('/tournaments/:id/participants/:participantId', authMiddleware, isSelfOrAdmin, registeredParticipantController.unregisterParticipant);
-router.post('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, registeredParticipantController.doCheckInParticipant);
-router.delete('/tournaments/:id/participants/:participantId/checkIn', authMiddleware, isAdmin, registeredParticipantController.undoCheckInParticipant);
+router.post('/tournaments/:id/participants/:participantId/check-in', authMiddleware, isAdmin, registeredParticipantController.doCheckInParticipant);
+router.delete('/tournaments/:id/participants/:participantId/check-in', authMiddleware, isAdmin, registeredParticipantController.undoCheckInParticipant);
 router.get('/tournaments/:id/participants', registeredParticipantController.getParticipantsByTournamentId);
 
 router.get('/tournaments/:id/matches', matchController.getMatchesByTournamentId);
@@ -102,12 +102,12 @@ router.post('/matches/:id/finish', authMiddleware, isAdmin, matchController.fini
 router.post('/matches/:id/cancel', authMiddleware, isAdmin, matchController.cancelMatch);
 router.post('/matches/:id/suspend', authMiddleware, isAdmin, matchController.suspendMatch);
 router.post('/matches/:id/resume', authMiddleware, isAdmin, matchController.resumeMatch);
-router.put('/matches/:id/boardNumber', authMiddleware, isAdmin, matchController.setMatchBoardNumber);
+router.put('/matches/:id/board-number', authMiddleware, isAdmin, matchController.setMatchBoardNumber);
 router.put('/matches/:id/score', authMiddleware, isAdmin, matchController.updateMatchScore);
 router.post('/matches/:id/result', authMiddleware, isAdmin, matchController.setMatchResult);
 
 // Bracket routes
-router.put('/brackets/:id/setupPositions', authMiddleware, isAdmin, bracketController.setupPositions);
+router.put('/brackets/:id/setup-positions', authMiddleware, isAdmin, bracketController.setupPositions);
 router.post('/brackets/:id/reshuffle', authMiddleware, isAdmin, bracketController.reshuffleBracket);
 router.post('/brackets/:id/unpublish', authMiddleware, isAdmin, bracketController.unpublishBracket);
 router.post('/brackets/:id/publish', authMiddleware, isAdmin, bracketController.publishBracket);

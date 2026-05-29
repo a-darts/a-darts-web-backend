@@ -5,10 +5,10 @@ import { PlayingAreaNotFoundException } from '../../domain/exceptions/PlayingAre
 import { BracketNotFoundException } from "../../domain/exceptions/BracketExceptions.js";
 
 import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
-import { MatchRepository } from "../../domain/repositories/MatchRepository.js";
-import { PlayingAreaRepository } from "../../domain/repositories/PlayingAreaRepository.js";
-import { TournamentRepository } from "../../domain/repositories/TournamentRepository.js";
-import { MatchCacheRepository } from "../../domain/repositories/MatchCacheRepository.js";
+import { IMatchRepository } from "../../domain/repositories/IMatchRepository.js";
+import { IPlayingAreaRepository } from "../../domain/repositories/IPlayingAreaRepository.js";
+import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
+import { IMatchCacheRepository } from "../../domain/repositories/IMatchCacheRepository.js";
 
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
 import { UnitOfWork } from "../../domain/repositories/UnitOfWork.js";
@@ -29,11 +29,11 @@ import { MatchStatus } from '../../domain/entities/Match.js';
 
 export class MatchService {
     constructor(
-        private readonly matchRepository: MatchRepository,
+        private readonly matchRepository: IMatchRepository,
         private readonly bracketRepository: IBracketRepository,
-        private readonly tournamentRepository: TournamentRepository,
-        private readonly playingAreaRepository: PlayingAreaRepository,
-        private readonly matchCacheRepository: MatchCacheRepository,
+        private readonly tournamentRepository: ITournamentRepository,
+        private readonly playingAreaRepository: IPlayingAreaRepository,
+        private readonly matchCacheRepository: IMatchCacheRepository,
         private readonly matchGenerator: SingleEliminationMatchGenerator,
         private readonly eventBus: EventBus,
         private readonly unitOfWork: UnitOfWork,

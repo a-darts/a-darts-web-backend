@@ -1,6 +1,6 @@
 import { RegisteredParticipant } from '../entities/Participant.js';
 
-export interface RegisteredParticipantRepository {
+export interface IRegisteredParticipantRepository {
   create(registeredParticipant: RegisteredParticipant): Promise<void>;
   update(registeredParticipant: RegisteredParticipant): Promise<void>;
   delete(id: string): Promise<void>;

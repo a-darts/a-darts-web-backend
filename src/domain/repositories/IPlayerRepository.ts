@@ -6,7 +6,7 @@ export interface PlayerWithUser {
   user: User;
 }
 
-export interface PlayerRepository {
+export interface IPlayerRepository {
   create(player: Player): Promise<void>;
   update(player: Player): Promise<void>;
   delete(id: string): Promise<void>;

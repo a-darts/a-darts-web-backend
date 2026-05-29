@@ -1082,7 +1082,7 @@ export class MatchController {
 
   /**
    * @swagger
-   * /api/matches/{id}/boardNumber:
+   * /api/matches/{id}/board-number:
    *   put:
    *     summary: Update match board number
    *     tags: [Matches]

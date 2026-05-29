@@ -409,7 +409,7 @@ export class RegisteredParticipantController {
 
   /**
    * @swagger
-   * /api/tournaments/{id}/participants/{participantId}/checkIn:
+   * /api/tournaments/{id}/participants/{participantId}/check-in:
    *   post:
    *     summary: Do check in a participant
    *     tags: [Tournaments]
@@ -578,7 +578,7 @@ export class RegisteredParticipantController {
 
   /**
    * @swagger
-   * /api/tournaments/{id}/participants/{participantId}/checkIn:
+   * /api/tournaments/{id}/participants/{participantId}/check-in:
    *   delete:
    *     summary: Undo check in a participant
    *     tags: [Tournaments]

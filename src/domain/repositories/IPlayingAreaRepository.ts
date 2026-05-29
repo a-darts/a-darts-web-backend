@@ -1,6 +1,6 @@
 import { PlayingArea } from '../entities/PlayingArea.js';
 
-export interface PlayingAreaRepository {
+export interface IPlayingAreaRepository {
     create(playingArea: PlayingArea): Promise<void>;
     update(playingArea: PlayingArea): Promise<void>;
     delete(id: string): Promise<void>;

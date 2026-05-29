@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { RegisteredParticipant } from '../../../domain/entities/Participant.js';
 import { RegisteredParticipantMapper } from '../mappers/RegisteredParticipantMapper.js';
-import { RegisteredParticipantRepository } from '../../../domain/repositories/RegisteredParticipantRepository.js';
+import { IRegisteredParticipantRepository } from '../../../domain/repositories/IRegisteredParticipantRepository.js';
 import { transactionStorage } from '../TransactionContext.js';
 
-export class PrismaRegisteredParticipantRepository implements RegisteredParticipantRepository {
+export class PrismaRegisteredParticipantRepository implements IRegisteredParticipantRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
     private get client() {

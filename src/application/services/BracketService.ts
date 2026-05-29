@@ -7,8 +7,8 @@ import { BracketNotFoundException } from "../../domain/exceptions/BracketExcepti
 import { RegisteredParticipantNotFoundException } from '../../domain/exceptions/ParticipantExceptions.js';
 
 import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
-import { RegisteredParticipantRepository } from "../../domain/repositories/RegisteredParticipantRepository.js";
-import { TournamentRepository } from "../../domain/repositories/TournamentRepository.js";
+import { IRegisteredParticipantRepository } from "../../domain/repositories/IRegisteredParticipantRepository.js";
+import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
 
 import { UnitOfWork } from "../../domain/repositories/UnitOfWork.js";
 import { BracketSeedingService } from "../../domain/services/BracketSeedingService.js";
@@ -26,8 +26,8 @@ import { BracketMapper } from "../dtos/bracket/BracketMapper.js";
 export class BracketService {
     constructor(
         private readonly bracketRepository: IBracketRepository,
-        private readonly tournamentRepository: TournamentRepository,
-        private readonly registeredParticipantRepository: RegisteredParticipantRepository,
+        private readonly tournamentRepository: ITournamentRepository,
+        private readonly registeredParticipantRepository: IRegisteredParticipantRepository,
         private readonly unitOfWork: UnitOfWork,
         private readonly seedingService: BracketSeedingService,
     ) { }

@@ -5,8 +5,8 @@ import { TournamentInfo } from "../../domain/entities/TournamentInfo.js";
 import { BracketNotFoundException, BracketUnfinishedException } from "../../domain/exceptions/BracketExceptions.js";
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
-import { MatchRepository } from "../../domain/repositories/MatchRepository.js";
-import { TournamentRepository } from "../../domain/repositories/TournamentRepository.js";
+import { IMatchRepository } from "../../domain/repositories/IMatchRepository.js";
+import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
 import { UnitOfWork } from "../../domain/repositories/UnitOfWork.js";
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
 import {
@@ -21,9 +21,9 @@ import { TournamentMapper } from "../dtos/tournament/TournamentMapper.js";
 
 export class TournamentService {
     constructor(
-        private readonly tournamentRepository: TournamentRepository,
+        private readonly tournamentRepository: ITournamentRepository,
         private readonly bracketRepository: IBracketRepository,
-        private readonly matchRepository: MatchRepository,
+        private readonly matchRepository: IMatchRepository,
         private readonly matchGenerator: SingleEliminationMatchGenerator,
         private readonly unitOfWork: UnitOfWork,
     ) { }

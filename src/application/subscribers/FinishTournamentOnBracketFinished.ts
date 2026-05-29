@@ -1,10 +1,10 @@
-import { TournamentRepository } from "../../domain/repositories/TournamentRepository.js";
+import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
 import { BracketFinishedEvent } from "../../domain/events/BracketFinishedEvent.js";
 import { EventBus } from "../../domain/events/EventBus.js";
 
 export class FinishTournamentOnBracketFinished {
     constructor(
-        private readonly tournamentRepository: TournamentRepository,
+        private readonly tournamentRepository: ITournamentRepository,
         private readonly eventBus: EventBus,
     ) { }
 

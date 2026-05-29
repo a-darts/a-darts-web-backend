@@ -1,4 +1,4 @@
-export interface MatchCacheRepository {
+export interface IMatchCacheRepository {
     addThrow(matchId: string, throwData: any): Promise<void>;
     removeLastThrow(matchId: string): Promise<any | null>;
     getThrows(matchId: string): Promise<any[]>;

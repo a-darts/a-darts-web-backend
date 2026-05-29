@@ -3,10 +3,10 @@ import { Match } from '../../../domain/entities/Match.js';
 import { MatchMapper } from '../mappers/MatchMapper.js';
 import { RegisteredParticipantMapper } from '../mappers/RegisteredParticipantMapper.js';
 import { PlayingAreaMapper } from '../mappers/PlayingAreaMapper.js';
-import { MatchRepository, MatchWithParticipants } from '../../../domain/repositories/MatchRepository.js';
+import { IMatchRepository, MatchWithParticipants } from '../../../domain/repositories/IMatchRepository.js';
 import { transactionStorage } from '../TransactionContext.js';
 
-export class PrismaMatchRepository implements MatchRepository {
+export class PrismaMatchRepository implements IMatchRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
     private get client() {

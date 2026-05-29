@@ -9,7 +9,7 @@ import {
     UserNotFoundException,
     UserNotInactiveException,
 } from '../../domain/exceptions/UserExceptions.js';
-import { UserRepository } from '../../domain/repositories/UserRepository.js';
+import { IUserRepository } from '../../domain/repositories/IUserRepository.js';
 import { Mailer } from '../../domain/services/Mailer.js';
 import { PasswordHasher } from '../../domain/services/PasswordHasher.js';
 import {
@@ -31,7 +31,7 @@ import { UserMapper } from '../dtos/user/UserMapper.js';
 
 export class UserService {
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly userRepository: IUserRepository,
     private readonly passwordHasher: PasswordHasher,
     private readonly mailer: Mailer,
     

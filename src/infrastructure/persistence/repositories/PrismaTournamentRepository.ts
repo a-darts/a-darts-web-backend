@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-import { TournamentRepository } from '../../../domain/repositories/TournamentRepository.js';
+import { ITournamentRepository } from '../../../domain/repositories/ITournamentRepository.js';
 import { Tournament } from '../../../domain/entities/Tournament.js';
 import { TournamentMapper } from '../mappers/TournamentMapper.js';
 import { transactionStorage } from '../TransactionContext.js';
 
-export class PrismaTournamentRepository implements TournamentRepository {
+export class PrismaTournamentRepository implements ITournamentRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
     private get client() {

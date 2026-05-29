@@ -1,6 +1,6 @@
 import { Match } from '../../../../domain/entities/Match.js';
 import { RegisteredParticipant } from '../../../../domain/entities/Participant.js';
-import { MatchWithParticipants } from '../../../../domain/repositories/MatchRepository.js';
+import { MatchWithParticipants } from '../../../../domain/repositories/IMatchRepository.js';
 import { MatchResponseDTO } from './MatchDTOs.js';
 
 export class MatchMapper {

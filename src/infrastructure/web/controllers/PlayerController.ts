@@ -315,7 +315,7 @@ export class PlayerController {
 
   /**
    * @swagger
-   * /api/players/user/{userId}/season/{seasonStartYear}:
+   * /api/players/users/{userId}/seasons/{seasonStartYear}:
    *   get:
    *     summary: Get player data by user ID and season
    *     tags: [Players]
@@ -730,7 +730,7 @@ export class PlayerController {
 
   /**
    * @swagger
-   * /api/tournaments/{id}/unregisteredPlayers:
+   * /api/tournaments/{id}/unregistered-players:
    *   get:
    *     summary: Get unregistered players in tournament
    *     tags: [Tournaments]

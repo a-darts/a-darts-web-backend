@@ -1,15 +1,15 @@
 import { TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { TournamentResultNotFoundException } from "../../domain/exceptions/TournamentResultException.js";
-import { TournamentRepository } from "../../domain/repositories/TournamentRepository.js";
-import { TournamentResultRepository } from "../../domain/repositories/TournamentResultRepository.js";
+import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
+import { ITournamentResultRepository } from "../../domain/repositories/ITournamentResultRepository.js";
 import { TournamentResultDTO } from "../dtos/tournament/result/TournamentResultDTO.js";
 import { TournamentResultMapper } from "../dtos/tournament/result/TournamentResultMapper.js";
 
 
 export class TournamentResultsService {
     constructor(
-        private readonly tournamentRepository: TournamentRepository,
-        private readonly tournamentResultRepository: TournamentResultRepository,
+        private readonly tournamentRepository: ITournamentRepository,
+        private readonly tournamentResultRepository: ITournamentResultRepository,
     ) { }
 
     public async getByTournamentId(tournamentId: string): Promise<TournamentResultDTO> {

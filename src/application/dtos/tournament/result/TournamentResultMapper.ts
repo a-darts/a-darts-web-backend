@@ -1,4 +1,4 @@
-import { TournamentResultWithPlayerAndUser } from '../../../../domain/repositories/TournamentResultRepository.js';
+import { TournamentResultWithPlayerAndUser } from '../../../../domain/repositories/ITournamentResultRepository.js';
 import { ParticipantResultDTO, TournamentResultDTO } from './TournamentResultDTO.js';
 
 export class TournamentResultMapper {

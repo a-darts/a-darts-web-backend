@@ -1,5 +1,5 @@
 import { Player } from '../../../domain/entities/Player.js';
-import { PlayerWithUser } from '../../../domain/repositories/PlayerRepository.js';
+import { PlayerWithUser } from '../../../domain/repositories/IPlayerRepository.js';
 import { PlayerResponseDTO, PlayerWithUserResponseDTO } from './PlayerDTOs.js';
 
 export class PlayerMapper {

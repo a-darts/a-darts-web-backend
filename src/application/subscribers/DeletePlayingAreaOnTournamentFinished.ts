@@ -1,9 +1,9 @@
-import { PlayingAreaRepository } from "../../domain/repositories/PlayingAreaRepository.js";
+import { IPlayingAreaRepository } from "../../domain/repositories/IPlayingAreaRepository.js";
 import { TournamentFinishedEvent } from "../../domain/events/TournamentFinishedEvent.js";
 
 export class DeletePlayingAreaOnTournamentFinished {
     constructor(
-        private readonly playingAreaRepository: PlayingAreaRepository,
+        private readonly playingAreaRepository: IPlayingAreaRepository,
     ) { }
 
     public async on(event: TournamentFinishedEvent): Promise<void> {

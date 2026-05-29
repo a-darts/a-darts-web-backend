@@ -1,8 +1,8 @@
 import { PlayingArea } from "../../domain/entities/PlayingArea.js";
 import { BoardPairedWithTabletException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException } from "../../domain/exceptions/PlayingAreaExceptions.js";
 import { TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
-import { PlayingAreaRepository } from "../../domain/repositories/PlayingAreaRepository.js";
-import { TournamentRepository } from "../../domain/repositories/TournamentRepository.js";
+import { IPlayingAreaRepository } from "../../domain/repositories/IPlayingAreaRepository.js";
+import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
 import { getSocketServer } from "../../infrastructure/websockets/SocketServer.js";
 import { CreatePlayingAreaRequestDTO, DisablePlayingAreaBoardRequestDTO, EnablePlayingAreaBoardRequestDTO, PlayingAreaResponseDTO, ReleasePlayingAreaBoardRequestDTO } from "../dtos/playingArea/PlayingAreaDTOs.js";
 import { PlayingAreaMapper } from "../dtos/playingArea/PlayingAreaMapper.js";
@@ -10,8 +10,8 @@ import { PlayingAreaMapper } from "../dtos/playingArea/PlayingAreaMapper.js";
 
 export class PlayingAreaService {
   constructor(
-    private readonly playingAreaRepository: PlayingAreaRepository,
-    private readonly tournamentRepository: TournamentRepository,
+    private readonly playingAreaRepository: IPlayingAreaRepository,
+    private readonly tournamentRepository: ITournamentRepository,
   ) { }
 
 

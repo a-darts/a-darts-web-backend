@@ -529,7 +529,7 @@ export class BracketController {
     
     /**
      * @swagger
-     * /api/brackets/{id}/setupPositions:
+     * /api/brackets/{id}/setup-positions:
      *   put:
      *     summary: Assign participants to positions in the bracket
      *     tags: [Brackets]
