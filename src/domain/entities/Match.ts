@@ -1,6 +1,14 @@
 import { IDomainEvent } from "../events/IDomainEvent.js";
 import { MatchFinishedEvent } from "../events/MatchEvents.js";
-import { MatchNotPendingException, MatchNotInProgressException, MatchNotSuspendedException, MatchAlreadyFinishedException, ParticipantNotFoundInMatchException, MatchNotReadyException, MatchBoardNumberRequiredException } from "../exceptions/MatchExceptions.js";
+import {
+    MatchNotPendingException,
+    MatchNotInProgressException,
+    MatchNotSuspendedException,
+    MatchAlreadyFinishedException,
+    ParticipantNotFoundInMatchException,
+    MatchNotReadyException,
+    MatchBoardNumberRequiredException,
+} from "../exceptions/MatchExceptions.js";
 
 
 export enum MatchStatus {

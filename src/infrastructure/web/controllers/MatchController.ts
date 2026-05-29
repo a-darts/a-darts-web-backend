@@ -9,6 +9,7 @@ import {
   MatchNotInProgressException,
   MatchNotPendingException,
   MatchNotSuspendedException,
+  MatchNotAssignedToBoardException,
 } from '../../../domain/exceptions/MatchExceptions.js';
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
 import {
@@ -409,7 +410,9 @@ export class MatchController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Match not found
+   *                   oneOf:
+   *                     - example: Match not found
+   *                     - example: Playing area not found
    *       409:
    *         description: Conflict
    *         content:
@@ -424,7 +427,7 @@ export class MatchController {
    *                   type: string
    *                   oneOf:
    *                     - example: Match is not pending
-   *                     - example: Match board number is required
+   *                     - example: Match is not assigned to a board
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -459,14 +462,17 @@ export class MatchController {
           ApiResponseBuilder.error(error.message)
         );
       }
-      if (error instanceof MatchNotFoundException) {
+      if (
+        error instanceof MatchNotFoundException ||
+        error instanceof PlayingAreaNotFoundException
+      ) {
         return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );
       }
       if (
         error instanceof MatchNotPendingException ||
-        error instanceof MatchBoardNumberRequiredException
+        error instanceof MatchNotAssignedToBoardException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)

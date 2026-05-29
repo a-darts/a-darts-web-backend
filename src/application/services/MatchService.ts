@@ -1,5 +1,9 @@
 import { Board } from '../../domain/entities/PlayingArea.js';
-import { MatchBoardNumberRequiredException, MatchNotFoundException } from "../../domain/exceptions/MatchExceptions.js";
+import {
+  MatchBoardNumberRequiredException,
+  MatchNotAssignedToBoardException,
+  MatchNotFoundException,
+} from "../../domain/exceptions/MatchExceptions.js";
 import { TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { PlayingAreaNotFoundException } from '../../domain/exceptions/PlayingAreaExceptions.js';
 import { BracketNotFoundException } from "../../domain/exceptions/BracketExceptions.js";
@@ -255,7 +259,7 @@ export class MatchService {
       try {
         playingArea.findBoardByMatchId(id);
       } catch (error) {
-        throw new MatchBoardNumberRequiredException();
+        throw new MatchNotAssignedToBoardException();
       }
   
       // 4. Start the match

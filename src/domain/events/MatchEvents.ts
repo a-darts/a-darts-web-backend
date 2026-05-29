@@ -40,13 +40,11 @@ export class MatchResumedEvent implements IDomainEvent {
 
 export class MatchFinishedEvent implements IDomainEvent {
     public readonly matchId: string;
-    public readonly boardNumber: number | null;
     public readonly tournamentId: string;
     public readonly occurredOn: Date;
 
-    constructor(matchId: string, boardNumber: number | null, tournamentId: string) {
+    constructor(matchId: string, tournamentId: string) {
         this.matchId = matchId;
-        this.boardNumber = boardNumber;
         this.tournamentId = tournamentId;
         this.occurredOn = new Date();
     }

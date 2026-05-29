@@ -40,6 +40,13 @@ export class MatchBoardNumberRequiredException extends Error {
     }
 }
 
+export class MatchNotAssignedToBoardException extends Error {
+    constructor() {
+        super('Match is not assigned to a board');
+        this.name = 'MatchNotAssignedToBoardException';
+    }
+}
+
 export class ParticipantNotFoundInMatchException extends Error {
     constructor() {
         super('Participant not found in this match');
