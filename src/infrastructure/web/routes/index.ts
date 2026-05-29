@@ -11,6 +11,8 @@ import { MatchController } from '../controllers/MatchController.js';
 import { BracketController } from '../controllers/BracketController.js';
 import { PlayingAreaController } from '../controllers/PlayingAreaController.js';
 import { RegisteredParticipantController } from '../controllers/RegisteredParticipantController.js';
+import { TournamentResultController } from '../controllers/TournamentResultController.js';
+
 
 const router = Router();
 const userController = new UserController();
@@ -21,6 +23,8 @@ const matchController = new MatchController();
 const bracketController = new BracketController();
 const playingAreaController = new PlayingAreaController();
 const registeredParticipantController = new RegisteredParticipantController();
+const tournamentResultController = new TournamentResultController();
+
 
 // Health check route
 router.get('/health', getHealth);
@@ -89,7 +93,7 @@ router.get('/tournaments/:id/bracket', optionalAuthMiddleware, bracketController
 router.get('/tournaments/:id/playing-areas', authMiddleware, isAdmin, playingAreaController.getTournamentPlayingArea);
 router.post('/tournaments/:id/playing-areas', authMiddleware, isAdmin, playingAreaController.createTournamentPlayingArea);
 
-router.get('/tournaments/:id/results', tournamentController.getTournamentResults);
+router.get('/tournaments/:id/results', tournamentResultController.getTournamentResults);
 
 
 // Match routes

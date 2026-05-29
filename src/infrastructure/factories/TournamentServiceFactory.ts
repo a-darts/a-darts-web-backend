@@ -2,6 +2,11 @@ import { prisma } from "../persistence/client.js";
 import { PrismaTournamentRepository } from "../persistence/repositories/PrismaTournamentRepository.js";
 import { PrismaBracketRepository } from "../persistence/repositories/PrismaBracketRepository.js";
 import { TournamentService } from "../../application/services/TournamentService.js";
+import { PrismaPlayerRepository } from "../persistence/repositories/PrismaPlayerRepository.js";
+import { PrismaRegisteredParticipantRepository } from "../persistence/repositories/PrismaRegisteredParticipantRepository.js";
+import { PrismaMatchRepository } from "../persistence/repositories/PrismaMatchRepository.js";
+import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
+import { PrismaUnitOfWork } from "../persistence/PrismaUnitOfWork.js";
 
 
 export default class TournamentServiceFactory {
@@ -11,10 +16,20 @@ export default class TournamentServiceFactory {
         if (!this.instance) {
             const tournamentRepository = new PrismaTournamentRepository(prisma);
             const bracketRepository = new PrismaBracketRepository(prisma);
+            const matchRepository = new PrismaMatchRepository(prisma);
+            const registeredParticipantRepository = new PrismaRegisteredParticipantRepository(prisma);
+            const playerRepository = new PrismaPlayerRepository(prisma);
+            const matchGenerator = new SingleEliminationMatchGenerator();
+            const unitOfWork = new PrismaUnitOfWork(prisma);
 
             this.instance = new TournamentService(
                 tournamentRepository,
                 bracketRepository,
+                matchRepository,
+                registeredParticipantRepository,
+                playerRepository,
+                matchGenerator,
+                unitOfWork,
             );
         }
         return this.instance;
