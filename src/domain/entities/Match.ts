@@ -16,7 +16,6 @@ export class Match {
     private readonly id: string;
     private round: number;
     private matchIndex: number;
-    private boardNumber: number | null;
     private startedAt: Date | null;
     private finishedAt: Date | null;
     private status: MatchStatus;
@@ -38,7 +37,6 @@ export class Match {
         id: string,
         round: number,
         matchIndex: number,
-        boardNumber: number | null,
         startedAt: Date | null,
         finishedAt: Date | null,
         status: MatchStatus,
@@ -52,7 +50,6 @@ export class Match {
         this.id = id;
         this.round = round;
         this.matchIndex = matchIndex;
-        this.boardNumber = boardNumber;
         this.startedAt = startedAt;
         this.finishedAt = finishedAt;
         this.status = status;
@@ -76,7 +73,6 @@ export class Match {
         isParticipant2Bye: boolean,
         round: number,
         matchIndex: number,
-        boardNumber?: number,
     ): Match {
         const isByeMatch = isParticipant1Bye || isParticipant2Bye;
         const isReady = participant1Id !== null && participant2Id !== null;
@@ -89,7 +85,6 @@ export class Match {
             crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
             round,
             matchIndex,
-            boardNumber ?? null,
             null,
             finishedAt,
             initialStatus,
@@ -179,9 +174,6 @@ export class Match {
         if (this.status !== MatchStatus.READY) {
             throw new MatchNotReadyException();
         }
-        if (this.boardNumber === null) {
-            throw new MatchBoardNumberRequiredException();
-        }
 
         this.status = MatchStatus.IN_PROGRESS;
         this.startedAt = new Date();
@@ -198,7 +190,6 @@ export class Match {
         this.record(
             new MatchFinishedEvent(
                 this.id,
-                this.boardNumber,
                 this.tournamentId,
             )
         );
@@ -258,10 +249,6 @@ export class Match {
         return this.matchIndex;
     }
 
-    public getBoardNumber(): number | null {
-        return this.boardNumber;
-    }
-
     public getStartedAt(): Date | null {
         return this.startedAt;
     }
@@ -312,7 +299,6 @@ export class Match {
             data.id,
             data.round,
             data.matchIndex,
-            data.boardNumber,
             data.startedAt ? new Date(data.startedAt) : null,
             data.finishedAt ? new Date(data.finishedAt) : null,
             data.status as MatchStatus,

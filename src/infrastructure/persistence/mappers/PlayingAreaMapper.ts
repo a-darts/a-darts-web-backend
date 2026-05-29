@@ -27,15 +27,30 @@ export class PlayingAreaMapper {
             shortId: domainPlayingArea.getShortId(),
             tournamentId: domainPlayingArea.getTournamentId(),
             boards: {
-                create: domainPlayingArea.getBoards().map((b) => ({
-                    id: b.getId(),
-                    shortId: b.getShortId(),
-                    number: b.getNumber(),
-                    status: b.getStatus() as unknown as PrismaBoardStatus,
-                    matchId: b.getMatchId(),
-                    playingAreaId: domainPlayingArea.getId(),
-                }))
+                create: domainPlayingArea.getBoards().map((b) => {
+                    const matchId = b.getMatchId();
+                    return {
+                        id: b.getId(),
+                        shortId: b.getShortId(),
+                        number: b.getNumber(),
+                        status: b.getStatus() as unknown as PrismaBoardStatus,
+                        ...(matchId
+                            ? { match: { connect: { id: matchId } } }
+                            : {}
+                        ),
+                    };
+                })
             }
+            // boards: {
+            //     create: domainPlayingArea.getBoards().map((b) => ({
+            //         id: b.getId(),
+            //         shortId: b.getShortId(),
+            //         number: b.getNumber(),
+            //         status: b.getStatus() as unknown as PrismaBoardStatus,
+            //         matchId: b.getMatchId(),
+            //         playingAreaId: domainPlayingArea.getId(),
+            //     }))
+            // }
         };
     }
 

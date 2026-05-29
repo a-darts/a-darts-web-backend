@@ -16,7 +16,7 @@ export class MatchMapper {
             id: match.getId(),
             round: match.getRound(),
             matchIndex: match.getMatchIndex(),
-            boardNumber: match.getBoardNumber(),
+            boardNumber: board?.getNumber() ?? null,
             boardId: board?.getId() ?? null,
             boardShortId: board?.getShortId() ?? null,
             startedAt: match.getStartedAt(),

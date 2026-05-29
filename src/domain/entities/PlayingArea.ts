@@ -71,8 +71,7 @@ export class PlayingArea {
         newBoard.occupy(matchId);
     }
 
-    public releaseBoard(boardNumber: number): void {
-        const board = this.findBoardByNumber(boardNumber);
+    public releaseBoard(board: Board): void {
         board.release();
     }
 
@@ -96,6 +95,14 @@ export class PlayingArea {
     // --------------------------------------------------------------------
     public findBoardByNumber(boardNumber: number): Board {
         const board = this.boards.find(b => b.getNumber() === boardNumber);
+        if (!board) {
+            throw new BoardNotFoundException();
+        }
+        return board;
+    }
+
+    public findBoardById(id: string): Board {
+        const board = this.boards.find(b => b.getId() === id);
         if (!board) {
             throw new BoardNotFoundException();
         }

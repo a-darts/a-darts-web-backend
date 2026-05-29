@@ -145,11 +145,12 @@ export class PlayingAreaService {
     // 1. Rehydrate the playing area from the DB
     const playingArea = await this.playingAreaRepository.findById(request.id);
     if (!playingArea) {
-        throw new PlayingAreaNotFoundException();
+      throw new PlayingAreaNotFoundException();
     }
 
     // 2. Release the board in the playing area
-    playingArea.releaseBoard(request.boardNumber);
+    const board = playingArea.findBoardById(request.boardId);
+    playingArea.releaseBoard(board);
 
     // 3. Persist the changes in the DB
     await this.playingAreaRepository.update(playingArea);

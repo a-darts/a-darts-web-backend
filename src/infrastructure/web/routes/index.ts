@@ -114,7 +114,7 @@ router.post('/brackets/:id/publish', authMiddleware, isAdmin, bracketController.
 router.delete('/brackets/:id', authMiddleware, isAdmin, bracketController.deleteBracket);
 
 // PlayingArea routes
-router.post('/playing-areas/:id/boards/:boardNumber/release', authMiddleware, isAdmin, playingAreaController.releasePlayingAreaBoard);
+router.post('/playing-areas/:id/boards/:boardId/release', authMiddleware, isAdmin, playingAreaController.releasePlayingAreaBoard);
 router.post('/playing-areas/:id/boards/:boardNumber/disable', authMiddleware, isAdmin, playingAreaController.disablePlayingAreaBoard);
 router.post('/playing-areas/:id/boards/:boardNumber/enable', authMiddleware, isAdmin, playingAreaController.enablePlayingAreaBoard);
 router.post('/playing-areas/:id/boards', authMiddleware, isAdmin, playingAreaController.addBoardInPlayingArea);

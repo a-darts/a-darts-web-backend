@@ -1,5 +1,5 @@
 import { Board } from '../../domain/entities/PlayingArea.js';
-import { MatchNotFoundException } from "../../domain/exceptions/MatchExceptions.js";
+import { MatchBoardNumberRequiredException, MatchNotFoundException } from "../../domain/exceptions/MatchExceptions.js";
 import { TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { PlayingAreaNotFoundException } from '../../domain/exceptions/PlayingAreaExceptions.js';
 import { BracketNotFoundException } from "../../domain/exceptions/BracketExceptions.js";
@@ -115,7 +115,7 @@ export class MatchService {
     
         // 4. Assign the match to the board in the playing area and release the previous board if assigned
         if (oldBoard) {
-          playingArea.releaseBoard(oldBoard.getNumber());
+          playingArea.releaseBoard(oldBoard);
         }
         playingArea.assignMatchToBoard(request.id, request.boardNumber);
     
@@ -183,11 +183,11 @@ export class MatchService {
           request.participant2Sets,
           request.participant2Legs,
         );
+      
         match.finish();
-        const matchBoardNumber = match.getBoardNumber();
-        if (matchBoardNumber) {
-          playingArea.releaseBoard(matchBoardNumber);
-        }
+      
+        const board = playingArea.findBoardByMatchId(request.id);
+        playingArea.releaseBoard(board);
     
         // 5. Obtain the winner
         const winnerId = match.getWinnerId();
@@ -239,34 +239,44 @@ export class MatchService {
 
 
     public async start(id: string): Promise<void> {
-        // 1. Rehydrate the match from the DB
-        const match = await this.matchRepository.findById(id);
-        if (!match) {
-          throw new MatchNotFoundException();
-        }
+      // 1. Rehydrate the match from the DB
+      const match = await this.matchRepository.findById(id);
+      if (!match) {
+        throw new MatchNotFoundException();
+      }
     
-        // 2. Start the match
-        match.start();
-    
-        // 3. Persist the changes in the DB
-        await this.matchRepository.update(match);
-    
-        // 4. Notify the board via socket
-        const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
-        if (playingArea) {
-          try {
-            const boardShortId = await playingArea.findBoardByMatchId(id).getShortId();
-            console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardShortId} with matchId: ${id}`);
-            const roomName = `room_board_${boardShortId}`;
-            console.log(`[StartMatch] Sending match_started_confirmed to ${roomName} with matchId: ${id}`);
-            getSocketServer().to(roomName).emit('match_started_confirmed', { matchId: id });
-          } catch (error) {
-            console.log("Error while fetching the match board in the playing area");
-          }
-        }
-    
-        // 5. Save the match status in Redis
-        await this.matchCacheRepository.setMatchStatus(id, MatchStatus.IN_PROGRESS);
+      // 2. Rehydrate the playing area from the DB
+      const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
+      if (!playingArea) {
+        throw new PlayingAreaNotFoundException();
+      }
+  
+      // 3. Check if the match is assigned to a board
+      try {
+        playingArea.findBoardByMatchId(id);
+      } catch (error) {
+        throw new MatchBoardNumberRequiredException();
+      }
+  
+      // 4. Start the match
+      match.start();
+  
+      // 5. Persist the changes in the DB
+      await this.matchRepository.update(match);
+  
+      // 6. Notify the board via socket
+      try {
+        const boardShortId = await playingArea.findBoardByMatchId(id).getShortId();
+        console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardShortId} with matchId: ${id}`);
+        const roomName = `room_board_${boardShortId}`;
+        console.log(`[StartMatch] Sending match_started_confirmed to ${roomName} with matchId: ${id}`);
+        getSocketServer().to(roomName).emit('match_started_confirmed', { matchId: id });
+      } catch (error) {
+        console.log("Error while fetching the match board in the playing area");
+      }
+  
+      // 7. Save the match status in Redis
+      await this.matchCacheRepository.setMatchStatus(id, MatchStatus.IN_PROGRESS);
     }
 
 
@@ -293,16 +303,14 @@ export class MatchService {
         match.finish();
 
         // 5. Release the board if it was assigned
-        const matchBoardNumber = match.getBoardNumber();
-        if (matchBoardNumber) {
-        playingArea.releaseBoard(matchBoardNumber);
-        }
+        const board = playingArea.findBoardByMatchId(id);
+        playingArea.releaseBoard(board);
 
-        // 5. Obtain the winner
+        // 6. Obtain the winner
         const winnerId = match.getWinnerId();
         let nextMatch = null;
 
-        // 6. Si no era la final, promocionamos al ganador a la siguiente partida
+        // 7. Si no era la final, promocionamos al ganador a la siguiente partida
         if (winnerId) {
             const nextCoords = this.matchGenerator.getNextMatchCoordinates(
                 match.getRound(),
@@ -324,7 +332,7 @@ export class MatchService {
             }
         }
 
-        // 7. Persist the next match changes and bracket status
+        // 8. Persist the next match changes and bracket status
         await this.unitOfWork.transaction(async () => {
             await this.bracketRepository.update(bracket);
             await this.matchRepository.update(match);
