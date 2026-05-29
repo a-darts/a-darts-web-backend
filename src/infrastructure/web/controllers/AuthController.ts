@@ -606,7 +606,10 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User not inactive
+   *                   oneOf:
+   *                     - example: User not inactive
+   *                     - example: User deleted
+   *                     - example: User already active
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -748,7 +751,9 @@ export class AuthController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: User not active
+   *                   oneOf:
+   *                     - example: User not active
+   *                     - example: User deleted
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -804,8 +809,7 @@ export class AuthController {
       }
       if (
         error instanceof UserNotActiveException ||
-        error instanceof UserDeletedException ||
-        error instanceof UserNotActiveException
+        error instanceof UserDeletedException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)

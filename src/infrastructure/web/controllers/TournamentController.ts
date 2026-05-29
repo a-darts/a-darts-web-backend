@@ -12,7 +12,6 @@ import {
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import {
   InvalidRegistrationPeriodException,
-  InvalidRegistrationStatusException,
   RegistrationAlreadyClosedException,
   RegistrationAlreadyOpenException,
   RegistrationCloseDateAfterTournamentException,
@@ -581,7 +580,9 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament is not published
+   *                   oneOf:
+   *                     - example: Tournament is not published
+   *                     - example: Bracket not published
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -735,7 +736,9 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament is not in draft
+   *                   oneOf:
+   *                     - example: Tournament is not in draft
+   *                     - example: Bracket not in draft
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -889,7 +892,10 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament is already finished
+   *                   oneOf:
+   *                     - example: Tournament is already finished
+   *                     - example: Bracket already finished
+   *                     - example: Match is already finished
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1031,7 +1037,9 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament not found
+   *                   oneOf:
+   *                     - example: Tournament not found
+   *                     - example: Bracket not found
    *       409:
    *         description: Conflict
    *         content:
@@ -1044,7 +1052,12 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament is not published
+   *                   oneOf:
+   *                     - example: Tournament is not published
+   *                     - example: Registration is not closed
+   *                     - example: Bracket not in draft or published
+   *                     - example: Bracket not in progress
+   *                     - example: Bracket is not completely finished or filled
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1490,7 +1503,10 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament is not published
+   *                   oneOf:
+   *                     - example: Tournament is not published
+   *                     - example: Registration is already open
+   *                     - example: Tournament already has a bracket
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1644,7 +1660,9 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament is not published
+   *                   oneOf:
+   *                     - example: Tournament is not published
+   *                     - example: Registration is already closed
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1751,7 +1769,9 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: All fields are required
+   *                   oneOf:
+   *                     - example: All fields are required
+   *                     - example: Registration period is invalid
    *       401:
    *         description: Unauthorized
    *         content:
@@ -1803,7 +1823,11 @@ export class TournamentController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament is not published
+   *                   oneOf:
+   *                     - example: Tournament is not published
+   *                     - example: Tournament already has a bracket
+   *                     - example: Registration opening date in past
+   *                     - example: Registration closing date must be before the tournament start date
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1840,7 +1864,6 @@ export class TournamentController {
     } catch (error: any) {
       if (
         error instanceof MissingRequiredUserFieldsException ||
-        error instanceof InvalidRegistrationStatusException ||
         error instanceof InvalidRegistrationPeriodException
       ) {
         return res.status(400).json(

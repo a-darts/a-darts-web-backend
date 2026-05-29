@@ -484,7 +484,10 @@ export class PlayerController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: All fields are required
+   *                   oneOf:
+   *                      - example: All fields are required
+   *                      - example: Invalid year. It must be between 1900 and 2200
+   *                      - example: Invalid season. It must span exactly one year
    *       401:
    *         description: Unauthorized
    *         content:

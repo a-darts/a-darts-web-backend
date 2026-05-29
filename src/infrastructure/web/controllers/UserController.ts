@@ -13,7 +13,6 @@ import {
   UserNotBlockedException,
   UserNotDeletedException,
   UserNotFoundException,
-  UserNotInactiveException,
 } from '../../../domain/exceptions/UserExceptions.js';
 import { MailerSendException } from '../../../domain/exceptions/MailerExceptions.js';
 import UserServiceFactory from '../../factories/UserServiceFactory.js';

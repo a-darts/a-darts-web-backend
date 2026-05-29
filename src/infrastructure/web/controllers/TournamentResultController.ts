@@ -124,7 +124,9 @@ export class TournamentResultController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament not found
+   *                   oneOf:
+   *                     - example: Tournament not found
+   *                     - example: Tournament result not found
    *       500:
    *         description: Internal Server Error
    *         content:

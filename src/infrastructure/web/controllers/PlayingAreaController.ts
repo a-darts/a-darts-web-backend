@@ -129,7 +129,9 @@ export class PlayingAreaController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament not found
+   *                   oneOf:
+   *                     - example: Tournament not found
+   *                     - example: Playing area not found
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -245,7 +247,9 @@ export class PlayingAreaController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament not found
+   *                   oneOf:
+   *                     - example: Tournament not found
+   *                     - example: Playing area not found
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -397,7 +401,9 @@ export class PlayingAreaController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Playing area not found
+   *                   oneOf:
+   *                     - example: Playing area not found
+   *                     - example: Board not found
    *       409:
    *         description: Conflict
    *         content:
@@ -561,7 +567,9 @@ export class PlayingAreaController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Playing area not found
+   *                   oneOf:
+   *                     - example: Playing area not found
+   *                     - example: Board not found
    *       409:
    *         description: Conflict
    *         content:
@@ -725,7 +733,9 @@ export class PlayingAreaController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Playing area not found
+   *                   oneOf:
+   *                     - example: Playing area not found
+   *                     - example: Board not found
    *       409:
    *         description: Conflict
    *         content:
@@ -1028,7 +1038,10 @@ export class PlayingAreaController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Playing area has no boards
+   *                   oneOf:
+   *                     - example: Playing area has no boards
+   *                     - example: Board is occupied
+   *                     - example: Board is already paired with a tablet
    *       500:
    *         description: Internal Server Error
    *         content:

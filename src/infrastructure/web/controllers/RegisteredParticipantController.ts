@@ -153,7 +153,9 @@ export class RegisteredParticipantController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament not found
+   *                   oneOf:
+   *                     - example: Tournament not found
+   *                     - example: Player not found
    *       409:
    *         description: Conflict
    *         content:
@@ -166,7 +168,12 @@ export class RegisteredParticipantController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Participant is already registered in this tournament
+   *                   oneOf:
+   *                     - example: Participant is already registered in this tournament
+   *                     - example: Registration is already closed
+   *                     - example: Tournament max players exceeded
+   *                     - example: Tournament already has a bracket
+   *                     - example: Player is not registered in the same season as the tournament
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -204,10 +211,7 @@ export class RegisteredParticipantController {
         )
       );
     } catch (error: any) {
-      if (
-        error instanceof MissingRequiredUserFieldsException ||
-        error instanceof InvalidRegisteredPlayerSeasonException
-      ) {
+      if (error instanceof MissingRequiredUserFieldsException) {
         return res.status(400).json(
           ApiResponseBuilder.error(error.message)
         );
@@ -224,7 +228,8 @@ export class RegisteredParticipantController {
         error instanceof ParticipantAlreadyRegisteredException ||
         error instanceof RegistrationAlreadyClosedException ||
         error instanceof TournamentMaxPlayersExceededException ||
-        error instanceof TournamentAlreadyHasBracketException
+        error instanceof TournamentAlreadyHasBracketException ||
+        error instanceof InvalidRegisteredPlayerSeasonException
       ) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
@@ -329,7 +334,9 @@ export class RegisteredParticipantController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament not found
+   *                   oneOf:
+   *                     - example: Tournament not found
+   *                     - example: Registered participant not found
    *       409:
    *         description: Conflict
    *         content:
@@ -342,7 +349,9 @@ export class RegisteredParticipantController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Participant is not registered in this tournament
+   *                   oneOf:
+   *                     - example: Participant is not registered in this tournament
+   *                     - example: Tournament already has a bracket
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -498,7 +507,9 @@ export class RegisteredParticipantController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament not found
+   *                   oneOf:
+   *                     - example: Tournament not found
+   *                     - example: Registered participant not found
    *       409:
    *         description: Conflict
    *         content:
@@ -511,7 +522,9 @@ export class RegisteredParticipantController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Participant is not registered in this tournament
+   *                   oneOf:
+   *                     - example: Participant is not registered in this tournament
+   *                     - example: Participant already checked in
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -667,7 +680,9 @@ export class RegisteredParticipantController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Tournament not found
+   *                   oneOf:
+   *                     - example: Tournament not found
+   *                     - example: Registered participant not found
    *       409:
    *         description: Conflict
    *         content:
@@ -680,7 +695,9 @@ export class RegisteredParticipantController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Participant is not registered in this tournament
+   *                   oneOf:
+   *                     - example: Participant is not registered in this tournament
+   *                     - example: Participant not checked in
    *       500:
    *         description: Internal Server Error
    *         content:

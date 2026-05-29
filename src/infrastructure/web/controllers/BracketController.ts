@@ -187,7 +187,13 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                   example: Tournament already has a bracket
+     *                   oneOf:
+     *                     - example: No participants registered
+     *                     - example: Not enough participants registered (minimum 2 required, 1 available)
+     *                     - example: Tournament already has a bracket
+     *                     - example: Tournament is not published
+     *                     - example: Registration is not closed
+     * 
      *       500:
      *         description: Internal Server Error
      *         content:
@@ -346,7 +352,12 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                   example: Tournament already has a bracket
+     *                   oneOf:
+     *                     - example: No participants registered
+     *                     - example: Not enough participants registered (minimum 2 required, 1 available)
+     *                     - example: Tournament already has a bracket
+     *                     - example: Tournament is not published
+     *                     - example: Registration is not closed
      *       500:
      *         description: Internal Server Error
      *         content:
@@ -466,7 +477,9 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                   example: Tournament not found
+     *                     oneOf:
+     *                       - example: Tournament not found
+     *                       - example: Bracket not found
      *       500:
      *         description: Internal Server Error
      *         content:
@@ -578,7 +591,9 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                   example: All fields are required
+     *                     oneOf:
+     *                       - example: All fields are required
+     *                       - example: Invalid positions
      *       401:
      *         description: Unauthorized
      *         content:
@@ -617,7 +632,9 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                   example: Bracket not found
+     *                     oneOf:
+     *                       - example: Bracket not found
+     *                       - example: Registered participant not found
      *       409:
      *         description: Conflict
      *         content:
@@ -630,7 +647,9 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                   example: Bracket not in draft or published
+     *                   oneOf:
+     *                     - example: Bracket not in draft or published
+     *                     - example: Duplicate participants in bracket
      *       500:
      *         description: Internal Server Error
      *         content:
@@ -1262,7 +1281,9 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                   example: Bracket in progress
+     *                   oneOf:
+     *                     - example: Bracket in progress
+     *                     - example: Bracket already finished
      *       500:
      *         description: Internal Server Error
      *         content:

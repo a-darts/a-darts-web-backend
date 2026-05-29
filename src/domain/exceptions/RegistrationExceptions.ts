@@ -5,13 +5,6 @@ export class InvalidRegistrationPeriodException extends Error {
     }
 }
 
-export class InvalidRegistrationStatusException extends Error {
-    constructor() {
-        super('Invalid registration status');
-        this.name = 'InvalidRegistrationStatusException';
-    }
-}
-
 export class RegistrationNotClosedException extends Error {
     constructor() {
         super('Registration is not closed');
@@ -35,14 +28,14 @@ export class RegistrationAlreadyClosedException extends Error {
 
 export class RegistrationOpenDateInPastException extends Error {
     constructor() {
-        super('Registration opening date in past.');
+        super('Registration opening date in past');
         this.name = 'RegistrationOpenDateInPastException';
     }
 }
 
 export class RegistrationCloseDateAfterTournamentException extends Error {
     constructor() {
-        super('Registration closing date must be before the tournament start date.');
+        super('Registration closing date must be before the tournament start date');
         this.name = 'RegistrationCloseDateAfterTournamentException';
     }
 }

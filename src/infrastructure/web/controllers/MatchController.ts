@@ -9,7 +9,6 @@ import {
   MatchNotInProgressException,
   MatchNotPendingException,
   MatchNotSuspendedException,
-  ParticipantNotFoundInMatchException,
 } from '../../../domain/exceptions/MatchExceptions.js';
 import { BracketNotFoundException } from '../../../domain/exceptions/BracketExceptions.js';
 import {
@@ -423,7 +422,9 @@ export class MatchController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Match is not pending
+   *                   oneOf:
+   *                     - example: Match is not pending
+   *                     - example: Match board number is required
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1170,7 +1171,10 @@ export class MatchController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Match not found
+   *                   oneOf:
+   *                     - example: Match not found
+   *                     - example: Playing area not found
+   *                     - example: Board not found
    *       409:
    *         description: Conflict
    *         content:
@@ -1183,7 +1187,10 @@ export class MatchController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Board is not occupied
+   *                   oneOf:
+   *                     - example: Board is not occupied
+   *                     - example: Board is already occupied
+   *                     - example: Board is disabled
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1314,7 +1321,9 @@ export class MatchController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: All fields are required
+   *                   oneOf:
+   *                     - example: All fields are required
+   *                     - example: Invalid user fields
    *       401:
    *         description: Unauthorized
    *         content:
@@ -1353,7 +1362,9 @@ export class MatchController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Match not found
+   *                   oneOf:
+   *                     - example: Match not found
+   *                     - example: Bracket not found
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -1489,7 +1500,9 @@ export class MatchController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: All fields are required
+   *                   oneOf:
+   *                     - example: All fields are required
+   *                     - example: Invalid user fields
    *       401:
    *         description: Unauthorized
    *         content:
@@ -1528,7 +1541,9 @@ export class MatchController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Match not found
+   *                   oneOf:
+   *                     - example: Match not found
+   *                     - example: Bracket not found
    *       409:
    *         description: Conflict
    *         content:
@@ -1541,7 +1556,10 @@ export class MatchController {
    *                   example: error
    *                 message:
    *                   type: string
-   *                   example: Match is not in progress
+   *                   oneOf:
+   *                     - example: Match is not in progress
+   *                     - example: Match is not pending
+   *                     - example: Match is already in progress
    *       500:
    *         description: Internal Server Error
    *         content:
