@@ -193,7 +193,6 @@ export class BracketController {
      *                     - example: Tournament already has a bracket
      *                     - example: Tournament is not published
      *                     - example: Registration is not closed
-     * 
      *       500:
      *         description: Internal Server Error
      *         content:
@@ -477,9 +476,9 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                     oneOf:
-     *                       - example: Tournament not found
-     *                       - example: Bracket not found
+     *                   oneOf:
+     *                     - example: Tournament not found
+     *                     - example: Bracket not found
      *       500:
      *         description: Internal Server Error
      *         content:
@@ -591,9 +590,9 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                     oneOf:
-     *                       - example: All fields are required
-     *                       - example: Invalid positions
+     *                   oneOf:
+     *                     - example: All fields are required
+     *                     - example: Invalid positions
      *       401:
      *         description: Unauthorized
      *         content:
@@ -632,9 +631,9 @@ export class BracketController {
      *                   example: error
      *                 message:
      *                   type: string
-     *                     oneOf:
-     *                       - example: Bracket not found
-     *                       - example: Registered participant not found
+     *                   oneOf:
+     *                     - example: Bracket not found
+     *                     - example: Registered participant not found
      *       409:
      *         description: Conflict
      *         content:
