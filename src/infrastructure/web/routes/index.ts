@@ -80,9 +80,9 @@ router.get('/tournaments/:id/participants', tournamentController.getParticipants
 
 router.get('/tournaments/:id/matches', tournamentController.getMatchesByTournamentId);
 
-router.post('/tournaments/:id/bracket/automatic', authMiddleware, isAdmin, tournamentController.createBracketAutomatically);
-router.post('/tournaments/:id/bracket/manual', authMiddleware, isAdmin, tournamentController.createBracketManually);
-router.get('/tournaments/:id/bracket', optionalAuthMiddleware, tournamentController.getTournamentBracket);
+router.post('/tournaments/:id/bracket/automatic', authMiddleware, isAdmin, bracketController.createBracketAutomatically);
+router.post('/tournaments/:id/bracket/manual', authMiddleware, isAdmin, bracketController.createBracketManually);
+router.get('/tournaments/:id/bracket', optionalAuthMiddleware, bracketController.getTournamentBracket);
 
 router.get('/tournaments/:id/playing-areas', authMiddleware, isAdmin, playingAreaController.getTournamentPlayingArea);
 router.post('/tournaments/:id/playing-areas', authMiddleware, isAdmin, playingAreaController.createTournamentPlayingArea);

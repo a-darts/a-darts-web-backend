@@ -49,7 +49,7 @@ export class SetMatchBoardNumber {
       const oldBoardShortId = oldBoard.getShortId();
       await this.matchCacheRepository.clearBoardActiveMatch(oldBoardShortId);
 
-      console.log(`[ReleasePlayingAreaBoard] Sending match_unassigned to room_board_${oldBoardShortId} with matchId: ${request.id}`);
+      console.log(`[ReleasePlayingAreaBoard] Match unassigned from board. Sending match_unassigned to room_board_${oldBoardShortId}`);
       const oldRoomName = `room_board_${oldBoardShortId}`;
       getSocketServer().to(oldRoomName).emit('match_unassigned', { matchId: request.id });
     }
@@ -64,7 +64,7 @@ export class SetMatchBoardNumber {
     const roomName = `room_board_${boardShortId}`;
     
     if (status === 'IN_PROGRESS' && historyThrows && historyThrows.length > 0) {
-      console.log(`[SetMatchBoardNumber] El partido ya estaba IN_PROGRESS. Enviando match_restored a ${roomName}`);
+      console.log(`[SetMatchBoardNumber] Match already in progress. Sending match_restored to ${roomName}`);
       
       // Enviamos match_restored a toda la sala para que la tablet se auto-configure en caliente
       getSocketServer().to(roomName).emit('match_restored', { 
@@ -73,7 +73,7 @@ export class SetMatchBoardNumber {
       });
     } else {
       // Enviamos match_assigned a toda la sala
-      console.log(`[SetMatchBoardNumber] Partido nuevo o no iniciado. Enviando match_assigned a ${roomName}`);
+      console.log(`[SetMatchBoardNumber] Match assigned to board. Sending match_assigned to ${roomName}`);
       getSocketServer().to(roomName).emit('match_assigned', { matchId: request.id });
     }
   }

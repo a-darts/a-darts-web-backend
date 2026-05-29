@@ -12,8 +12,12 @@ import {
 } from "../../../domain/exceptions/BracketExceptions.js";
 import { MissingRequiredUserFieldsException } from "../../../domain/exceptions/UserExceptions.js";
 import { AuthRequest } from "../middlewares/authMiddleware.js";
-import { RegisteredParticipantNotFoundException } from '../../../domain/exceptions/ParticipantExceptions.js';
+import { RegisteredParticipantNotFoundException, RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from '../../../domain/exceptions/ParticipantExceptions.js';
 import BracketServiceFactory from '../../factories/BracketServiceFactory.js';
+import { TournamentAlreadyHasBracketException, TournamentNotFoundException, TournamentNotPublishedException } from '../../../domain/exceptions/TournamentExceptions.js';
+import { RegistrationNotClosedException } from '../../../domain/exceptions/RegistrationExceptions.js';
+import { UserRoles } from '../../../domain/entities/User.js';
+import { BracketStatus } from '../../../domain/entities/Bracket.js';
 
 const bracketService = BracketServiceFactory.getInstance();
 
@@ -86,7 +90,443 @@ const bracketService = BracketServiceFactory.getInstance();
  *                 example: 1
  */
 export class BracketController {
+    
+    /**
+     * @swagger
+     * /api/tournaments/{id}/bracket/automatic:
+     *   post:
+     *     summary: Create the bracket of a tournament automatically
+     *     tags: [Tournaments]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - name: id
+     *         in: path
+     *         required: true
+     *         description: Tournament ID
+     *         schema:
+     *           type: string
+     *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+     *     responses:
+     *       201:
+     *         description: Bracket automatically created successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 message:
+     *                   type: string
+     *                   example: Bracket automatically created successfully
+     *                 data:
+     *                   $ref: '#/components/schemas/Bracket'
+     *       400:
+     *         description: Bad Request
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: All fields are required
+     *       401:
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: No token provided
+     *       403:
+     *         description: Forbidden
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: You do not have permission to perform this action
+     *       404:
+     *         description: Not Found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Tournament not found
+     *       409:
+     *         description: Conflict
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Tournament already has a bracket
+     *       500:
+     *         description: Internal Server Error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Internal server error
+     */
+    async createBracketAutomatically(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id;
+            if (!id || typeof id !== 'string') {
+                throw new MissingRequiredUserFieldsException();
+            }
 
+            const bracket = await bracketService.createAutomatically({
+                id: id,
+            });
+            res.status(201).json(
+                ApiResponseBuilder.success(
+                    bracket,
+                    'Bracket automatically created successfully',
+                )
+            );
+        } catch (error: any) {
+            if (error instanceof MissingRequiredUserFieldsException) {
+                return res.status(400).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            if (
+                error instanceof TournamentNotFoundException
+            ) {
+                return res.status(404).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            if (
+                error instanceof RegistratedParticipantsEmptyException ||
+                error instanceof RegistratedParticipantsNotEnoughException ||
+                error instanceof TournamentAlreadyHasBracketException ||
+                error instanceof TournamentNotPublishedException ||
+                error instanceof RegistrationNotClosedException
+            ) {
+                return res.status(409).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            console.error('[ERROR]:', error);
+            res.status(500).json(
+                ApiResponseBuilder.error('Internal server error')
+            );
+        }
+    }
+
+
+    /**
+     * @swagger
+     * /api/tournaments/{id}/bracket/manual:
+     *   post:
+     *     summary: Create the bracket of a tournament manually
+     *     tags: [Tournaments]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - name: id
+     *         in: path
+     *         required: true
+     *         description: Tournament ID
+     *         schema:
+     *           type: string
+     *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+     *     responses:
+     *       201:
+     *         description: Bracket manually created successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 message:
+     *                   type: string
+     *                   example: Bracket manually created successfully
+     *                 data:
+     *                   $ref: '#/components/schemas/Bracket'
+     *       400:
+     *         description: Bad Request
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: All fields are required
+     *       401:
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: No token provided
+     *       403:
+     *         description: Forbidden
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: You do not have permission to perform this action
+     *       404:
+     *         description: Not Found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Tournament not found
+     *       409:
+     *         description: Conflict
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Tournament already has a bracket
+     *       500:
+     *         description: Internal Server Error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Internal server error
+     */
+    async createBracketManually(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id;
+            if (!id || typeof id !== 'string') {
+                throw new MissingRequiredUserFieldsException();
+            }
+
+            const bracket = await bracketService.createManually({
+                id: id,
+            });
+            res.status(201).json(
+                ApiResponseBuilder.success(
+                    bracket,
+                    'Bracket manually created successfully',
+                )
+            );
+        } catch (error: any) {
+            if (error instanceof MissingRequiredUserFieldsException) {
+                return res.status(400).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            if (
+                error instanceof TournamentNotFoundException
+            ) {
+                return res.status(404).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            if (
+                error instanceof RegistratedParticipantsEmptyException ||
+                error instanceof RegistratedParticipantsNotEnoughException ||
+                error instanceof TournamentAlreadyHasBracketException ||
+                error instanceof TournamentNotPublishedException ||
+                error instanceof RegistrationNotClosedException
+            ) {
+                return res.status(409).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            console.error('[ERROR]:', error);
+            res.status(500).json(
+                ApiResponseBuilder.error('Internal server error')
+            );
+        }
+    }
+
+
+    /**
+     * @swagger
+     * /api/tournaments/{id}/bracket:
+     *   get:
+     *     summary: Get tournament bracket
+     *     tags: [Tournaments]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - name: id
+     *         in: path
+     *         required: true
+     *         description: Tournament ID
+     *         schema:
+     *           type: string
+     *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+     *     responses:
+     *       200:
+     *         description: Bracket fetched successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 message:
+     *                   type: string
+     *                   example: Bracket fetched successfully
+     *                 data:
+     *                   $ref: '#/components/schemas/Bracket'
+     *       400:
+     *         description: Bad Request
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: All fields are required
+     *       404:
+     *         description: Not Found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Tournament not found
+     *       500:
+     *         description: Internal Server Error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Internal server error
+     */
+    async getTournamentBracket(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id;
+            if (!id || typeof id !== 'string') {
+                throw new MissingRequiredUserFieldsException();
+            }
+
+            const bracket = await bracketService.getByTournamentId(id);
+
+            // Filter DRAFT brackets if not ADMIN
+            const isAdmin = req.user?.role === UserRoles.ADMIN;
+            if (!isAdmin) {
+                if (bracket.status === BracketStatus.DRAFT) {
+                    throw new BracketNotFoundException();
+                }
+            }
+
+            res.status(200).json(
+                ApiResponseBuilder.success(
+                    bracket,
+                    'Bracket fetched successfully',
+                )
+            );
+        } catch (error: any) {
+            if (error instanceof MissingRequiredUserFieldsException) {
+                return res.status(400).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+            if (
+                error instanceof TournamentNotFoundException ||
+                error instanceof BracketNotFoundException
+            ) {
+                return res.status(404).json(
+                    ApiResponseBuilder.error(error.message)
+                );
+            }
+
+            console.error('[ERROR]:', error);
+            res.status(500).json(
+                ApiResponseBuilder.error('Internal server error')
+            );
+        }
+    }  
+
+    
     /**
      * @swagger
      * /api/brackets/{id}/setupPositions:
