@@ -2,24 +2,15 @@ import { Response } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/client.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
-import { GetAllPlayers } from '../../../application/services/player/GetAllPlayers.js';
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
-import { GetPlayerById } from '../../../application/services/player/GetPlayerById.js';
 import { InvalidSeasonException, InvalidYearException, PlayerAlreadyExistsException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
 import { InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
-import { CreatePlayer } from '../../../application/services/player/CreatePlayer.js';
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
-import { UpdatePlayerFederation } from '../../../application/services/player/UpdatePlayerFederation.js';
-import { GetPlayerByUserIdAndSeason } from '../../../application/services/player/GetPlayerByUserIdAndSeason.js';
+import PlayerServiceFactory from '../../factories/PlayerServiceFactory.js';
 
-const playerRepository = new PrismaPlayerRepository(prisma);
-const userRepository = new PrismaUserRepository(prisma);
 
-const getAllPlayers = new GetAllPlayers(playerRepository);
-const getPlayerById = new GetPlayerById(playerRepository);
-const getPlayerByUserIdAndSeason = new GetPlayerByUserIdAndSeason(playerRepository);
-const createPlayer = new CreatePlayer(playerRepository, userRepository);
-const updatePlayerFederation = new UpdatePlayerFederation(playerRepository);
+const playerService = PlayerServiceFactory.getInstance();
+
 
 /**
  * @swagger
@@ -189,7 +180,7 @@ export class PlayerController {
         return res.status(400).json(ApiResponseBuilder.error('Invalid limit number'));
       }
 
-      const players = await getAllPlayers.execute(page, limit);
+      const players = await playerService.getAll(page, limit);
       res.status(200).json(
         ApiResponseBuilder.success(players, 'Players fetched successfully')
       );
@@ -295,7 +286,7 @@ export class PlayerController {
         throw new InvalidUserFieldsException();
       }
 
-      const player = await getPlayerById.execute(id);
+      const player = await playerService.getById(id);
       res.status(200).json(
         ApiResponseBuilder.success(
           player,
@@ -421,7 +412,7 @@ export class PlayerController {
         throw new InvalidUserFieldsException();
       }
 
-      const player = await getPlayerByUserIdAndSeason.execute({
+      const player = await playerService.getByUserIdAndSeason({
         userId: userId,
         seasonStartYear: parseInt(seasonStartYear, 10),
       });
@@ -561,7 +552,7 @@ export class PlayerController {
    */
   async createPlayer(req: AuthRequest, res: Response) {
     try {
-      const player = await createPlayer.execute(req.body);
+      const player = await playerService.create(req.body);
       res.status(201).json(
         ApiResponseBuilder.success(player, 'Player created successfully')
       );
@@ -710,7 +701,7 @@ export class PlayerController {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await updatePlayerFederation.execute({
+      await playerService.updateFederation({
         id: id,
         newFederation: newFederation,
       });

@@ -36,3 +36,13 @@ export interface UpdatePlayerFederationRequestDTO {
 export interface SeasonDTO {
     startYear: number;
 }
+
+export interface PaginatedPlayersWithUserResponse {
+  players: PlayerWithUserResponseDTO[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
