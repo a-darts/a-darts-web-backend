@@ -67,6 +67,12 @@ enum MatchStatus {
   CANCELLED
 }
 
+enum ParticipantTypes {
+  REGISTERED
+  BYE
+  EMPTY
+}
+
 enum BracketStatus {
   DRAFT
   PUBLISHED
@@ -194,8 +200,8 @@ model Match {
   participant1Id String? @db.Uuid
   participant2Id String? @db.Uuid
 
-  isParticipant1Bye Boolean
-  isParticipant2Bye Boolean
+  participant1Type ParticipantTypes @default(EMPTY)
+  participant2Type ParticipantTypes @default(EMPTY)
 
   matchScoreParticipant1SetsWon Int @default(0)
   matchScoreParticipant1LegsWon Int @default(0)

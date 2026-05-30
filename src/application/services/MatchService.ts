@@ -349,17 +349,12 @@ export class MatchService {
             await this.playingAreaRepository.update(playingArea);
         });
 
-        const events = bracket.pullEvents();
-        if (events.length > 0) {
-            await this.eventBus.publish(events);
-        }
-
+        // 9. Publish events
         const bracketEvents = bracket.pullEvents();
         const matchEvents = match.pullEvents(); 
         const nextMatchEvents = nextMatch ? nextMatch.pullEvents() : [];
         
         const allEvents = [...bracketEvents, ...matchEvents, ...nextMatchEvents];
-
         if (allEvents.length > 0) {
             await this.eventBus.publish(allEvents);
         }

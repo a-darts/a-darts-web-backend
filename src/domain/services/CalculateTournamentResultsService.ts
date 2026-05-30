@@ -1,7 +1,7 @@
 import { Bracket } from "../entities/Bracket.js";
 import { Match, MatchStatus } from "../entities/Match.js";
 import { TournamentResult } from "../entities/TournamentResult.js";
-import { ByeParticipant, EmptyParticipant, RegisteredParticipant } from "../entities/Participant.js";
+import { ByeParticipant, EmptyParticipant, ParticipantTypes, RegisteredParticipant } from "../entities/Participant.js";
 
 export class CalculateTournamentResultsService {
     public execute(bracket: Bracket, matches: Match[]): TournamentResult[] {
@@ -42,7 +42,9 @@ export class CalculateTournamentResultsService {
             const p2Id = match.getParticipant2Id();
             const winnerId = match.getWinnerId();
 
-            const isByeMatch = match.getIsParticipant1Bye() || match.getIsParticipant2Bye();
+            const isByeMatch =
+                (match.getParticipant1Type() === ParticipantTypes.BYE) ||
+                (match.getParticipant2Type() === ParticipantTypes.BYE);
 
             if (p1Id && resultsMap.has(p1Id)) {
                 const stats = resultsMap.get(p1Id);

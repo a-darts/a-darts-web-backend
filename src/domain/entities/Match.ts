@@ -9,6 +9,7 @@ import {
     MatchNotReadyException,
     MatchBoardNumberRequiredException,
 } from "../exceptions/MatchExceptions.js";
+import { ParticipantTypes } from "./Participant.js";
 
 
 export enum MatchStatus {
@@ -31,8 +32,8 @@ export class Match {
     private participant1Id: string | null;
     private participant2Id: string | null;
 
-    private readonly isParticipant1Bye: boolean;
-    private readonly isParticipant2Bye: boolean;
+    private participant1Type: ParticipantTypes;
+    private participant2Type: ParticipantTypes;
 
     private matchScore: MatchScore;
 
@@ -50,8 +51,8 @@ export class Match {
         status: MatchStatus,
         participant1Id: string | null,
         participant2Id: string | null,
-        isParticipant1Bye: boolean,
-        isParticipant2Bye: boolean,
+        participant1Type: ParticipantTypes,
+        participant2Type: ParticipantTypes,
         matchScore: MatchScore,
         tournamentId: string,
     ) {
@@ -63,8 +64,8 @@ export class Match {
         this.status = status;
         this.participant1Id = participant1Id;
         this.participant2Id = participant2Id;
-        this.isParticipant1Bye = isParticipant1Bye;
-        this.isParticipant2Bye = isParticipant2Bye;
+        this.participant1Type = participant1Type;
+        this.participant2Type = participant2Type;
         this.matchScore = matchScore;
         this.tournamentId = tournamentId;
     }
@@ -77,13 +78,13 @@ export class Match {
         tournamentId: string,
         participant1Id: string | null,
         participant2Id: string | null,
-        isParticipant1Bye: boolean,
-        isParticipant2Bye: boolean,
+        participant1Type: ParticipantTypes,
+        participant2Type: ParticipantTypes,
         round: number,
         matchIndex: number,
     ): Match {
-        const isByeMatch = isParticipant1Bye || isParticipant2Bye;
-        const isReady = participant1Id !== null && participant2Id !== null;
+        const isByeMatch = (participant1Type === ParticipantTypes.BYE) || (participant2Type === ParticipantTypes.BYE);
+        const isReady = (participant1Type === ParticipantTypes.REGISTERED) && (participant2Type === ParticipantTypes.REGISTERED);
         const initialStatus = isByeMatch
             ? MatchStatus.FINISHED
             : (isReady ? MatchStatus.READY : MatchStatus.PENDING);
@@ -98,8 +99,8 @@ export class Match {
             initialStatus,
             participant1Id,
             participant2Id,
-            isParticipant1Bye,
-            isParticipant2Bye,
+            participant1Type,
+            participant2Type,
             MatchScore.create(),
             tournamentId,
         );
@@ -143,20 +144,27 @@ export class Match {
     public getWinnerId(): string | null {
         if (this.status !== MatchStatus.FINISHED) return null;
 
-        // Si uno de los dos jugadores es bye, el otro gana
-        if (this.isParticipant1Bye) return this.participant2Id;
-        if (this.isParticipant2Bye) return this.participant1Id;
+        // If one participant is BYE, the other one wins
+        if (this.participant1Type === ParticipantTypes.BYE) return this.participant2Id;
+        if (this.participant2Type === ParticipantTypes.BYE) return this.participant1Id;
 
-        // Si ambos jugadores son reales, comparamos el score
+        // If both participants are real, compare the sets
         const s1 = this.matchScore.getParticipant1Score().getSetsWon();
         const s2 = this.matchScore.getParticipant2Score().getSetsWon();
 
         if (s1 > s2) return this.participant1Id;
         if (s2 > s1) return this.participant2Id;
 
-        return null; // Empate o error
-    }
+        // If sets are tied, compare the legs
+        const l1 = this.matchScore.getParticipant1Score().getLegsWon();
+        const l2 = this.matchScore.getParticipant2Score().getLegsWon();
 
+        if (l1 > l2) return this.participant1Id;
+        if (l2 > l1) return this.participant2Id;
+
+        // Draw
+        return null;
+    }
 
     public promoteWinner(participantId: string, slot: 'P1' | 'P2'): void {
         if (this.status === MatchStatus.FINISHED) {
@@ -165,11 +173,16 @@ export class Match {
 
         if (slot === 'P1') {
             this.participant1Id = participantId;
+            this.participant1Type = ParticipantTypes.REGISTERED;
         } else {
             this.participant2Id = participantId;
+            this.participant2Type = ParticipantTypes.REGISTERED;
         }
 
-        if (this.participant1Id !== null && this.participant2Id !== null) {
+        if (
+            this.participant1Type === ParticipantTypes.REGISTERED &&
+            this.participant2Type === ParticipantTypes.REGISTERED
+        ) {
             this.status = MatchStatus.READY;
         }
     }
@@ -277,12 +290,12 @@ export class Match {
         return this.participant2Id;
     }
 
-    public getIsParticipant1Bye(): boolean {
-        return this.isParticipant1Bye;
+    public getParticipant1Type(): ParticipantTypes {
+        return this.participant1Type;
     }
 
-    public getIsParticipant2Bye(): boolean {
-        return this.isParticipant2Bye;
+    public getParticipant2Type(): ParticipantTypes {
+        return this.participant2Type;
     }
 
     public getMatchScore(): MatchScore {
@@ -312,8 +325,8 @@ export class Match {
             data.status as MatchStatus,
             data.participant1Id,
             data.participant2Id,
-            data.isParticipant1Bye,
-            data.isParticipant2Bye,
+            data.participant1Type,
+            data.participant2Type,
             matchScore,
             data.tournamentId,
         );

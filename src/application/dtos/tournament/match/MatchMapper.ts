@@ -1,5 +1,6 @@
 import { Match } from '../../../../domain/entities/Match.js';
-import { RegisteredParticipant } from '../../../../domain/entities/Participant.js';
+import { ParticipantTypes, RegisteredParticipant } from '../../../../domain/entities/Participant.js';
+import { RegistratedParticipantsTypesException } from '../../../../domain/exceptions/ParticipantExceptions.js';
 import { MatchWithParticipants } from '../../../../domain/repositories/IMatchRepository.js';
 import { MatchResponseDTO } from './MatchDTOs.js';
 
@@ -25,11 +26,11 @@ export class MatchMapper {
             tournamentId: match.getTournamentId(),
             participant1: this.mapParticipant(
                 participant1,
-                match.getIsParticipant1Bye()
+                match.getParticipant1Type()
             ),
             participant2: this.mapParticipant(
                 participant2,
-                match.getIsParticipant2Bye()
+                match.getParticipant2Type()
             ),
             matchScore: {
                 participant1: {
@@ -51,10 +52,20 @@ export class MatchMapper {
      */
     private static mapParticipant(
         participant: RegisteredParticipant | null,
-        isBye: boolean
+        participantType: ParticipantTypes,
     ) {
-        // Escenario A: Es un participante real
-        if (participant) {
+        // Escenario A: BYE confirmado
+        if (participantType === ParticipantTypes.BYE) {
+            return { id: null, alias: 'Bye', federation: 'N/A' };
+        }
+
+        // Escenario B: Slot vacío pendiente de asignar
+        if (participantType === ParticipantTypes.EMPTY) {
+            return { id: null, alias: 'Por determinar', federation: 'N/A' };
+        }
+
+        // Escenario C: Participante real
+        if (participantType === ParticipantTypes.REGISTERED && participant) {
             return {
                 id: participant.getId(),
                 alias: participant.getAlias(),
@@ -62,20 +73,6 @@ export class MatchMapper {
             };
         }
 
-        // Escenario B: Es un BYE
-        if (isBye) {
-            return {
-                id: null,
-                alias: 'Bye',
-                federation: 'N/A',
-            };
-        }
-
-        // Escenario C: Es NULL en la BD y NO es un Bye (pendiente de asignar)
-        return {
-            id: null,
-            alias: 'Por determinar',
-            federation: 'N/A',
-        };
+        throw new RegistratedParticipantsTypesException();
     }
 }

@@ -46,3 +46,10 @@ export class RegistratedParticipantsNotEnoughException extends Error {
         this.name = 'RegistratedParticipantsNotEnoughException';
     }
 }
+
+export class RegistratedParticipantsTypesException extends Error {
+    constructor() {
+        super('Registered participants types unhandled');
+        this.name = 'RegistratedParticipantsTypesException';
+    }
+}

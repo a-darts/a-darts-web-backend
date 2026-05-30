@@ -184,3 +184,10 @@ export class RegisteredParticipant implements IParticipant {
         );
     }
 }
+
+
+export enum ParticipantTypes {
+    REGISTERED = 'REGISTERED',
+    BYE = 'BYE',
+    EMPTY = 'EMPTY',
+}

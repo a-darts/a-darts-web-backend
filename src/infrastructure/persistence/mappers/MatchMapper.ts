@@ -1,7 +1,8 @@
-import { MatchStatus as PrismaMatchStatus, Match as PrismaMatch, Board as PrismaBoard } from '@prisma/client';
+import { MatchStatus as PrismaMatchStatus, Match as PrismaMatch, Board as PrismaBoard, ParticipantTypes as PrismaParticipantTypes } from '@prisma/client';
 import { Match, MatchStatus } from '../../../domain/entities/Match.js';
 import { prisma } from '../client.js';
 import { Board } from '../../../domain/entities/PlayingArea.js';
+import { ParticipantTypes } from '../../../domain/entities/Participant.js';
 
 export class MatchMapper {
     // From Domain Entity to Prisma Object
@@ -16,8 +17,8 @@ export class MatchMapper {
             status: match.getStatus() as PrismaMatchStatus,
             participant1Id: match.getParticipant1Id(),
             participant2Id: match.getParticipant2Id(),
-            isParticipant1Bye: match.getIsParticipant1Bye(),
-            isParticipant2Bye: match.getIsParticipant2Bye(),
+            participant1Type: match.getParticipant1Type() as unknown as PrismaParticipantTypes,
+            participant2Type: match.getParticipant2Type() as unknown as PrismaParticipantTypes,
             matchScoreParticipant1SetsWon: score.getParticipant1Score().getSetsWon(),
             matchScoreParticipant1LegsWon: score.getParticipant1Score().getLegsWon(),
             matchScoreParticipant2SetsWon: score.getParticipant2Score().getSetsWon(),
@@ -40,8 +41,8 @@ export class MatchMapper {
             status: prismaMatch.status as MatchStatus,
             participant1Id: prismaMatch.participant1Id,
             participant2Id: prismaMatch.participant2Id,
-            isParticipant1Bye: prismaMatch.isParticipant1Bye,
-            isParticipant2Bye: prismaMatch.isParticipant2Bye,
+            participant1Type: prismaMatch.participant1Type as unknown as ParticipantTypes,
+            participant2Type: prismaMatch.participant2Type as unknown as ParticipantTypes,
             matchScore: {
                 participant1: {
                     setsWon: prismaMatch.matchScoreParticipant1SetsWon,
