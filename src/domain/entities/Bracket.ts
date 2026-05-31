@@ -243,6 +243,10 @@ export class Bracket {
         }
     }
 
+    public isPublished(): boolean {
+        return this.status === BracketStatus.PUBLISHED;
+    }
+
     // --------------------------------------------------------------------
     // GETTERS
     // --------------------------------------------------------------------    

@@ -187,22 +187,11 @@ export class TournamentService {
       throw new TournamentNotFoundException();
     }
 
-    // 2. Rehydrate the bracket from the DB
-    const bracket = await this.bracketRepository.findByTournamentId(id);
-
-    // 3. Update the status in the tournament and bracket
+    // 2. Update the status in the tournament and bracket
     tournament.publish();
-    if (bracket) {
-      bracket.publish();
-    }
 
     // 4. Persist the changes in the DB
-    await this.unitOfWork.transaction(async () => {
-      await this.tournamentRepository.update(tournament);
-      if (bracket) {
-        await this.bracketRepository.update(bracket);
-      }
-    });
+    await this.tournamentRepository.update(tournament);
   }
 
 
@@ -218,7 +207,7 @@ export class TournamentService {
 
     // 3. Update the status in the tournament and bracket
     tournament.unpublish();
-    if (bracket) {
+    if (bracket && bracket.isPublished()) {
       bracket.unpublish();
     }
 
