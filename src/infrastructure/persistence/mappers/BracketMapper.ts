@@ -1,6 +1,6 @@
 import { BracketStatus as PrismaBracketStatus } from '@prisma/client';
 import { Bracket, BracketPosition, BracketStatus } from '../../../domain/entities/Bracket.js';
-import { ByeParticipant, EmptyParticipant, RegisteredParticipant } from '../../../domain/entities/Participant.js';
+import { ByeParticipant, EmptyParticipant, ParticipantTypes, RegisteredParticipant } from '../../../domain/entities/Participant.js';
 
 export class BracketMapper {
     // From Domain Entity to Prisma Object
@@ -12,7 +12,11 @@ export class BracketMapper {
             positions: {
                 create: bracket.getPositions().map(pos => ({
                     position: pos.getPosition(),
-                    isBye: pos.isBye(),
+                    participantType: pos.isBye()
+                        ? ParticipantTypes.BYE
+                        : pos.isEmpty()
+                            ? ParticipantTypes.EMPTY
+                            : ParticipantTypes.REGISTERED,
                     // Si es un Bye o un Vacío (Empty), guardamos null
                     participantId: (pos.isBye() || pos.isEmpty()) ? null : pos.getParticipant().getId()
                 })),
@@ -35,7 +39,7 @@ export class BracketMapper {
                     alias: p.participant?.player?.user?.alias || 'Unknown',
                     federation: p.participant?.player?.federation || 'Unknown',
                 })
-                : (p.isBye ? ByeParticipant.create() : EmptyParticipant.create());
+                : (p.participantType === ParticipantTypes.BYE ? ByeParticipant.create() : EmptyParticipant.create());
 
             return new BracketPosition(participant, p.position);
         });
