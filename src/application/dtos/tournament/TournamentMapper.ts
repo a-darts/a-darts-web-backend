@@ -35,7 +35,6 @@ export class TournamentMapper {
                     startsAt: registration.getRegistrationPeriod().getStartsAt(),
                     endsAt: registration.getRegistrationPeriod().getEndsAt(),
                 },
-                registeredParticipantsIds: registration.getRegisteredParticipantsIds(),
             },
         };
 

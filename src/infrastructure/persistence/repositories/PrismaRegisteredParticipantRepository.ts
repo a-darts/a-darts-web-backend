@@ -77,4 +77,10 @@ export class PrismaRegisteredParticipantRepository implements IRegisteredPartici
         });
         return registeredParticipantsData.map(RegisteredParticipantMapper.toDomain);
     }
+
+    async countByTournamentId(tournamentId: string): Promise<number> {
+        return await this.client.registeredParticipant.count({
+            where: { tournamentId: tournamentId },
+        });
+    }
 }

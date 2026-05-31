@@ -36,19 +36,19 @@ export class BracketService {
         // 1. Fetch the tournament in the DB
         const tournament = await this.tournamentRepository.findById(id);
         if (!tournament) {
-        throw new TournamentNotFoundException();
+            throw new TournamentNotFoundException();
         }
 
         // 2. Fetch the bracket in the DB
         const bracket = await this.bracketRepository.findByTournamentId(id);
         if (!bracket) {
-        throw new BracketNotFoundException();
+            throw new BracketNotFoundException();
         }
 
         // 3. Return the tournament data
         return BracketMapper.toResponse(bracket);
     }
-    
+
 
     public async createManually(request: CreateBracketRequestDTO): Promise<BracketResponseDTO> {
         // 1. Rehydrate the tournament object
@@ -62,10 +62,12 @@ export class BracketService {
             throw new RegistrationNotClosedException();
         }
 
+        const participantsCount = await this.registeredParticipantRepository.countByTournamentId(request.id);
+
         // 3. Create the bracket (with manual factory method)
         const bracket = Bracket.createManualEmpty(
             request.id,
-            tournament.getRegistration().getRegisteredParticipantsCount(),
+            participantsCount,
             this.seedingService,
         );
 
@@ -78,7 +80,7 @@ export class BracketService {
         // 5. Return the bracket data
         return BracketMapper.toResponse(bracket);
     }
-    
+
     public async createAutomatically(request: CreateBracketRequestDTO): Promise<BracketResponseDTO> {
         // 1. Rehydrate the tournament object
         const tournament = await this.tournamentRepository.findById(request.id);
@@ -115,12 +117,12 @@ export class BracketService {
         // 1. Rehydrate the bracket from the DB
         const bracket = await this.bracketRepository.findById(id);
         if (!bracket) {
-          throw new BracketNotFoundException();
+            throw new BracketNotFoundException();
         }
-    
+
         // 2. Delete the bracket
         bracket.delete();
-    
+
         // 3. Delte the bracket in the DB
         await this.bracketRepository.delete(id);
     }

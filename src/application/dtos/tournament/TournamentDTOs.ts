@@ -33,7 +33,6 @@ interface RegistrationDTO {
     hasCheckIn: boolean;
     status: RegistrationStatus;
     registrationPeriod: RegistrationPeriodDTO;
-    registeredParticipantsIds: string[];
 }
 
 interface RegistrationPeriodDTO {

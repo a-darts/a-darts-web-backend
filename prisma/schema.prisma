@@ -147,13 +147,11 @@ model Tournament {
   //
 
   // Value object Registration fields
-  registrationHasCheckIn                Boolean
-  registrationStatus                    RegistrationStatus
+  registrationHasCheckIn     Boolean
+  registrationStatus         RegistrationStatus
   // RegistrationPeriod fields
-  registrationPeriodStartsAt            DateTime?
-  registrationPeriodEndsAt              DateTime?
-  //
-  registrationRegisteredParticipantsIds String[]
+  registrationPeriodStartsAt DateTime?
+  registrationPeriodEndsAt   DateTime?
   //
 
   // Integridad referencial

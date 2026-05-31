@@ -6,7 +6,6 @@ import {
 } from "../exceptions/RegistrationExceptions.js";
 import {
   TournamentAlreadyFinishedException,
-  TournamentMaxPlayersExceededException,
   TournamentNotInDraftException,
   TournamentNotInProgressException,
   TournamentNotPublishedException,
@@ -169,18 +168,10 @@ export class Tournament {
   // REGISTRATION METHODS
   // --------------------------------------------------------------------
   public openRegistration(): void {
-    if (!this.isPublished()) {
-      throw new TournamentNotPublishedException();
-    }
-
     this.registration = this.registration.open();
   }
 
   public closeRegistration(): void {
-    if (!this.isPublished()) {
-      throw new TournamentNotPublishedException();
-    }
-
     this.registration = this.registration.close();
   }
 
@@ -209,17 +200,8 @@ export class Tournament {
     this.registration = this.registration.schedule(openDate, closeDate);
   }
 
-  public registerParticipant(participantId: string) {
-    const maxPlayers = this.getInfo().getMaxPlayers();
-    if (maxPlayers && this.registration.getRegisteredParticipantsCount() >= maxPlayers) {
-      throw new TournamentMaxPlayersExceededException();
-    }
-
-    this.registration = this.registration.registerParticipant(participantId);
-  }
-
-  public unregisterParticipant(participantId: string) {
-    this.registration = this.registration.unregisterParticipant(participantId);
+  public isRegistrationOpen(): boolean {
+    return this.registration.isOpen();
   }
 
   public isRegistrationClosed(): boolean {
@@ -310,7 +292,6 @@ export class Tournament {
           data.registration.registrationPeriod.startsAt ? new Date(data.registration.registrationPeriod.startsAt) : null,
           data.registration.registrationPeriod.endsAt ? new Date(data.registration.registrationPeriod.endsAt) : null,
         ),
-        data.registration.registeredParticipantsIds,
       ),
     );
   }

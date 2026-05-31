@@ -3,10 +3,6 @@ import {
     RegistrationAlreadyClosedException,
     RegistrationAlreadyOpenException,
 } from "../exceptions/RegistrationExceptions.js";
-import {
-    ParticipantNotRegisteredException,
-    ParticipantAlreadyRegisteredException,
-} from "../exceptions/ParticipantExceptions.js";
 
 export enum RegistrationStatus {
     OPEN = 'OPEN',
@@ -17,19 +13,16 @@ export class Registration {
     private readonly hasCheckIn: boolean;
     private readonly status: RegistrationStatus;
     private readonly registrationPeriod: RegistrationPeriod;
-    private readonly registeredParticipantsIds: string[];
 
 
     constructor(
         hasCheckIn: boolean,
         status: RegistrationStatus,
         registrationPeriod: RegistrationPeriod,
-        registeredParticipantsIds: string[],
     ) {
         this.hasCheckIn = hasCheckIn;
         this.status = status;
         this.registrationPeriod = registrationPeriod;
-        this.registeredParticipantsIds = [...registeredParticipantsIds];
     }
 
 
@@ -41,7 +34,6 @@ export class Registration {
             false,
             RegistrationStatus.CLOSED,
             new RegistrationPeriod(null, null),
-            [],
         );
     }
 
@@ -59,7 +51,6 @@ export class Registration {
             this.hasCheckIn,
             RegistrationStatus.OPEN,
             this.registrationPeriod,
-            this.registeredParticipantsIds,
         );
     }
 
@@ -73,7 +64,6 @@ export class Registration {
             this.hasCheckIn,
             RegistrationStatus.CLOSED,
             this.registrationPeriod,
-            this.registeredParticipantsIds,
         );
     }
 
@@ -82,7 +72,6 @@ export class Registration {
             this.hasCheckIn,
             this.status,
             new RegistrationPeriod(open, close),
-            this.registeredParticipantsIds,
         );
     }
 
@@ -92,51 +81,6 @@ export class Registration {
 
     public isClosed(): boolean {
         return this.status === RegistrationStatus.CLOSED;
-    }
-
-
-    // --------------------------------------------------------------------
-    // REGISTRATION PARTICIPANTS MANAGEMENT
-    // --------------------------------------------------------------------
-    public registerParticipant(participantId: string): Registration {
-        if (this.isParticipantRegistered(participantId)) {
-            throw new ParticipantAlreadyRegisteredException();
-        }
-        if (this.isClosed()) {
-            throw new RegistrationAlreadyClosedException();
-        }
-
-        return new Registration(
-            this.hasCheckIn,
-            this.status,
-            this.registrationPeriod,
-            [...this.registeredParticipantsIds, participantId],
-        );
-    }
-
-    public unregisterParticipant(participantId: string): Registration {
-        if (!this.isParticipantRegistered(participantId)) {
-            throw new ParticipantNotRegisteredException();
-        }
-
-        const updatedParticipants = this.registeredParticipantsIds.filter(
-            r => r !== participantId
-        );
-
-        return new Registration(
-            this.hasCheckIn,
-            this.status,
-            this.registrationPeriod,
-            updatedParticipants,
-        );
-    }
-
-    public isParticipantRegistered(participantId: string): boolean {
-        return this.registeredParticipantsIds.some(r => r === participantId);
-    }
-
-    public getRegisteredParticipantsCount(): number {
-        return this.registeredParticipantsIds.length;
     }
 
 
@@ -153,10 +97,6 @@ export class Registration {
 
     public getRegistrationPeriod(): RegistrationPeriod {
         return this.registrationPeriod;
-    }
-
-    public getRegisteredParticipantsIds(): string[] {
-        return [...this.registeredParticipantsIds];
     }
 }
 

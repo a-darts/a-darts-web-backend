@@ -128,11 +128,6 @@ const tournamentService = TournamentServiceFactory.getInstance();
  *               type: string
  *               format: date-time
  *               example: 2026-05-02T11:00:00.000Z
- *         registeredParticipantsIds:
- *           type: array
- *           items:
- *             type: string
- *           example: ["1", "2", "3"]
  * 
  *     UnregisteredPlayer:
  *       type: object

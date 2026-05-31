@@ -51,7 +51,6 @@ export class TournamentMapper {
             registrationStatus: registration.getStatus() as PrismaRegistrationStatus,
             registrationPeriodStartsAt: registration.getRegistrationPeriod().getStartsAt(),
             registrationPeriodEndsAt: registration.getRegistrationPeriod().getEndsAt(),
-            registrationRegisteredParticipantsIds: registration.getRegisteredParticipantsIds(),
             //
         };
 
@@ -92,7 +91,6 @@ export class TournamentMapper {
                     startsAt: prismaTournament.registrationPeriodStartsAt,
                     endsAt: prismaTournament.registrationPeriodEndsAt,
                 },
-                registeredParticipantsIds: prismaTournament.registrationRegisteredParticipantsIds || []
             },
         });
     }

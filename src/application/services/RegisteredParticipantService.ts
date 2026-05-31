@@ -1,7 +1,8 @@
 import { RegisteredParticipant } from "../../domain/entities/Participant.js";
-import { ParticipantAlreadyRegisteredException, RegisteredParticipantNotFoundException } from "../../domain/exceptions/ParticipantExceptions.js";
+import { ParticipantAlreadyRegisteredException, ParticipantNotRegisteredException, RegisteredParticipantNotFoundException } from "../../domain/exceptions/ParticipantExceptions.js";
 import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from "../../domain/exceptions/PlayerExceptions.js";
-import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
+import { RegistrationAlreadyClosedException } from "../../domain/exceptions/RegistrationExceptions.js";
+import { TournamentAlreadyHasBracketException, TournamentMaxPlayersExceededException, TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { UserNotFoundException } from "../../domain/exceptions/UserExceptions.js";
 import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
 import { IPlayerRepository } from "../../domain/repositories/IPlayerRepository.js";
@@ -32,15 +33,15 @@ export class RegisteredParticipantService {
         // 1. Fetch the tournament in the DB
         const tournament = await this.tournamentRepository.findById(id);
         if (!tournament) {
-          throw new TournamentNotFoundException();
+            throw new TournamentNotFoundException();
         }
-    
+
         // 2. Fetch the tournament participants in the DB
         const participants = await this.registeredParticipantRepository.findAllByTournamentId(id);
         if (!participants || participants.length === 0) {
-          return [];
+            return [];
         }
-    
+
         // 3. Map everything together
         return participants.map(p => RegisteredParticipantMapper.toResponse(p));
     }
@@ -53,24 +54,29 @@ export class RegisteredParticipantService {
             throw new TournamentNotFoundException();
         }
 
-        // 2. Check the tournament does not have a bracket
+        // 2. Check the tournament registration is open
+        if (!tournament.isRegistrationOpen()) {
+            throw new RegistrationAlreadyClosedException();
+        }
+
+        // 3. Check the tournament does not have a bracket
         const bracket = await this.bracketRepository.findByTournamentId(request.id);
         if (bracket) {
             throw new TournamentAlreadyHasBracketException();
         }
 
-        // 3. Check if the player exists
-        const player = await this.playerRepository.findById(request.playerId);
+        // 4. Check the player exists
+        const player = await this.playerRepository.findByIdWithUser(request.playerId);
         if (!player) {
             throw new PlayerNotFoundException();
         }
 
-        // 4. Check if the player is registrated in the same season as the tournament
-        if (!player.getSeason().equals(tournament.getSeason())) {
+        // 5. Check the player is registrated in the same season as the tournament
+        if (!player.player.getSeason().equals(tournament.getSeason())) {
             throw new InvalidRegisteredPlayerSeasonException();
         }
 
-        // 5. Check if the participant is already registered in this tournament
+        // 6. Check the participant is not already registered in this tournament
         const existingParticipant = await this.registeredParticipantRepository.findByTournamentIdAndPlayerId(
             request.id,
             request.playerId,
@@ -79,25 +85,24 @@ export class RegisteredParticipantService {
             throw new ParticipantAlreadyRegisteredException();
         }
 
-        // 6. Get player alias
-        const user = await this.userRepository.findById(player.getUserId());
-        if (!user) {
-            throw new UserNotFoundException();
+        // 7. Check not exceed max players
+        const maxPlayers = tournament.getInfo().getMaxPlayers();
+        if (maxPlayers) {
+            const registeredParticipantsCount = await this.registeredParticipantRepository.countByTournamentId(request.id);
+            if (registeredParticipantsCount >= maxPlayers) {
+                throw new TournamentMaxPlayersExceededException();
+            }
         }
 
-        // 7. Create the new registered participant
+        // 8. Create the new registered participant
         const newRegisteredParticipant = RegisteredParticipant.create(
             request.playerId,
             request.id,
-            user.getAlias(),
-            player.getFederation(),
+            player.user.getAlias(),
+            player.player.getFederation(),
         );
 
-        // 8. Register the participant in the tournament
-        tournament.registerParticipant(newRegisteredParticipant.getId());
-
-        // 9. Persist the changes in the DB
-        await this.tournamentRepository.update(tournament);
+        // 8. Persist the changes in the DB
         await this.registeredParticipantRepository.create(
             newRegisteredParticipant,
         );
@@ -120,16 +125,10 @@ export class RegisteredParticipantService {
         // 3. Check if the participant is not registered
         const registeredParticipant = await this.registeredParticipantRepository.findById(request.participantId);
         if (!registeredParticipant) {
-            throw new RegisteredParticipantNotFoundException();
+            throw new ParticipantNotRegisteredException();
         }
 
-        // 4. Unregister the participant from the tournament
-        tournament.unregisterParticipant(request.participantId);
-
-        // 5. Persist the changes in the DB
-        // 5.1. Update the tournament registered participants ids
-        await this.tournamentRepository.update(tournament);
-        // 5.2. Delete the registered participant
+        // 4. Persist the changes in the DB
         await this.registeredParticipantRepository.delete(
             request.participantId,
         );

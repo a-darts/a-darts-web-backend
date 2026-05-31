@@ -9,4 +9,5 @@ export interface IRegisteredParticipantRepository {
   findByTournamentIdAndPlayerId(tournamentId: string, playerId: string): Promise<RegisteredParticipant | null>;
   findAllByTournamentId(tournamentId: string): Promise<RegisteredParticipant[]>;
   findAllByPlayerId(playerId: string): Promise<RegisteredParticipant[]>;
+  countByTournamentId(tournamentId: string): Promise<number>;
 }
