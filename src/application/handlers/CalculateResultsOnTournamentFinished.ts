@@ -1,6 +1,6 @@
-import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
-import { IMatchRepository } from "../../domain/repositories/IMatchRepository.js";
-import { ITournamentResultRepository } from "../../domain/repositories/ITournamentResultRepository.js";
+import { IBracketRepository } from "../../domain/ports/repositories/IBracketRepository.js";
+import { IMatchRepository } from "../../domain/ports/repositories/IMatchRepository.js";
+import { ITournamentResultRepository } from "../../domain/ports/repositories/ITournamentResultRepository.js";
 import { TournamentFinishedEvent } from "../../domain/events/TournamentFinishedEvent.js";
 import { CalculateTournamentResultsService } from "../../domain/services/CalculateTournamentResultsService.js";
 

@@ -3,10 +3,10 @@ import { Season } from "../../domain/entities/Season.js";
 import { PlayerAlreadyExistsException, PlayerNotFoundException } from "../../domain/exceptions/PlayerExceptions.js";
 import { TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { UserNotFoundException } from "../../domain/exceptions/UserExceptions.js";
-import { IPlayerRepository } from "../../domain/repositories/IPlayerRepository.js";
-import { IRegisteredParticipantRepository } from "../../domain/repositories/IRegisteredParticipantRepository.js";
-import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
-import { IUserRepository } from "../../domain/repositories/IUserRepository.js";
+import { IPlayerRepository } from "../../domain/ports/repositories/IPlayerRepository.js";
+import { IRegisteredParticipantRepository } from "../../domain/ports/repositories/IRegisteredParticipantRepository.js";
+import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
+import { IUserRepository } from "../../domain/ports/repositories/IUserRepository.js";
 import {
   CreatePlayerRequestDTO,
   GetPlayerByUserIdAndSeasonRequestDTO,
@@ -65,7 +65,7 @@ export class PlayerService {
     // 2. Return the player data
     return PlayerMapper.toResponseWithUser(player);
   }
-    
+
 
   public async getByUserIdAndSeason(request: GetPlayerByUserIdAndSeasonRequestDTO): Promise<PlayerResponseDTO> {
     // 1. Rehydrate the player from the DB
@@ -107,8 +107,8 @@ export class PlayerService {
 
     // 5. Return the players data
     return unregisteredPlayers.map(player => PlayerMapper.toResponseWithUser(player));
-}
-    
+  }
+
 
   public async create(request: CreatePlayerRequestDTO): Promise<PlayerResponseDTO> {
     // 1. Check if the player already exists in that season
@@ -119,13 +119,13 @@ export class PlayerService {
     if (existingPlayer) {
       throw new PlayerAlreadyExistsException();
     }
-  
+
     // 2. Check if the user exists
     const existingUser = await this.userRepository.findById(request.userId);
     if (!existingUser) {
       throw new UserNotFoundException();
     }
-  
+
     // 3. Create the player (with the factory method)
     const player = Player.create(
       request.userId,
@@ -133,10 +133,10 @@ export class PlayerService {
       request.federation,
       new Season(request.season.startYear),
     );
-  
+
     // 4. Persist the player in the DB
     await this.playerRepository.create(player);
-  
+
     // 5. Return the player data
     return PlayerMapper.toResponse(player);
   }

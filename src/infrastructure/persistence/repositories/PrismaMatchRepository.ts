@@ -3,7 +3,7 @@ import { Match } from '../../../domain/entities/Match.js';
 import { MatchMapper } from '../mappers/MatchMapper.js';
 import { RegisteredParticipantMapper } from '../mappers/RegisteredParticipantMapper.js';
 import { PlayingAreaMapper } from '../mappers/PlayingAreaMapper.js';
-import { IMatchRepository, MatchWithParticipants } from '../../../domain/repositories/IMatchRepository.js';
+import { IMatchRepository, MatchWithParticipants } from '../../../domain/ports/repositories/IMatchRepository.js';
 import { transactionStorage } from '../TransactionContext.js';
 
 export class PrismaMatchRepository implements IMatchRepository {

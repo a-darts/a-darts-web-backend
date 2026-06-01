@@ -4,11 +4,11 @@ import { Tournament, TournamentStatus } from "../../domain/entities/Tournament.j
 import { TournamentInfo } from "../../domain/entities/TournamentInfo.js";
 import { BracketNotFoundException, BracketUnfinishedException } from "../../domain/exceptions/BracketExceptions.js";
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
-import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
-import { IMatchRepository } from "../../domain/repositories/IMatchRepository.js";
-import { IRegisteredParticipantRepository } from "../../domain/repositories/IRegisteredParticipantRepository.js";
-import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
-import { UnitOfWork } from "../../domain/repositories/UnitOfWork.js";
+import { IBracketRepository } from "../../domain/ports/repositories/IBracketRepository.js";
+import { IMatchRepository } from "../../domain/ports/repositories/IMatchRepository.js";
+import { IRegisteredParticipantRepository } from "../../domain/ports/repositories/IRegisteredParticipantRepository.js";
+import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
+import { UnitOfWork } from "../../domain/ports/services/UnitOfWork.js";
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
 import {
   CreateTournamentRequestDTO,

@@ -8,14 +8,14 @@ import { TournamentNotFoundException } from "../../domain/exceptions/TournamentE
 import { PlayingAreaNotFoundException } from '../../domain/exceptions/PlayingAreaExceptions.js';
 import { BracketNotFoundException } from "../../domain/exceptions/BracketExceptions.js";
 
-import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
-import { IMatchRepository } from "../../domain/repositories/IMatchRepository.js";
-import { IPlayingAreaRepository } from "../../domain/repositories/IPlayingAreaRepository.js";
-import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
-import { IMatchCacheRepository } from "../../domain/repositories/IMatchCacheRepository.js";
+import { IBracketRepository } from "../../domain/ports/repositories/IBracketRepository.js";
+import { IMatchRepository } from "../../domain/ports/repositories/IMatchRepository.js";
+import { IPlayingAreaRepository } from "../../domain/ports/repositories/IPlayingAreaRepository.js";
+import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
+import { IMatchCacheRepository } from "../../domain/ports/repositories/IMatchCacheRepository.js";
 
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
-import { UnitOfWork } from "../../domain/repositories/UnitOfWork.js";
+import { UnitOfWork } from "../../domain/ports/services/UnitOfWork.js";
 import { EventBus } from "../../domain/events/EventBus.js";
 import { MatchResumedEvent, MatchSuspendedEvent } from '../../domain/events/MatchEvents.js';
 

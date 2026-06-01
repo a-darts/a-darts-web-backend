@@ -1,4 +1,4 @@
-import { Tournament } from '../entities/Tournament.js';
+import { Tournament } from '../../entities/Tournament.js';
 
 export interface ITournamentRepository {
   create(tournament: Tournament): Promise<void>;

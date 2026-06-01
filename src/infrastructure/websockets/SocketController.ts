@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { IMatchCacheRepository } from '../../domain/repositories/IMatchCacheRepository.js';
+import { IMatchCacheRepository } from '../../domain/ports/repositories/IMatchCacheRepository.js';
 import { MatchService } from '../../application/services/MatchService.js';
 import { MatchStatus } from '../../domain/entities/Match.js';
 

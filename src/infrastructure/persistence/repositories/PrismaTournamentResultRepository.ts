@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { TournamentResult } from '../../../domain/entities/TournamentResult.js';
-import { ITournamentResultRepository, TournamentResultWithPlayerAndUser } from '../../../domain/repositories/ITournamentResultRepository.js';
+import { ITournamentResultRepository, TournamentResultWithPlayerAndUser } from '../../../domain/ports/repositories/ITournamentResultRepository.js';
 import { TournamentResultMapper } from '../mappers/TournamentResultMapper.js';
 import { PlayerMapper } from '../mappers/PlayerMapper.js';
 import { UserMapper } from '../mappers/UserMapper.js';

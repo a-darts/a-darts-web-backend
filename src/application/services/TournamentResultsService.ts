@@ -1,7 +1,7 @@
 import { TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { TournamentResultNotFoundException } from "../../domain/exceptions/TournamentResultException.js";
-import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
-import { ITournamentResultRepository } from "../../domain/repositories/ITournamentResultRepository.js";
+import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
+import { ITournamentResultRepository } from "../../domain/ports/repositories/ITournamentResultRepository.js";
 import { TournamentResultDTO } from "../dtos/tournament/result/TournamentResultDTO.js";
 import { TournamentResultMapper } from "../dtos/tournament/result/TournamentResultMapper.js";
 

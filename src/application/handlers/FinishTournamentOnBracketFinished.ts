@@ -1,4 +1,4 @@
-import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
+import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
 import { BracketFinishedEvent } from "../../domain/events/BracketFinishedEvent.js";
 import { EventBus } from "../../domain/events/EventBus.js";
 
@@ -13,7 +13,7 @@ export class FinishTournamentOnBracketFinished {
         if (tournament) {
             tournament.finish();
             await this.tournamentRepository.update(tournament);
-            
+
             const events = tournament.pullEvents();
             if (events.length > 0) {
                 await this.eventBus.publish(events);

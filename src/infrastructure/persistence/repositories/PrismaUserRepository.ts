@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import { IUserRepository } from '../../../domain/ports/repositories/IUserRepository.js';
 import { User } from '../../../domain/entities/User.js';
 import { UserMapper } from '../mappers/UserMapper.js';
 import { transactionStorage } from '../TransactionContext.js';

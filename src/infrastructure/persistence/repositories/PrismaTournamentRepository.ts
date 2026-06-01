@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { ITournamentRepository } from '../../../domain/repositories/ITournamentRepository.js';
+import { ITournamentRepository } from '../../../domain/ports/repositories/ITournamentRepository.js';
 import { Tournament } from '../../../domain/entities/Tournament.js';
 import { TournamentMapper } from '../mappers/TournamentMapper.js';
 import { transactionStorage } from '../TransactionContext.js';

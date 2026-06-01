@@ -4,11 +4,11 @@ import { InvalidRegisteredPlayerSeasonException, PlayerNotFoundException } from 
 import { RegistrationAlreadyClosedException } from "../../domain/exceptions/RegistrationExceptions.js";
 import { TournamentAlreadyHasBracketException, TournamentMaxPlayersExceededException, TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { UserNotFoundException } from "../../domain/exceptions/UserExceptions.js";
-import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
-import { IPlayerRepository } from "../../domain/repositories/IPlayerRepository.js";
-import { IRegisteredParticipantRepository } from "../../domain/repositories/IRegisteredParticipantRepository.js";
-import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
-import { IUserRepository } from "../../domain/repositories/IUserRepository.js";
+import { IBracketRepository } from "../../domain/ports/repositories/IBracketRepository.js";
+import { IPlayerRepository } from "../../domain/ports/repositories/IPlayerRepository.js";
+import { IRegisteredParticipantRepository } from "../../domain/ports/repositories/IRegisteredParticipantRepository.js";
+import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
+import { IUserRepository } from "../../domain/ports/repositories/IUserRepository.js";
 import { RegisteredParticipantsNameFederationDTO } from "../dtos/tournament/registeredParticipant/RegisteredParticipantDTOs.js";
 import { RegisteredParticipantMapper } from "../dtos/tournament/registeredParticipant/RegisteredParticipantMapper.js";
 import {

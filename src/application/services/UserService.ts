@@ -9,9 +9,9 @@ import {
   UserNotFoundException,
   UserNotInactiveException,
 } from '../../domain/exceptions/UserExceptions.js';
-import { IUserRepository } from '../../domain/repositories/IUserRepository.js';
-import { IMailer } from '../../domain/ports/IMailer.js';
-import { IPasswordHasher } from '../../domain/ports/IPasswordHasher.js';
+import { IUserRepository } from '../../domain/ports/repositories/IUserRepository.js';
+import { IMailer } from '../../domain/ports/services/IMailer.js';
+import { IPasswordHasher } from '../../domain/ports/services/IPasswordHasher.js';
 import {
   ActivateAccountRequestDTO,
   CreateTemporaryPasswordRequestDTO,

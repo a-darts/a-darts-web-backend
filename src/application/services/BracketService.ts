@@ -6,11 +6,11 @@ import { TournamentNotFoundException } from "../../domain/exceptions/TournamentE
 import { BracketNotFoundException } from "../../domain/exceptions/BracketExceptions.js";
 import { RegisteredParticipantNotFoundException } from '../../domain/exceptions/ParticipantExceptions.js';
 
-import { IBracketRepository } from "../../domain/repositories/IBracketRepository.js";
-import { IRegisteredParticipantRepository } from "../../domain/repositories/IRegisteredParticipantRepository.js";
-import { ITournamentRepository } from "../../domain/repositories/ITournamentRepository.js";
+import { IBracketRepository } from "../../domain/ports/repositories/IBracketRepository.js";
+import { IRegisteredParticipantRepository } from "../../domain/ports/repositories/IRegisteredParticipantRepository.js";
+import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
 
-import { UnitOfWork } from "../../domain/repositories/UnitOfWork.js";
+import { UnitOfWork } from "../../domain/ports/services/UnitOfWork.js";
 import { BracketSeedingService } from "../../domain/services/BracketSeedingService.js";
 
 import {

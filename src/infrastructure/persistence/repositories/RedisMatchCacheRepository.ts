@@ -1,5 +1,5 @@
 import { Redis } from 'ioredis';
-import { IMatchCacheRepository } from '../../../domain/repositories/IMatchCacheRepository.js';
+import { IMatchCacheRepository } from '../../../domain/ports/repositories/IMatchCacheRepository.js';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 

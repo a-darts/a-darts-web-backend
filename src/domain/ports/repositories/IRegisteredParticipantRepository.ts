@@ -1,4 +1,4 @@
-import { RegisteredParticipant } from '../entities/Participant.js';
+import { RegisteredParticipant } from '../../entities/Participant.js';
 
 export interface IRegisteredParticipantRepository {
   create(registeredParticipant: RegisteredParticipant): Promise<void>;

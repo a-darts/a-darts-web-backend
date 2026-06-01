@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Bracket } from '../../../domain/entities/Bracket.js';
 import { BracketMapper } from '../mappers/BracketMapper.js';
-import { IBracketRepository } from '../../../domain/repositories/IBracketRepository.js';
+import { IBracketRepository } from '../../../domain/ports/repositories/IBracketRepository.js';
 import { transactionStorage } from '../TransactionContext.js';
 
 export class PrismaBracketRepository implements IBracketRepository {

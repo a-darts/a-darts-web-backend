@@ -1,4 +1,4 @@
-import { PlayingArea } from '../entities/PlayingArea.js';
+import { PlayingArea } from '../../entities/PlayingArea.js';
 
 export interface IPlayingAreaRepository {
     create(playingArea: PlayingArea): Promise<void>;

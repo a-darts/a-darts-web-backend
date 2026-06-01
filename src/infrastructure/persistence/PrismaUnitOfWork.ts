@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { UnitOfWork } from '../../domain/repositories/UnitOfWork.js';
+import { UnitOfWork } from '../../domain/ports/services/UnitOfWork.js';
 import { transactionStorage } from './TransactionContext.js';
 
 export class PrismaUnitOfWork implements UnitOfWork {

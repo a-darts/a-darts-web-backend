@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { PlayingArea } from '../../../domain/entities/PlayingArea.js';
 import { PlayingAreaMapper } from '../mappers/PlayingAreaMapper.js';
-import { IPlayingAreaRepository } from '../../../domain/repositories/IPlayingAreaRepository.js';
+import { IPlayingAreaRepository } from '../../../domain/ports/repositories/IPlayingAreaRepository.js';
 import { transactionStorage } from '../TransactionContext.js';
 
 export class PrismaPlayingAreaRepository implements IPlayingAreaRepository {

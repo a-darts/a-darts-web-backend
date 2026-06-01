@@ -1,9 +1,9 @@
 import { MatchFinishedEvent } from '../../domain/events/MatchEvents.js';
-import { IMatchCacheRepository } from '../../domain/repositories/IMatchCacheRepository.js';
+import { IMatchCacheRepository } from '../../domain/ports/repositories/IMatchCacheRepository.js';
 import { MatchStatus } from '../../domain/entities/Match.js';
 
 export class UpdateCacheOnMatchFinished {
-    constructor(private readonly matchCacheRepository: IMatchCacheRepository) {}
+    constructor(private readonly matchCacheRepository: IMatchCacheRepository) { }
 
     public async on(event: MatchFinishedEvent): Promise<void> {
         try {
@@ -17,7 +17,7 @@ export class UpdateCacheOnMatchFinished {
             //     const boardShortId = String(event.boardNumber);
             //     await this.matchCacheRepository.clearBoardActiveMatch(boardShortId);
             // }
-            
+
             console.log(`[CacheSubscriber] Estado sincronizado con éxito para el match: ${event.matchId}`);
         } catch (error) {
             console.error(`[CacheSubscriber] Error intentando actualizar la caché de Redis para el match ${event.matchId}:`, error);

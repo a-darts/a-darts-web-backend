@@ -1,5 +1,5 @@
-import { Player } from '../entities/Player.js';
-import { User } from '../entities/User.js';
+import { Player } from '../../entities/Player.js';
+import { User } from '../../entities/User.js';
 
 export interface PlayerWithUser {
   player: Player;

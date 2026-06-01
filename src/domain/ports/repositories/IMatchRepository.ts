@@ -1,6 +1,6 @@
-import { Match } from '../entities/Match.js';
-import { RegisteredParticipant } from '../entities/Participant.js';
-import { Board } from '../entities/PlayingArea.js';
+import { Match } from '../../entities/Match.js';
+import { RegisteredParticipant } from '../../entities/Participant.js';
+import { Board } from '../../entities/PlayingArea.js';
 
 
 export interface MatchWithParticipants {
