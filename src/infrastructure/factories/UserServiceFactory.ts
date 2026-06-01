@@ -2,7 +2,7 @@ import { UserService } from '../../application/services/UserService.js';
 import { prisma } from "../persistence/prismaClient.js";
 import { PrismaUserRepository } from '../persistence/repositories/PrismaUserRepository.js';
 import { BcryptPasswordHasher } from '../security/BcryptPasswordHasher.js';
-import { NodemailerMailer } from '../adapters/NodemailerMailer.js';
+import { NodemailerMailer } from '../mailer/NodemailerMailer.js';
 
 export default class UserServiceFactory {
     private static instance: UserService | null = null;

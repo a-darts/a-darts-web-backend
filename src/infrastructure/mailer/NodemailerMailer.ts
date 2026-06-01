@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';
-import { Mailer } from '../../domain/services/Mailer.js';
+import { IMailer } from '../../domain/ports/IMailer.js';
 import { MailerSendException } from '../../domain/exceptions/MailerExceptions.js';
 
-export class NodemailerMailer implements Mailer {
+export class NodemailerMailer implements IMailer {
     private transporter;
 
     constructor() {

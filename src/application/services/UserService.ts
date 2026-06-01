@@ -1,29 +1,29 @@
 import { User, UserStatus } from '../../domain/entities/User.js';
 import {
-    EmailAlreadyInUseException,
-    InvalidCredentialsException,
-    InvalidPasswordException,
-    UserBlockedException,
-    UserDeletedException,
-    UserInactiveException,
-    UserNotFoundException,
-    UserNotInactiveException,
+  EmailAlreadyInUseException,
+  InvalidCredentialsException,
+  InvalidPasswordException,
+  UserBlockedException,
+  UserDeletedException,
+  UserInactiveException,
+  UserNotFoundException,
+  UserNotInactiveException,
 } from '../../domain/exceptions/UserExceptions.js';
 import { IUserRepository } from '../../domain/repositories/IUserRepository.js';
-import { Mailer } from '../../domain/services/Mailer.js';
-import { PasswordHasher } from '../../domain/services/PasswordHasher.js';
+import { IMailer } from '../../domain/ports/IMailer.js';
+import { IPasswordHasher } from '../../domain/ports/IPasswordHasher.js';
 import {
-    ActivateAccountRequestDTO,
-    CreateTemporaryPasswordRequestDTO,
-    LoginUserRequestDTO,
-    PaginatedUsersResponse,
-    RegisterUserByAdminRequestDTO,
-    RegisterUserRequestDTO,
-    RestoreUserRequestDTO,
-    UpdateUserAliasRequestDTO,
-    UpdateUserEmailRequestDTO,
-    UpdateUserPasswordRequestDTO,
-    UserResponseDTO,
+  ActivateAccountRequestDTO,
+  CreateTemporaryPasswordRequestDTO,
+  LoginUserRequestDTO,
+  PaginatedUsersResponse,
+  RegisterUserByAdminRequestDTO,
+  RegisterUserRequestDTO,
+  RestoreUserRequestDTO,
+  UpdateUserAliasRequestDTO,
+  UpdateUserEmailRequestDTO,
+  UpdateUserPasswordRequestDTO,
+  UserResponseDTO,
 } from '../dtos/user/UserDTOs.js';
 import { UserMapper } from '../dtos/user/UserMapper.js';
 
@@ -32,12 +32,12 @@ import { UserMapper } from '../dtos/user/UserMapper.js';
 export class UserService {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly passwordHasher: PasswordHasher,
-    private readonly mailer: Mailer,
-    
+    private readonly passwordHasher: IPasswordHasher,
+    private readonly mailer: IMailer,
+
   ) { }
 
-    
+
   public async getById(id: string): Promise<UserResponseDTO> {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findById(id);
@@ -48,8 +48,8 @@ export class UserService {
     // 2. Return the user data (without password)
     return UserMapper.toResponse(user);
   }
-    
-    
+
+
   public async getAll(page?: number, limit?: number): Promise<UserResponseDTO[] | PaginatedUsersResponse> {
     if (page !== undefined && limit !== undefined) {
       const skip = (page - 1) * limit;
@@ -80,13 +80,13 @@ export class UserService {
     // 2. Return the user data (without password)
     return users.map(user => UserMapper.toResponse(user));
   }
-    
-    
+
+
   public async registerSelf(request: RegisterUserRequestDTO): Promise<UserResponseDTO> {
     // 1. Rehydrate the user from the DB
     const existingUser = await this.userRepository.findByEmail(request.email);
     if (existingUser) {
-        throw new EmailAlreadyInUseException();
+      throw new EmailAlreadyInUseException();
     }
 
     // 2. Hash the password
@@ -94,10 +94,10 @@ export class UserService {
 
     // 3. Create the user (with the factory method)
     const user = User.createSelf(
-        request.email,
-        hashedPassword,
-        request.alias,
-        request.role
+      request.email,
+      hashedPassword,
+      request.alias,
+      request.role
     );
 
     // 4. Persist the user in the DB
@@ -106,13 +106,13 @@ export class UserService {
     // 5. Return the user data
     return UserMapper.toResponse(user);
   }
-    
+
 
   public async registerByAdmin(request: RegisterUserByAdminRequestDTO): Promise<UserResponseDTO> {
     // 1. Rehydrate the user from the DB
     const existingUser = await this.userRepository.findByEmail(request.email);
     if (existingUser) {
-    throw new EmailAlreadyInUseException();
+      throw new EmailAlreadyInUseException();
     }
 
     // 2. Create a temporary password and hash it
@@ -121,10 +121,10 @@ export class UserService {
 
     // 3. Create the user (with the factory method)
     const user = User.createByAdmin(
-    request.email,
-    hashedPassword,
-    request.alias,
-    request.role
+      request.email,
+      hashedPassword,
+      request.alias,
+      request.role
     );
 
     // 4. Persist the user in the DB
@@ -132,19 +132,19 @@ export class UserService {
 
     // 5. Send the temporary password to the user (email)
     try {
-    await this.mailer.sendTemporaryPassword(
+      await this.mailer.sendTemporaryPassword(
         user.getEmail(),
         user.getAlias(),
         temporaryPlainPassword
-    );
+      );
     } catch (mailerError) {
-    console.error("Error while sending email with the temporary password to new user:", mailerError);
-    try {
+      console.error("Error while sending email with the temporary password to new user:", mailerError);
+      try {
         await this.userRepository.delete(user.getId());
-    } catch (deleteError) {
+      } catch (deleteError) {
         console.error("Error while deleting user after email failure:", deleteError);
-    }
-    throw mailerError;
+      }
+      throw mailerError;
     }
 
     // 6. Return the user data
@@ -156,40 +156,40 @@ export class UserService {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findByEmail(request.email);
     if (!user) {
-    throw new InvalidCredentialsException();
+      throw new InvalidCredentialsException();
     }
 
     // 2. Compare the password
     const password = user.getPassword();
     if (!password) {
-    // This shouldn't happen ever (user always has password) -> INTERNAL DATA INCONSISTENCY
-    console.error('[ERROR] User has no password');
-    throw new InvalidCredentialsException();
+      // This shouldn't happen ever (user always has password) -> INTERNAL DATA INCONSISTENCY
+      console.error('[ERROR] User has no password');
+      throw new InvalidCredentialsException();
     }
 
     const isPasswordValid = await this.passwordHasher.compare(request.password, password);
     if (!isPasswordValid) {
-    throw new InvalidCredentialsException();
+      throw new InvalidCredentialsException();
     }
 
     // 3. Check the status of the user (active or inactive)
     if (user.getStatus() === UserStatus.DELETED) {
-    throw new UserDeletedException();
+      throw new UserDeletedException();
     }
 
     if (user.getStatus() === UserStatus.BLOCKED) {
-    throw new UserBlockedException();
+      throw new UserBlockedException();
     }
 
     if (user.getStatus() === UserStatus.INACTIVE) {
-    throw new UserInactiveException();
+      throw new UserInactiveException();
     }
 
     // 4. Return the user data
     return UserMapper.toResponse(user);
   }
-   
-    
+
+
   public async createTemporaryPassword(request: CreateTemporaryPasswordRequestDTO): Promise<void> {
     // 1. Find user by email
     const user = await this.userRepository.findByEmail(request.email);
@@ -220,8 +220,8 @@ export class UserService {
       throw mailerError;
     }
   }
-    
-    
+
+
   public async activateAccount(request: ActivateAccountRequestDTO): Promise<void> {
     const user = await this.userRepository.findByEmail(request.email);
     if (!user) {
@@ -263,7 +263,7 @@ export class UserService {
     // 3. Persist the changes in the DB
     await this.userRepository.update(user);
   }
-    
+
 
   public async unblock(id: string): Promise<void> {
     // 1. Rehydrate the user from the DB
@@ -278,7 +278,7 @@ export class UserService {
     // 3. Persist the changes in the DB
     await this.userRepository.update(user);
   }
-    
+
 
   public async delete(id: string): Promise<void> {
     // 1. Rehydrate the user from the DB
@@ -286,14 +286,14 @@ export class UserService {
     if (!user) {
       throw new UserNotFoundException();
     }
-    
+
     // 2. Delete the user
     user.delete();
-  
+
     // 3. Persist the changes in the DB
     await this.userRepository.update(user);
   }
-    
+
 
   public async restore(request: RestoreUserRequestDTO): Promise<void> {
     // 1. Rehydrate the user from the DB
@@ -330,8 +330,8 @@ export class UserService {
       throw mailerError;
     }
   }
-  
-    
+
+
   public async updateAlias(request: UpdateUserAliasRequestDTO): Promise<void> {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findById(request.id);
@@ -371,8 +371,8 @@ export class UserService {
     // 5. Persist the changes in the DB
     await this.userRepository.update(user);
   }
-    
-    
+
+
   public async updatePassword(request: UpdateUserPasswordRequestDTO): Promise<void> {
     // 1. Rehydrate the user from the DB
     const user = await this.userRepository.findById(request.id);
