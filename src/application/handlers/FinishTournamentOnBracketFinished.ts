@@ -1,5 +1,5 @@
 import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
-import { BracketFinishedEvent } from "../../domain/events/BracketFinishedEvent.js";
+import { BracketFinishedEvent } from "../../domain/events/BracketEvents.js";
 import { EventBus } from "../../domain/events/EventBus.js";
 
 export class FinishTournamentOnBracketFinished {

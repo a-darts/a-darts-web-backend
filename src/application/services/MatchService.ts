@@ -26,8 +26,8 @@ import {
   UpdateMatchScoreRequestDTO,
   SetMatchBoardNumberRequestDTO,
   SetMatchResultRequestDTO,
-} from "../dtos/tournament/match/MatchDTOs.js";
-import { MatchMapper } from "../dtos/tournament/match/MatchMapper.js";
+} from "../dtos/match/MatchDTOs.js";
+import { MatchMapper } from "../dtos/match/MatchMapper.js";
 import { MatchStatus } from '../../domain/entities/Match.js';
 
 

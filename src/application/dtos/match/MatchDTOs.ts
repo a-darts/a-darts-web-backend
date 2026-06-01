@@ -1,4 +1,4 @@
-import { MatchStatus } from "../../../../domain/entities/Match.js";
+import { MatchStatus } from "../../../domain/entities/Match.js";
 
 export interface MatchResponseDTO {
     id: string;

@@ -1,5 +1,5 @@
-import { TournamentResultWithPlayerAndUser } from '../../../../domain/ports/repositories/ITournamentResultRepository.js';
-import { ParticipantResultDTO, TournamentResultDTO } from '../../tournamentResult/TournamentResultDTO.js';
+import { TournamentResultWithPlayerAndUser } from '../../../domain/ports/repositories/ITournamentResultRepository.js';
+import { ParticipantResultDTO, TournamentResultDTO } from './TournamentResultDTO.js';
 
 export class TournamentResultMapper {
     public static toResponse(results: TournamentResultWithPlayerAndUser[]): TournamentResultDTO {

@@ -1,7 +1,7 @@
-import { Match } from '../../../../domain/entities/Match.js';
-import { ParticipantTypes, RegisteredParticipant } from '../../../../domain/entities/Participant.js';
-import { RegistratedParticipantsTypesException } from '../../../../domain/exceptions/ParticipantExceptions.js';
-import { MatchWithParticipants } from '../../../../domain/ports/repositories/IMatchRepository.js';
+import { Match } from '../../../domain/entities/Match.js';
+import { ParticipantTypes, RegisteredParticipant } from '../../../domain/entities/Participant.js';
+import { RegistratedParticipantsTypesException } from '../../../domain/exceptions/ParticipantExceptions.js';
+import { MatchWithParticipants } from '../../../domain/ports/repositories/IMatchRepository.js';
 import { MatchResponseDTO } from './MatchDTOs.js';
 
 export class MatchMapper {

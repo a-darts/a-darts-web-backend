@@ -1,4 +1,4 @@
-import { RegisteredParticipant } from '../../../../domain/entities/Participant.js';
+import { RegisteredParticipant } from '../../../domain/entities/Participant.js';
 import { RegisteredParticipantResponseDTO } from './RegisteredParticipantDTOs.js';
 
 export class RegisteredParticipantMapper {

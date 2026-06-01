@@ -1,7 +1,7 @@
 import { ByeParticipant, EmptyParticipant, RegisteredParticipant } from "./Participant.js";
 import type { IParticipant } from "./Participant.js";
 import { BracketAlreadyFinishedException, BracketInProgressException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, DuplicateParticipantsException, InvalidPositionsException } from "../exceptions/BracketExceptions.js";
-import { BracketFinishedEvent } from "../events/BracketFinishedEvent.js";
+import { BracketFinishedEvent } from "../events/BracketEvents.js";
 import { IDomainEvent } from "../events/IDomainEvent.js";
 import { BracketSeedingService } from "../services/BracketSeedingService.js";
 

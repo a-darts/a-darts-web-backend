@@ -1,5 +1,5 @@
 import { IPlayingAreaRepository } from "../../domain/ports/repositories/IPlayingAreaRepository.js";
-import { TournamentFinishedEvent } from "../../domain/events/TournamentFinishedEvent.js";
+import { TournamentFinishedEvent } from "../../domain/events/TournamentEvents.js";
 
 export class DeletePlayingAreaOnTournamentFinished {
     constructor(

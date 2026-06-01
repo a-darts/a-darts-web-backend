@@ -9,8 +9,8 @@ import { IPlayerRepository } from "../../domain/ports/repositories/IPlayerReposi
 import { IRegisteredParticipantRepository } from "../../domain/ports/repositories/IRegisteredParticipantRepository.js";
 import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
 import { IUserRepository } from "../../domain/ports/repositories/IUserRepository.js";
-import { RegisteredParticipantsNameFederationDTO } from "../dtos/tournament/registeredParticipant/RegisteredParticipantDTOs.js";
-import { RegisteredParticipantMapper } from "../dtos/tournament/registeredParticipant/RegisteredParticipantMapper.js";
+import { RegisteredParticipantsNameFederationDTO } from "../dtos/registeredParticipant/RegisteredParticipantDTOs.js";
+import { RegisteredParticipantMapper } from "../dtos/registeredParticipant/RegisteredParticipantMapper.js";
 import {
     DoCheckInParticipantRequestDTO,
     RegisterParticipantInTournamentRequestDTO,

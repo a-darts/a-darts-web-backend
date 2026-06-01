@@ -15,7 +15,7 @@ import { Registration, RegistrationPeriod, RegistrationStatus } from "./Registra
 import { Season } from "./Season.js";
 import { TournamentInfo } from "./TournamentInfo.js";
 import { IDomainEvent } from "../events/IDomainEvent.js";
-import { TournamentFinishedEvent } from "../events/TournamentFinishedEvent.js";
+import { TournamentFinishedEvent } from "../events/TournamentEvents.js";
 
 
 export enum TournamentStatus {
