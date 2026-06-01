@@ -7,7 +7,7 @@ import { PrismaPlayingAreaRepository } from "../persistence/repositories/PrismaP
 import { PrismaBracketRepository } from "../persistence/repositories/PrismaBracketRepository.js";
 import { PrismaUnitOfWork } from "../persistence/PrismaUnitOfWork.js";
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
-import { globalEventBus } from "../events/eventBusInstance.js";
+import { globalEventBus } from "../config/eventBus.js";
 
 export default class MatchServiceFactory {
     private static instance: MatchService | null = null;

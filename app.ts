@@ -4,8 +4,8 @@ import swaggerUi from 'swagger-ui-express';
 import router from './src/infrastructure/web/routes/index.js';
 import { specs } from './src/infrastructure/web/swagger.js';
 import { ApiResponseBuilder } from './src/application/dtos/common/ApiResponse.js';
-import { configureSubscribers } from './src/infrastructure/events/configureSubscribers.js';
-import { globalEventBus } from './src/infrastructure/events/eventBusInstance.js';
+import { configureSubscribers } from './src/infrastructure/config/subscribers.js';
+import { globalEventBus } from './src/infrastructure/config/eventBus.js';
 
 const app = express();
 

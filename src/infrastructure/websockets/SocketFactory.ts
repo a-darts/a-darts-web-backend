@@ -1,6 +1,6 @@
 import { Server as HttpServer } from 'http';
 import { PrismaClient } from '@prisma/client';
-import { globalEventBus } from '../events/eventBusInstance.js';
+import { globalEventBus } from '../config/eventBus.js';
 import { SocketController } from './SocketController.js';
 import { initializeSocketServer } from './SocketServer.js';
 import { Server } from 'socket.io';

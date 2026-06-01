@@ -1,5 +1,5 @@
 import { prisma } from '../persistence/prismaClient.js';
-import { NodeEventBus } from './NodeEventBus.js';
+import { NodeEventBus } from '../events/NodeEventBus.js';
 import { PrismaTournamentRepository } from '../persistence/repositories/PrismaTournamentRepository.js';
 import { PrismaPlayingAreaRepository } from '../persistence/repositories/PrismaPlayingAreaRepository.js';
 import { PrismaBracketRepository } from '../persistence/repositories/PrismaBracketRepository.js';
