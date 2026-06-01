@@ -1,21 +1,22 @@
 import { Server, Socket } from 'socket.io';
 import { IMatchCacheRepository } from '../../domain/repositories/IMatchCacheRepository.js';
 import { MatchService } from '../../application/services/MatchService.js';
+import { MatchStatus } from '../../domain/entities/Match.js';
 
 export class SocketController {
     constructor(
         private matchService: MatchService,
         private matchCacheRepository: IMatchCacheRepository,
-    ) {}
+    ) { }
 
     public handleConnection(socket: Socket, io: Server): void {
         console.log(`Client connected: ${socket.id}`);
 
         socket.on('join_board', (boardShortId) => this.handleJoinBoard(socket, boardShortId));
-        socket.on('score_update', (data) => this.handleScoreUpdate(socket, io, data));
+        socket.on('score_update', (data) => this.handleScoreUpdate(socket, data));
         socket.on('score_undo', (data) => this.handleScoreUndo(socket, data));
         socket.on('score_edit', (data) => this.handleScoreEdit(io, data));
-        
+
         socket.on('disconnect', () => {
             console.log(`Client disconnected: ${socket.id}`);
         });
@@ -35,7 +36,7 @@ export class SocketController {
                 const historyThrows = await this.matchCacheRepository.getThrows(matchId);
 
                 // 1.1.1. If the match is IN_PROGRESS, send the full history of throws
-                if (status === 'IN_PROGRESS') {
+                if (status === MatchStatus.IN_PROGRESS) {
                     socket.emit('match_restored', { matchId, historyThrows });
                 }
                 // 1.1.2. Else, if the match is not IN_PROGRESS, just send the match assignment
@@ -48,7 +49,7 @@ export class SocketController {
         }
     }
 
-    private async handleScoreUpdate(socket: Socket, io: Server, data: any): Promise<void> {
+    private async handleScoreUpdate(socket: Socket, data: any): Promise<void> {
         const { boardShortId, matchId, throwData } = data;
         try {
             // 1. Fetch the last throw to compare if the score has actually changed
@@ -58,7 +59,7 @@ export class SocketController {
             await this.matchCacheRepository.addThrow(matchId, throwData);
 
             // 3. Update the match score executing the use case only if there's a change in legs or sets won
-            const hasScoreChanged = !lastThrow || 
+            const hasScoreChanged = !lastThrow ||
                 throwData.participant1.legsWon !== lastThrow.participant1.legsWon ||
                 throwData.participant1.setsWon !== lastThrow.participant1.setsWon ||
                 throwData.participant2.legsWon !== lastThrow.participant2.legsWon ||
@@ -113,7 +114,7 @@ export class SocketController {
             if (!historyThrows || historyThrows.length === 0) {
                 console.warn(`[SocketServer] Received empty historyThrows: ${matchId}`);
                 return;
-            };  
+            };
 
             // 1. Rebuild the match history in Redis with the provided edited history
             // (without the first empty throw)

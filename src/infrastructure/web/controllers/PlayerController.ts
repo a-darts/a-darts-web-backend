@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
-import { prisma } from '../../persistence/client.js';
+import { prisma } from '../../persistence/prismaClient.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
 import { InvalidSeasonException, InvalidYearException, PlayerAlreadyExistsException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';

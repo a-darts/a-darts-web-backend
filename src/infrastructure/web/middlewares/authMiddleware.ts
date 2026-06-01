@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { redis } from '../../redis/redisClient.js';
+import { redis } from '../../persistence/redisClient.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 
 export interface AuthRequest extends Request {

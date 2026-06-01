@@ -1,6 +1,6 @@
 import { MatchStatus as PrismaMatchStatus, Match as PrismaMatch, Board as PrismaBoard, ParticipantTypes as PrismaParticipantTypes } from '@prisma/client';
 import { Match, MatchStatus } from '../../../domain/entities/Match.js';
-import { prisma } from '../client.js';
+import { prisma } from '../prismaClient.js';
 import { Board } from '../../../domain/entities/PlayingArea.js';
 import { ParticipantTypes } from '../../../domain/entities/Participant.js';
 

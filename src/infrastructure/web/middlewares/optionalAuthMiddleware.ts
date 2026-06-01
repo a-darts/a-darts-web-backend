@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { redis } from '../../redis/redisClient.js';
+import { redis } from '../../persistence/redisClient.js';
 import { AuthRequest } from './authMiddleware.js';
 
 export const optionalAuthMiddleware = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {

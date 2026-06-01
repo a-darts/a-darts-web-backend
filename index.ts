@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import http from 'http';
 import app from './app.js';
-import { prisma } from './src/infrastructure/persistence/client.js';
+import { prisma } from './src/infrastructure/persistence/prismaClient.js';
 import { SocketFactory } from './src/infrastructure/websockets/SocketFactory.js';
 import { RegistrationScheduler } from './src/infrastructure/jobs/RegistrationScheduler.js';
 import { TournamentService } from './src/application/services/TournamentService.js';

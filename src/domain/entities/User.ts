@@ -147,7 +147,7 @@ export class User {
     this.deletedAt = new Date();
 
     // Anonymize sensitive data to comply with GDPR
-    this.email = `deleted_${this.id}@scoreo.com`;
+    this.email = `deleted_${this.id}@a-darts.com`;
     this.password = undefined;
   }
 

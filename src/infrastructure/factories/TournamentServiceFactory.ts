@@ -1,4 +1,4 @@
-import { prisma } from "../persistence/client.js";
+import { prisma } from "../persistence/prismaClient.js";
 import { PrismaTournamentRepository } from "../persistence/repositories/PrismaTournamentRepository.js";
 import { PrismaBracketRepository } from "../persistence/repositories/PrismaBracketRepository.js";
 import { TournamentService } from "../../application/services/TournamentService.js";

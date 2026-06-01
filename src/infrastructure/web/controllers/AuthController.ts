@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
-import { redis } from '../../redis/redisClient.js';
+import { redis } from '../../persistence/redisClient.js';
 import {
   EmailAlreadyInUseException,
   InvalidCredentialsException,

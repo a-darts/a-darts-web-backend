@@ -1,5 +1,5 @@
 import { MatchService } from "../../application/services/MatchService.js";
-import { prisma } from "../persistence/client.js";
+import { prisma } from "../persistence/prismaClient.js";
 import { RedisMatchCacheRepository } from "../persistence/repositories/RedisMatchCacheRepository.js";
 import { PrismaMatchRepository } from "../persistence/repositories/PrismaMatchRepository.js";
 import { PrismaTournamentRepository } from "../persistence/repositories/PrismaTournamentRepository.js";

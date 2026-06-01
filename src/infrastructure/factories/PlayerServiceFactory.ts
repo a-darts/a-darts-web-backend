@@ -1,5 +1,5 @@
 import { PlayerService } from '../../application/services/PlayerService.js';
-import { prisma } from "../persistence/client.js";
+import { prisma } from "../persistence/prismaClient.js";
 import { PrismaUserRepository } from '../persistence/repositories/PrismaUserRepository.js';
 import { PrismaPlayerRepository } from '../persistence/repositories/PrismaPlayerRepository.js';
 import { PrismaTournamentRepository } from '../persistence/repositories/PrismaTournamentRepository.js';

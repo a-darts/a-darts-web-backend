@@ -16,7 +16,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-    const adminEmail = 'admin@scoreo.com';
+    const adminEmail = 'admin@a-darts.com';
     const clearPassword = '123456';
 
     const hashedPassword = await bcrypt.hash(clearPassword, 10);

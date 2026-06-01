@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from './authMiddleware.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { UserRoles } from '../../../domain/entities/User.js';
-import { prisma } from '../../persistence/client.js';
+import { prisma } from '../../persistence/prismaClient.js';
 
 export const isSelfOrAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const requestor = req.user;

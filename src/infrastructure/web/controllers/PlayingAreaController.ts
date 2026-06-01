@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
-import { prisma } from '../../persistence/client.js';
+import { prisma } from '../../persistence/prismaClient.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
 import { BoardAlreadyOccupiedException, BoardDisabledException, BoardNotAvailableException, BoardNotDisabledException, BoardNotFoundException, BoardNotOccupiedException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException, MatchAlreadyAssignedToBoardException, PlayingAreaHasNoBoardsException, BoardOccupiedException, BoardPairedWithTabletException } from '../../../domain/exceptions/PlayingAreaExceptions.js';
@@ -308,7 +308,7 @@ export class PlayingAreaController {
       );
     }
   }
-  
+
 
   /**
    * @swagger
