@@ -175,6 +175,14 @@ export class Tournament {
     this.registration = this.registration.close();
   }
 
+  public enableCheckIn(): void {
+    this.registration = this.registration.enableCheckIn();
+  }
+
+  public disableCheckIn(): void {
+    this.registration = this.registration.disableCheckIn();
+  }
+
   public scheduleRegistration(open: Date | null, close: Date | null) {
     if (!this.isPublished()) {
       throw new TournamentNotPublishedException();

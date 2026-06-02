@@ -1,4 +1,6 @@
 import {
+    CheckInAlreadyDisabledException,
+    CheckInAlreadyEnabledException,
     InvalidRegistrationPeriodException,
     RegistrationAlreadyClosedException,
     RegistrationAlreadyOpenException,
@@ -75,6 +77,35 @@ export class Registration {
         );
     }
 
+
+    public enableCheckIn(): Registration {
+        if (this.hasCheckIn === true) {
+            throw new CheckInAlreadyEnabledException();
+        }
+
+        return new Registration(
+            true,
+            this.status,
+            this.registrationPeriod,
+        );
+    }
+
+    public disableCheckIn(): Registration {
+        if (this.hasCheckIn === false) {
+            throw new CheckInAlreadyDisabledException();
+        }
+
+        return new Registration(
+            false,
+            this.status,
+            this.registrationPeriod,
+        );
+    }
+
+
+    // --------------------------------------------------------------------
+    // HELPER METHODS
+    // --------------------------------------------------------------------
     public isOpen(): boolean {
         return this.status === RegistrationStatus.OPEN;
     }

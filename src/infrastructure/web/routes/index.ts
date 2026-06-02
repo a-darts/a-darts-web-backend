@@ -74,6 +74,8 @@ router.post('/tournaments/:id/start', authMiddleware, isAdmin, tournamentControl
 router.post('/tournaments/:id/registration/open', authMiddleware, isAdmin, tournamentController.openRegistration);
 router.post('/tournaments/:id/registration/close', authMiddleware, isAdmin, tournamentController.closeRegistration);
 router.put('/tournaments/:id/registration/schedule', authMiddleware, isAdmin, tournamentController.updateTournamentRegistrationPeriod);
+router.post('/tournaments/:id/registration/check-in/enable', authMiddleware, isAdmin, tournamentController.enableCheckIn);
+router.post('/tournaments/:id/registration/check-in/disable', authMiddleware, isAdmin, tournamentController.disableCheckIn);
 
 router.get('/tournaments/:id/unregistered-players', authMiddleware, isAdmin, playerController.getUnregisteredPlayersByTournamentId);
 

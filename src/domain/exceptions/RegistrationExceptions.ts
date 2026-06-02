@@ -46,3 +46,17 @@ export class RegistrationCloseDateInPastException extends Error {
         this.name = 'RegistrationCloseDateInPastException';
     }
 }
+
+export class CheckInAlreadyEnabledException extends Error {
+    constructor() {
+        super('Check-in is already enabled');
+        this.name = 'CheckInAlreadyEnabledException';
+    }
+}
+
+export class CheckInAlreadyDisabledException extends Error {
+    constructor() {
+        super('Check-in is already disabled');
+        this.name = 'CheckInAlreadyDisabledException';
+    }
+}

@@ -345,4 +345,34 @@ export class TournamentService {
       console.error('[RegistrationScheduler] Error processing registration periods:', error);
     }
   }
+
+
+  public async enableCheckIn(id: string): Promise<void> {
+    // 1. Rehydrate the tournament from the DB
+    const tournament = await this.tournamentRepository.findById(id);
+    if (!tournament) {
+      throw new TournamentNotFoundException();
+    }
+
+    // 2. Enable the check-in in the tournament object
+    tournament.enableCheckIn();
+
+    // 3. Persist the changes in the DB
+    await this.tournamentRepository.update(tournament);
+  }
+
+
+  public async disableCheckIn(id: string): Promise<void> {
+    // 1. Rehydrate the tournament from the DB
+    const tournament = await this.tournamentRepository.findById(id);
+    if (!tournament) {
+      throw new TournamentNotFoundException();
+    }
+
+    // 2. Disable the check-in in the tournament object
+    tournament.disableCheckIn();
+
+    // 3. Persist the changes in the DB
+    await this.tournamentRepository.update(tournament);
+  }
 }
