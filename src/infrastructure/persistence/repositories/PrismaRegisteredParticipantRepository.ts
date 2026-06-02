@@ -65,7 +65,10 @@ export class PrismaRegisteredParticipantRepository implements IRegisteredPartici
     async findAllByTournamentId(tournamentId: string): Promise<RegisteredParticipant[]> {
         const registeredParticipantsData = await this.client.registeredParticipant.findMany({
             where: { tournamentId: tournamentId },
-            include: { player: { include: { user: true } } }
+            include: { player: { include: { user: true } } },
+            orderBy: {
+                registeredAt: 'desc'
+            },
         });
         return registeredParticipantsData.map(RegisteredParticipantMapper.toDomain);
     }
