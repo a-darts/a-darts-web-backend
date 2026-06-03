@@ -11,5 +11,7 @@ export interface TournamentResultWithPlayerAndUser {
 export interface ITournamentResultRepository {
     create(result: TournamentResult): Promise<void>;
     createMany(results: TournamentResult[]): Promise<void>;
+    findAllByTournamentId(tournamentId: string): Promise<TournamentResult[]>;
     findAllByTournamentIdWithPlayerAndUser(tournamentId: string): Promise<TournamentResultWithPlayerAndUser[]>;
+    findAllByPlayerId(playerId: string): Promise<TournamentResult[]>;
 }

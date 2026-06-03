@@ -21,6 +21,13 @@ export class PrismaTournamentResultRepository implements ITournamentResultReposi
         });
     }
 
+    async findAllByTournamentId(tournamentId: string): Promise<TournamentResult[]> {
+        const results = await this.prisma.tournamentResult.findMany({
+            where: { tournamentId },
+        });
+        return results.map(data => TournamentResultMapper.toDomain(data));
+    }
+
     async findAllByTournamentIdWithPlayerAndUser(tournamentId: string): Promise<TournamentResultWithPlayerAndUser[]> {
         const results = await this.prisma.tournamentResult.findMany({
             where: { tournamentId },
@@ -40,5 +47,15 @@ export class PrismaTournamentResultRepository implements ITournamentResultReposi
             player: PlayerMapper.toDomain(data.player),
             user: UserMapper.toDomain(data.player?.user),
         }));
+    }
+
+    async findAllByPlayerId(playerId: string): Promise<TournamentResult[]> {
+        const results = await this.prisma.tournamentResult.findMany({
+            where: {
+                playerId,
+            },
+        });
+
+        return results.map(data => TournamentResultMapper.toDomain(data));
     }
 }

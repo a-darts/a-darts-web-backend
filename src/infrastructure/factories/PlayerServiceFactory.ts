@@ -4,6 +4,7 @@ import { PrismaUserRepository } from '../persistence/repositories/PrismaUserRepo
 import { PrismaPlayerRepository } from '../persistence/repositories/PrismaPlayerRepository.js';
 import { PrismaTournamentRepository } from '../persistence/repositories/PrismaTournamentRepository.js';
 import { PrismaRegisteredParticipantRepository } from '../persistence/repositories/PrismaRegisteredParticipantRepository.js';
+import { PrismaTournamentResultRepository } from '../persistence/repositories/PrismaTournamentResultRepository.js';
 
 export default class PlayerServiceFactory {
     private static instance: PlayerService | null = null;
@@ -14,12 +15,14 @@ export default class PlayerServiceFactory {
             const userRepository = new PrismaUserRepository(prisma);
             const tournamentRepository = new PrismaTournamentRepository(prisma);
             const registeredParticipantRepository = new PrismaRegisteredParticipantRepository(prisma);
+            const tournamentResultRepository = new PrismaTournamentResultRepository(prisma);
 
             this.instance = new PlayerService(
                 playerRepository,
                 userRepository,
                 tournamentRepository,
                 registeredParticipantRepository,
+                tournamentResultRepository,
             );
         }
         return this.instance;

@@ -6,6 +6,7 @@ import { UserNotFoundException } from "../../domain/exceptions/UserExceptions.js
 import { IPlayerRepository } from "../../domain/ports/repositories/IPlayerRepository.js";
 import { IRegisteredParticipantRepository } from "../../domain/ports/repositories/IRegisteredParticipantRepository.js";
 import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
+import { ITournamentResultRepository } from "../../domain/ports/repositories/ITournamentResultRepository.js";
 import { IUserRepository } from "../../domain/ports/repositories/IUserRepository.js";
 import {
   CreatePlayerRequestDTO,
@@ -23,6 +24,7 @@ export class PlayerService {
     private readonly userRepository: IUserRepository,
     private readonly tournamentRepository: ITournamentRepository,
     private readonly registeredParticipantRepository: IRegisteredParticipantRepository,
+    private readonly tournamentResultRepository: ITournamentResultRepository,
   ) { }
 
 
@@ -163,16 +165,17 @@ export class PlayerService {
       throw new PlayerNotFoundException();
     }
 
-    // 2. Check if the player is already registered in a tournament
+    // 2. Check if the player is already registered in a tournament or has tournament results
     const registeredParticipants = await this.registeredParticipantRepository.findAllByPlayerId(id);
-    if (registeredParticipants && registeredParticipants.length > 0) {
-      // 2.1. Player is already registered in a tournament
-      // Soft delete
+    const tournamentResults = await this.tournamentResultRepository.findAllByPlayerId(id);
+    const hasHistory = registeredParticipants && registeredParticipants.length > 0 && tournamentResults && tournamentResults.length > 0;
+
+    if (hasHistory) {
+      // 2.1. Player has a history in the system
       player.delete();
       await this.playerRepository.update(player);
     } else {
-      // 2.2. Player is not registered in any tournament
-      // Hard delete
+      // 2.2. Player does not have a history in the system
       await this.playerRepository.delete(id);
     }
   }
