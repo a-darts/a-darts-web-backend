@@ -148,14 +148,21 @@ export class MatchService {
 
     const newRoomName = `room_board_${newBoardShortId}`;
 
-    if (status === 'IN_PROGRESS' && historyThrows && historyThrows.length > 0) {
+    if (status === 'IN_PROGRESS') {
       console.log(`[SetMatchBoardNumber] Match already in progress. Sending match_restored to ${newRoomName}`);
 
-      // Enviamos match_restored a toda la sala para que la tablet se auto-configure en caliente
-      getSocketServer().to(newRoomName).emit('match_restored', {
-        matchId: request.id,
-        historyThrows: historyThrows
-      });
+      if (historyThrows && historyThrows.length > 0) {
+        // Enviamos match_restored a toda la sala para que la tablet se auto-configure en caliente
+        getSocketServer().to(newRoomName).emit('match_restored', {
+          matchId: request.id,
+          historyThrows: historyThrows
+        });
+      } else {
+        getSocketServer().to(newRoomName).emit('match_started_confirmed', {
+          matchId: request.id,
+          historyThrows: historyThrows
+        });
+      }
     } else {
       // Enviamos match_assigned a toda la sala
       console.log(`[SetMatchBoardNumber] Match assigned to board. Sending match_assigned to ${newRoomName}`);
