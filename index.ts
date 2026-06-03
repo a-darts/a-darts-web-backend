@@ -29,7 +29,7 @@ async function startServer() {
 
         const server = http.createServer(app);
 
-        SocketFactory.compose(server, prisma);
+        SocketFactory.compose(server);
 
         server.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT}`);

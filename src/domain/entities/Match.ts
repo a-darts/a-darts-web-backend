@@ -1,5 +1,5 @@
 import { IDomainEvent } from "../events/IDomainEvent.js";
-import { MatchFinishedEvent } from "../events/MatchEvents.js";
+import { MatchCancelledEvent, MatchFinishedEvent, MatchResumedEvent, MatchSuspendedEvent } from "../events/MatchEvents.js";
 import {
     MatchNotPendingException,
     MatchNotInProgressException,

@@ -19,6 +19,7 @@ export default class TournamentServiceFactory {
             const tournamentRepository = new PrismaTournamentRepository(prisma);
             const bracketRepository = new PrismaBracketRepository(prisma);
             const registeredParticipantRepository = new PrismaRegisteredParticipantRepository(prisma);
+            const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
             const matchRepository = new PrismaMatchRepository(prisma);
             const matchGenerator = new SingleEliminationMatchGenerator();
             const unitOfWork = new PrismaUnitOfWork(prisma);
@@ -27,6 +28,7 @@ export default class TournamentServiceFactory {
                 tournamentRepository,
                 bracketRepository,
                 registeredParticipantRepository,
+                playingAreaRepository,
                 matchRepository,
                 matchGenerator,
                 globalEventBus,

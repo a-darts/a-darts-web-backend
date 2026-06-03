@@ -3,6 +3,7 @@ import { Season } from "../../domain/entities/Season.js";
 import { Tournament, TournamentStatus } from "../../domain/entities/Tournament.js";
 import { TournamentInfo } from "../../domain/entities/TournamentInfo.js";
 import { EventBus } from "../../domain/events/EventBus.js";
+import { MatchCancelledEvent } from "../../domain/events/MatchEvents.js";
 import { BracketNotFoundException, BracketUnfinishedException } from "../../domain/exceptions/BracketExceptions.js";
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { IBracketRepository } from "../../domain/ports/repositories/IBracketRepository.js";
@@ -27,6 +28,7 @@ export class TournamentService {
     private readonly tournamentRepository: ITournamentRepository,
     private readonly bracketRepository: IBracketRepository,
     private readonly registeredParticipantRepository: IRegisteredParticipantRepository,
+    private readonly playingAreaRepository: IPlayingAreaRepository,
     private readonly matchRepository: IMatchRepository,
     private readonly matchGenerator: SingleEliminationMatchGenerator,
     private readonly eventBus: EventBus,
@@ -182,9 +184,28 @@ export class TournamentService {
     });
 
     // 6. Publish events
-    const events = tournament.pullEvents();
-    if (events.length > 0) {
-      await this.eventBus.publish(events);
+    const tournamentEvents = tournament.pullEvents();
+    const bracketEvents = bracket ? bracket.pullEvents() : [];
+    const playingArea = await this.playingAreaRepository.findByTournamentId(id);
+    const rawMatchEvents = await Promise.all(
+      matchesToUpdate.map(async (match) => {
+        let boardShortId: string | null = null;
+        try {
+          const board = playingArea?.findBoardByMatchId(match.getId());
+          boardShortId = board?.getShortId() ?? null;
+        } catch (error) {
+          // Ignorar el error, es que el partido no estaba asignado a ninguna diana
+        }
+        if (boardShortId) {
+          return new MatchCancelledEvent(match.getId(), boardShortId);
+        }
+      })
+    );
+    const matchEvents = rawMatchEvents.filter((e): e is MatchCancelledEvent => e !== undefined);
+    const allEvents = [...tournamentEvents, ...bracketEvents, ...matchEvents];
+
+    if (allEvents.length > 0) {
+      await this.eventBus.publish(allEvents);
     }
   }
 

@@ -17,7 +17,6 @@ import { IMatchCacheRepository } from "../../domain/ports/repositories/IMatchCac
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
 import { UnitOfWork } from "../../domain/ports/services/UnitOfWork.js";
 import { EventBus } from "../../domain/events/EventBus.js";
-import { MatchResumedEvent, MatchSuspendedEvent } from '../../domain/events/MatchEvents.js';
 
 import { getSocketServer } from '../../infrastructure/websockets/SocketServer.js';
 
@@ -29,6 +28,7 @@ import {
 } from "../dtos/match/MatchDTOs.js";
 import { MatchMapper } from "../dtos/match/MatchMapper.js";
 import { MatchStatus } from '../../domain/entities/Match.js';
+import { MatchCancelledEvent, MatchResumedEvent, MatchSuspendedEvent } from '../../domain/events/MatchEvents.js';
 
 
 export class MatchService {
@@ -245,7 +245,6 @@ export class MatchService {
     const nextMatchEvents = nextMatch ? nextMatch.pullEvents() : [];
 
     const allEvents = [...bracketEvents, ...matchEvents, ...nextMatchEvents];
-
     if (allEvents.length > 0) {
       await this.eventBus.publish(allEvents);
     }
@@ -382,7 +381,6 @@ export class MatchService {
     }
     const boardShortId = playingArea.findBoardByMatchId(id).getShortId();
 
-
     // 3. Suspend the match
     match.suspend();
 
@@ -436,13 +434,34 @@ export class MatchService {
       throw new MatchNotFoundException();
     }
 
-    // 2. Cancel the match
-    match.cancel();
+    // 2. Get the boardShortId
+    const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
+    if (!playingArea) {
+      throw new PlayingAreaNotFoundException();
+    }
+    const boardShortId = playingArea.findBoardByMatchId(id).getShortId();
 
-    // 3. Persist the changes in the DB
+    // 3. Release the board if it was assigned
+    if (boardShortId) {
+      try {
+        const playingArea = await this.playingAreaRepository.findByTournamentId(match.getTournamentId());
+        if (playingArea) {
+          const board = playingArea.findBoardByMatchId(id);
+          playingArea.releaseBoard(board);
+          await this.playingAreaRepository.update(playingArea);
+        }
+      } catch (e) { }
+    }
+
+    // 4. Persist the changes in the DB
     await this.matchRepository.update(match);
 
-    // 4. Save the match status in Redis
+    // 5. Save the match status in Redis
     await this.matchCacheRepository.setMatchStatus(id, MatchStatus.CANCELLED);
+
+    // 6. Publish the event
+    this.eventBus.publish([
+      new MatchCancelledEvent(id, boardShortId),
+    ]);
   }
 }
