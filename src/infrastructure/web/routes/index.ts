@@ -59,6 +59,7 @@ router.get('/players/users/:userId/seasons/:seasonStartYear', authMiddleware, pl
 router.post('/players', authMiddleware, isAdmin, playerController.createPlayer);
 router.delete('/players/:id', authMiddleware, isAdmin, playerController.deletePlayer);
 router.put('/players/:id/federation', authMiddleware, isAdmin, playerController.updatePlayerFederation);
+router.post('/players/:id/restore', authMiddleware, isAdmin, playerController.restorePlayer);
 
 // Tournament routes
 router.get('/tournaments', optionalAuthMiddleware, tournamentController.getAllTournaments);

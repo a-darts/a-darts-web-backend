@@ -172,7 +172,7 @@ export class PlayerService {
     // 2. Check if the player is already registered in a tournament or has tournament results
     const registeredParticipants = await this.registeredParticipantRepository.findAllByPlayerId(id);
     const tournamentResults = await this.tournamentResultRepository.findAllByPlayerId(id);
-    const hasHistory = registeredParticipants && registeredParticipants.length > 0 && tournamentResults && tournamentResults.length > 0;
+    const hasHistory = (registeredParticipants && registeredParticipants.length > 0) || (tournamentResults && tournamentResults.length > 0);
 
     if (hasHistory) {
       // 2.1. Player has a history in the system
@@ -182,5 +182,19 @@ export class PlayerService {
       // 2.2. Player does not have a history in the system
       await this.playerRepository.delete(id);
     }
+  }
+
+  public async restore(id: string): Promise<void> {
+    // 1. Rehydrate the player from the DB
+    const player = await this.playerRepository.findById(id);
+    if (!player) {
+      throw new PlayerNotFoundException();
+    }
+
+    // 2. Execute domain logic to change status to ACTIVE
+    player.restore();
+
+    // 3. Persist the changes in the DB
+    await this.playerRepository.update(player);
   }
 }
