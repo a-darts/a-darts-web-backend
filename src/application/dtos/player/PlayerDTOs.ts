@@ -1,3 +1,4 @@
+import { PlayerStatus } from "../../../domain/entities/Player.js";
 
 export interface PlayerResponseDTO {
     id: string;
@@ -5,6 +6,7 @@ export interface PlayerResponseDTO {
     registrationNumber: string;
     federation: string;
     seasonStartYear: number;
+    status: PlayerStatus;
 }
 
 export interface PlayerWithUserResponseDTO {
@@ -13,6 +15,7 @@ export interface PlayerWithUserResponseDTO {
     registrationNumber: string;
     federation: string;
     seasonStartYear: number;
+    status: PlayerStatus;
     userAlias: string;
 }
 
@@ -38,11 +41,11 @@ export interface SeasonDTO {
 }
 
 export interface PaginatedPlayersWithUserResponse {
-  players: PlayerWithUserResponseDTO[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+    players: PlayerWithUserResponseDTO[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
 }

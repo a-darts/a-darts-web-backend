@@ -3,7 +3,7 @@ import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { prisma } from '../../persistence/prismaClient.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { PrismaPlayerRepository } from '../../persistence/repositories/PrismaPlayerRepository.js';
-import { InvalidSeasonException, InvalidYearException, PlayerAlreadyExistsException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
+import { InvalidSeasonException, InvalidYearException, PlayerAlreadyDeletedException, PlayerAlreadyExistsException, PlayerNotFoundException } from '../../../domain/exceptions/PlayerExceptions.js';
 import { InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 import PlayerServiceFactory from '../../factories/PlayerServiceFactory.js';
@@ -828,6 +828,132 @@ export class PlayerController {
       }
       if (error instanceof TournamentNotFoundException) {
         return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+     * @swagger
+     * /api/players/{id}:
+     *   delete:
+     *     summary: Delete player
+     *     tags: [Players]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - name: id
+     *         in: path
+     *         required: true
+     *         description: Player ID
+     *         schema:
+     *           type: string
+     *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+     *     responses:
+     *       200:
+     *         description: Player deleted successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 message:
+     *                   type: string
+     *                   example: Player deleted successfully
+     *                 data:
+     *                   type: string
+     *                   example: null
+     *       400:
+     *         description: Bad Request
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: All fields are required
+     *       404:
+     *         description: Not Found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Player not found
+     *       409:
+     *         description: Conflict
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Player is already deleted
+     *       500:
+     *         description: Internal Server Error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: error
+     *                 message:
+     *                   type: string
+     *                   example: Internal server error
+     */
+  async deletePlayer(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await playerService.delete(id);
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Player deleted successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof PlayerNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof PlayerAlreadyDeletedException) {
+        return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
       }

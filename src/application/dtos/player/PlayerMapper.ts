@@ -10,6 +10,7 @@ export class PlayerMapper {
             registrationNumber: player.getRegistrationNumber(),
             federation: player.getFederation(),
             seasonStartYear: player.getSeason().getStartYear(),
+            status: player.getStatus(),
         };
     }
 
@@ -21,6 +22,7 @@ export class PlayerMapper {
             registrationNumber: player.getRegistrationNumber(),
             federation: player.getFederation(),
             seasonStartYear: player.getSeason().getStartYear(),
+            status: player.getStatus(),
             userAlias: user.getAlias(),
         };
     }

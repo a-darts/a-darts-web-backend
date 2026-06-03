@@ -12,6 +12,20 @@ export class PlayerAlreadyExistsException extends Error {
     }
 }
 
+export class PlayerAlreadyDeletedException extends Error {
+    constructor() {
+        super('Player is already deleted');
+        this.name = 'PlayerAlreadyDeletedException';
+    }
+}
+
+export class PlayerNotDeletedException extends Error {
+    constructor() {
+        super('Player is not deleted');
+        this.name = 'PlayerNotDeletedException';
+    }
+}
+
 export class InvalidRegisteredPlayerSeasonException extends Error {
     constructor() {
         super('Player is not registered in the same season as the tournament');

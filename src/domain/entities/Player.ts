@@ -1,5 +1,12 @@
+import { PlayerAlreadyDeletedException, PlayerNotDeletedException } from "../exceptions/PlayerExceptions.js";
 import { MissingRequiredUserFieldsException } from "../exceptions/UserExceptions.js";
 import { Season } from "./Season.js";
+
+
+export enum PlayerStatus {
+    ACTIVE = 'ACTIVE',
+    DELETED = 'DELETED',
+}
 
 
 export class Player {
@@ -9,18 +16,25 @@ export class Player {
     private federation: string;
     private season: Season;
 
+    private deletedAt?: Date | null;
+    private status: PlayerStatus;
+
     constructor(
         id: string,
         userId: string,
         registrationNumber: string,
         federation: string,
         season: Season,
+        deletedAt: Date | null,
+        status: PlayerStatus,
     ) {
         this.id = id;
         this.userId = userId;
         this.registrationNumber = registrationNumber;
         this.federation = federation;
         this.season = season;
+        this.deletedAt = deletedAt;
+        this.status = status;
     }
 
 
@@ -46,6 +60,8 @@ export class Player {
             registrationNumber,
             federation,
             season,
+            null,
+            PlayerStatus.ACTIVE,
         );
     }
 
@@ -58,6 +74,26 @@ export class Player {
             throw new MissingRequiredUserFieldsException();
         }
         this.federation = newFederation;
+    }
+
+
+    // --------------------------------------------------------------------
+    // STATUS MANAGEMENT
+    // --------------------------------------------------------------------
+    public delete(): void {
+        if (this.status === PlayerStatus.DELETED) {
+            throw new PlayerAlreadyDeletedException();
+        }
+        this.status = PlayerStatus.DELETED;
+        this.deletedAt = new Date();
+    }
+
+    public restore(): void {
+        if (this.status !== PlayerStatus.DELETED) {
+            throw new PlayerNotDeletedException();
+        }
+        this.status = PlayerStatus.ACTIVE;
+        this.deletedAt = null;
     }
 
 
@@ -84,6 +120,14 @@ export class Player {
         return this.season;
     }
 
+    public getDeletedAt(): Date | null | undefined {
+        return this.deletedAt;
+    }
+
+    public getStatus(): PlayerStatus {
+        return this.status;
+    }
+
 
     // --------------------------------------------------------------------
     // REHYDRATE METHOD
@@ -95,6 +139,8 @@ export class Player {
             data.registrationNumber,
             data.federation,
             new Season(data.seasonStartYear),
+            data.deletedAt,
+            data.status,
         );
     }
 }

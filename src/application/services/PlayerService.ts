@@ -155,4 +155,25 @@ export class PlayerService {
     // 3. Persist the changes in the DB
     await this.playerRepository.update(player);
   }
+
+  public async delete(id: string): Promise<void> {
+    // 1. Rehydrate the player from the DB
+    const player = await this.playerRepository.findById(id);
+    if (!player) {
+      throw new PlayerNotFoundException();
+    }
+
+    // 2. Check if the player is already registered in a tournament
+    const registeredParticipants = await this.registeredParticipantRepository.findAllByPlayerId(id);
+    if (registeredParticipants && registeredParticipants.length > 0) {
+      // 2.1. Player is already registered in a tournament
+      // Soft delete
+      player.delete();
+      await this.playerRepository.update(player);
+    } else {
+      // 2.2. Player is not registered in any tournament
+      // Hard delete
+      await this.playerRepository.delete(id);
+    }
+  }
 }

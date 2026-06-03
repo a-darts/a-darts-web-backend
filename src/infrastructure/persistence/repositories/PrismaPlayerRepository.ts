@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PlayerStatus, PrismaClient } from '@prisma/client';
 import { IPlayerRepository, PlayerWithUser } from '../../../domain/ports/repositories/IPlayerRepository.js';
 import { Player } from '../../../domain/entities/Player.js';
 import { PlayerMapper } from '../mappers/PlayerMapper.js';
@@ -37,6 +37,7 @@ export class PrismaPlayerRepository implements IPlayerRepository {
 
     async findAll(skip?: number, take?: number): Promise<Player[]> {
         const playersData = await this.client.player.findMany({
+            where: { status: PlayerStatus.ACTIVE },
             skip,
             take,
         });
@@ -45,6 +46,7 @@ export class PrismaPlayerRepository implements IPlayerRepository {
 
     async findAllWithUser(skip?: number, take?: number): Promise<PlayerWithUser[]> {
         const playersData = await this.client.player.findMany({
+            where: { status: PlayerStatus.ACTIVE },
             skip,
             take,
             include: {
@@ -58,19 +60,27 @@ export class PrismaPlayerRepository implements IPlayerRepository {
     }
 
     async count(): Promise<number> {
-        return this.client.player.count();
+        return this.client.player.count({
+            where: { status: PlayerStatus.ACTIVE },
+        });
     }
 
     async findById(id: string): Promise<Player | null> {
         const playersData = await this.client.player.findUnique({
-            where: { id },
+            where: {
+                id,
+                status: PlayerStatus.ACTIVE,
+            },
         });
         return playersData ? PlayerMapper.toDomain(playersData) : null;
     }
 
     async findByIdWithUser(id: string): Promise<PlayerWithUser | null> {
         const playerData = await this.client.player.findUnique({
-            where: { id },
+            where: {
+                id,
+                status: PlayerStatus.ACTIVE,
+            },
             include: {
                 user: true,
             },
@@ -83,7 +93,10 @@ export class PrismaPlayerRepository implements IPlayerRepository {
 
     async findManyByIds(ids: string[]): Promise<Player[]> {
         const playersData = await this.client.player.findMany({
-            where: { id: { in: ids } },
+            where: {
+                id: { in: ids },
+                status: PlayerStatus.ACTIVE,
+            },
         });
         return playersData.map(PlayerMapper.toDomain);
     }
@@ -95,6 +108,7 @@ export class PrismaPlayerRepository implements IPlayerRepository {
                     userId,
                     seasonStartYear,
                 },
+                status: PlayerStatus.ACTIVE,
             },
         });
         return playerData ? PlayerMapper.toDomain(playerData) : null;
@@ -102,7 +116,10 @@ export class PrismaPlayerRepository implements IPlayerRepository {
 
     async findAllByUserId(userId: string): Promise<Player[]> {
         const playersData = await this.client.player.findMany({
-            where: { userId }
+            where: {
+                userId,
+                status: PlayerStatus.ACTIVE,
+            }
         });
         return playersData.map(PlayerMapper.toDomain);
     }
@@ -111,6 +128,7 @@ export class PrismaPlayerRepository implements IPlayerRepository {
         const playersData = await this.client.player.findMany({
             where: {
                 seasonStartYear,
+                status: PlayerStatus.ACTIVE,
             },
             include: {
                 user: true,
