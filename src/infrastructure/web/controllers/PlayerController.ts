@@ -8,6 +8,7 @@ import { InvalidUserFieldsException, MissingRequiredUserFieldsException, UserNot
 import { PrismaUserRepository } from '../../persistence/repositories/PrismaUserRepository.js';
 import PlayerServiceFactory from '../../factories/PlayerServiceFactory.js';
 import { TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
+import { PlayerStatus } from '../../../domain/entities/Player.js';
 
 
 const playerService = PlayerServiceFactory.getInstance();
@@ -91,7 +92,7 @@ export class PlayerController {
    * @swagger
    * /api/players:
    *   get:
-   *     summary: Get all players (supports optional pagination)
+   *     summary: Get all players (supports optional pagination and status filtering)
    *     tags: [Players]
    *     security:
    *       - bearerAuth: []
@@ -106,6 +107,13 @@ export class PlayerController {
    *         schema:
    *           type: integer
    *         description: Maximum number of players to return
+   *       - in: query
+   *         name: status
+   *         schema:
+   *           type: string
+   *           enum: [ACTIVE, DELETED]
+   *           default: ACTIVE
+   *         description: Filter by player status (ACTIVE or DELETED)
    *     responses:
    *       200:
    *         description: Players fetched successfully
@@ -173,6 +181,10 @@ export class PlayerController {
     try {
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      let status = req.query.status as PlayerStatus;
+      if (!status) {
+        status = PlayerStatus.ACTIVE;
+      }
 
       if (page !== undefined && (isNaN(page) || page <= 0)) {
         return res.status(400).json(ApiResponseBuilder.error('Invalid page number'));
@@ -180,8 +192,11 @@ export class PlayerController {
       if (limit !== undefined && (isNaN(limit) || limit <= 0)) {
         return res.status(400).json(ApiResponseBuilder.error('Invalid limit number'));
       }
+      if (status !== PlayerStatus.ACTIVE && status !== PlayerStatus.DELETED) {
+        return res.status(400).json(ApiResponseBuilder.error('Invalid status filter'));
+      }
 
-      const players = await playerService.getAll(page, limit);
+      const players = await playerService.getAll(page, limit, status);
       res.status(200).json(
         ApiResponseBuilder.success(players, 'Players fetched successfully')
       );

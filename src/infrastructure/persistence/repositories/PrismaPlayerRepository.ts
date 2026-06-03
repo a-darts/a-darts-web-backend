@@ -35,18 +35,18 @@ export class PrismaPlayerRepository implements IPlayerRepository {
         });
     }
 
-    async findAll(skip?: number, take?: number): Promise<Player[]> {
+    async findAll(skip?: number, take?: number, status: PlayerStatus = PlayerStatus.ACTIVE): Promise<Player[]> {
         const playersData = await this.client.player.findMany({
-            where: { status: PlayerStatus.ACTIVE },
+            where: { status },
             skip,
             take,
         });
         return playersData.map(PlayerMapper.toDomain);
     }
 
-    async findAllWithUser(skip?: number, take?: number): Promise<PlayerWithUser[]> {
+    async findAllWithUser(skip?: number, take?: number, status: PlayerStatus = PlayerStatus.ACTIVE): Promise<PlayerWithUser[]> {
         const playersData = await this.client.player.findMany({
-            where: { status: PlayerStatus.ACTIVE },
+            where: { status },
             skip,
             take,
             include: {
@@ -59,9 +59,9 @@ export class PrismaPlayerRepository implements IPlayerRepository {
         }));
     }
 
-    async count(): Promise<number> {
+    async count(status: PlayerStatus = PlayerStatus.ACTIVE): Promise<number> {
         return this.client.player.count({
-            where: { status: PlayerStatus.ACTIVE },
+            where: { status },
         });
     }
 
@@ -69,7 +69,6 @@ export class PrismaPlayerRepository implements IPlayerRepository {
         const playersData = await this.client.player.findUnique({
             where: {
                 id,
-                status: PlayerStatus.ACTIVE,
             },
         });
         return playersData ? PlayerMapper.toDomain(playersData) : null;

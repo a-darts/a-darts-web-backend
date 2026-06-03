@@ -1,4 +1,4 @@
-import { Player } from "../../domain/entities/Player.js";
+import { Player, PlayerStatus } from "../../domain/entities/Player.js";
 import { Season } from "../../domain/entities/Season.js";
 import { PlayerAlreadyExistsException, PlayerNotFoundException } from "../../domain/exceptions/PlayerExceptions.js";
 import { TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
@@ -28,14 +28,18 @@ export class PlayerService {
   ) { }
 
 
-  public async getAll(page?: number, limit?: number): Promise<PlayerWithUserResponseDTO[] | PaginatedPlayersWithUserResponse> {
+  public async getAll(
+    page?: number,
+    limit?: number,
+    status: PlayerStatus = PlayerStatus.ACTIVE,
+  ): Promise<PlayerWithUserResponseDTO[] | PaginatedPlayersWithUserResponse> {
     if (page !== undefined && limit !== undefined) {
       const skip = (page - 1) * limit;
       const take = limit;
 
       const [players, total] = await Promise.all([
-        this.playerRepository.findAllWithUser(skip, take),
-        this.playerRepository.count()
+        this.playerRepository.findAllWithUser(skip, take, status),
+        this.playerRepository.count(status),
       ]);
 
       return {
@@ -50,7 +54,7 @@ export class PlayerService {
     }
 
     // 1. Rehydrate all players from the DB
-    const players = await this.playerRepository.findAllWithUser();
+    const players = await this.playerRepository.findAllWithUser(undefined, undefined, status);
 
     // 2. Return the players data (without password)
     return players.map(player => PlayerMapper.toResponseWithUser(player));
