@@ -7,6 +7,8 @@ import { PrismaRegisteredParticipantRepository } from "../persistence/repositori
 import { PrismaMatchRepository } from "../persistence/repositories/PrismaMatchRepository.js";
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
 import { PrismaUnitOfWork } from "../persistence/PrismaUnitOfWork.js";
+import { PrismaPlayingAreaRepository } from "../persistence/repositories/PrismaPlayingAreaRepository.js";
+import { globalEventBus } from "../config/eventBus.js";
 
 
 export default class TournamentServiceFactory {
@@ -27,6 +29,7 @@ export default class TournamentServiceFactory {
                 registeredParticipantRepository,
                 matchRepository,
                 matchGenerator,
+                globalEventBus,
                 unitOfWork,
             );
         }

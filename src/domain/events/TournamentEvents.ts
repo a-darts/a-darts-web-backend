@@ -13,3 +13,17 @@ export class TournamentFinishedEvent implements IDomainEvent {
         return 'tournament.finished';
     }
 }
+
+export class TournamentCancelledEvent implements IDomainEvent {
+    public readonly tournamentId: string;
+    public readonly occurredOn: Date;
+
+    constructor(tournamentId: string) {
+        this.tournamentId = tournamentId;
+        this.occurredOn = new Date();
+    }
+
+    public getEventName(): string {
+        return 'tournament.cancelled';
+    }
+}

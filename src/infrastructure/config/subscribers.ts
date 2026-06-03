@@ -6,7 +6,7 @@ import { PrismaBracketRepository } from '../persistence/repositories/PrismaBrack
 import { PrismaMatchRepository } from '../persistence/repositories/PrismaMatchRepository.js';
 import { PrismaTournamentResultRepository } from '../persistence/repositories/PrismaTournamentResultRepository.js';
 import { FinishTournamentOnBracketFinished } from '../../application/handlers/FinishTournamentOnBracketFinished.js';
-import { DeletePlayingAreaOnTournamentFinished } from '../../application/handlers/DeletePlayingAreaOnTournamentFinished.js';
+import { DeletePlayingArea } from '../../application/handlers/DeletePlayingArea.js';
 import { CalculateResultsOnTournamentFinished } from '../../application/handlers/CalculateResultsOnTournamentFinished.js';
 import { UpdateCacheOnMatchFinished } from '../../application/handlers/UpdateCacheOnMatchFinished.js';
 import { RedisMatchCacheRepository } from '../persistence/repositories/RedisMatchCacheRepository.js';
@@ -20,7 +20,7 @@ export function configureSubscribers(eventBus: NodeEventBus): void {
     const matchCacheRepository = new RedisMatchCacheRepository();
 
     const finishTournamentOnBracketFinished = new FinishTournamentOnBracketFinished(tournamentRepository, eventBus);
-    const deletePlayingAreaOnTournamentFinished = new DeletePlayingAreaOnTournamentFinished(playingAreaRepository);
+    const deletePlayingArea = new DeletePlayingArea(playingAreaRepository);
     const calculateResultsOnTournamentFinished = new CalculateResultsOnTournamentFinished(bracketRepository, matchRepository, tournamentResultRepository);
     const updateCacheOnMatchFinished = new UpdateCacheOnMatchFinished(matchCacheRepository);
 
@@ -30,8 +30,12 @@ export function configureSubscribers(eventBus: NodeEventBus): void {
     });
 
     eventBus.register('tournament.finished', async (event) => {
-        await deletePlayingAreaOnTournamentFinished.on(event);
+        await deletePlayingArea.on(event);
         await calculateResultsOnTournamentFinished.on(event);
+    });
+
+    eventBus.register('tournament.cancelled', async (event) => {
+        await deletePlayingArea.on(event);
     });
 
     eventBus.register('match.finished', async (event) => {

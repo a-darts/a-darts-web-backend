@@ -2,10 +2,12 @@ import { MatchStatus } from "../../domain/entities/Match.js";
 import { Season } from "../../domain/entities/Season.js";
 import { Tournament, TournamentStatus } from "../../domain/entities/Tournament.js";
 import { TournamentInfo } from "../../domain/entities/TournamentInfo.js";
+import { EventBus } from "../../domain/events/EventBus.js";
 import { BracketNotFoundException, BracketUnfinishedException } from "../../domain/exceptions/BracketExceptions.js";
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
 import { IBracketRepository } from "../../domain/ports/repositories/IBracketRepository.js";
 import { IMatchRepository } from "../../domain/ports/repositories/IMatchRepository.js";
+import { IPlayingAreaRepository } from "../../domain/ports/repositories/IPlayingAreaRepository.js";
 import { IRegisteredParticipantRepository } from "../../domain/ports/repositories/IRegisteredParticipantRepository.js";
 import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
 import { UnitOfWork } from "../../domain/ports/services/UnitOfWork.js";
@@ -27,6 +29,7 @@ export class TournamentService {
     private readonly registeredParticipantRepository: IRegisteredParticipantRepository,
     private readonly matchRepository: IMatchRepository,
     private readonly matchGenerator: SingleEliminationMatchGenerator,
+    private readonly eventBus: EventBus,
     private readonly unitOfWork: UnitOfWork,
   ) { }
 
@@ -177,6 +180,12 @@ export class TournamentService {
         await this.matchRepository.update(match);
       }
     });
+
+    // 6. Publish events
+    const events = tournament.pullEvents();
+    if (events.length > 0) {
+      await this.eventBus.publish(events);
+    }
   }
 
 

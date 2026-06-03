@@ -15,7 +15,7 @@ import { Registration, RegistrationPeriod, RegistrationStatus } from "./Registra
 import { Season } from "./Season.js";
 import { TournamentInfo } from "./TournamentInfo.js";
 import { IDomainEvent } from "../events/IDomainEvent.js";
-import { TournamentFinishedEvent } from "../events/TournamentEvents.js";
+import { TournamentCancelledEvent, TournamentFinishedEvent } from "../events/TournamentEvents.js";
 
 
 export enum TournamentStatus {
@@ -139,6 +139,7 @@ export class Tournament {
     if (this.status !== TournamentStatus.IN_PROGRESS) {
       throw new TournamentNotInProgressException();
     }
+
     this.status = TournamentStatus.FINISHED;
     this.recordEvent(new TournamentFinishedEvent(this.id));
   }
@@ -149,6 +150,7 @@ export class Tournament {
     }
 
     this.status = TournamentStatus.CANCELLED;
+    this.recordEvent(new TournamentCancelledEvent(this.id));
   }
 
   private isPublished(): boolean {
