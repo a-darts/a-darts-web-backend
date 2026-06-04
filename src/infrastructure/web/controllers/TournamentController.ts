@@ -5,6 +5,7 @@ import { TournamentStatus } from '../../../domain/entities/Tournament.js';
 import {
   TournamentAlreadyFinishedException,
   TournamentAlreadyHasBracketException,
+  TournamentNotDeletedException,
   TournamentNotFoundException,
   TournamentNotInDraftException,
   TournamentNotInDraftOrPublishedException,
@@ -619,6 +620,158 @@ export class TournamentController {
         );
       }
       if (error instanceof TournamentNotInDraftOrPublishedException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/tournaments/{id}/restore:
+   *   post:
+   *     summary: Restore a deleted tournament
+   *     tags: [Tournaments]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: Tournament ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: Tournament restored successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Tournament restored successfully
+   *                 data:
+   *                   type: string
+   *                   example: null
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: No token provided
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: You do not have permission to perform this action
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Tournament not found
+   *       409:
+   *         description: Conflict
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   oneOf:
+   *                     - example: Tournament not deleted
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async restoreTournament(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      await tournamentService.restore(id);
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          null,
+          'Tournament restored successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof TournamentNotFoundException) {
+        return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof TournamentNotDeletedException) {
         return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );

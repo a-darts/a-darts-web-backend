@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { ITournamentRepository, TournamentFilter } from '../../../domain/ports/repositories/ITournamentRepository.js';
+import { ITournamentRepository } from '../../../domain/ports/repositories/ITournamentRepository.js';
 import { Tournament } from '../../../domain/entities/Tournament.js';
 import { TournamentMapper } from '../mappers/TournamentMapper.js';
 import { transactionStorage } from '../TransactionContext.js';
@@ -34,9 +34,9 @@ export class PrismaTournamentRepository implements ITournamentRepository {
         });
     }
 
-    async findAll(filter?: TournamentFilter): Promise<Tournament[]> {
+    async findAll(includeDeleted?: boolean): Promise<Tournament[]> {
         const whereClause: any = {};
-        if (!filter?.includeDeleted) {
+        if (includeDeleted) {
             whereClause.status = { not: 'DELETED' };
         }
 
@@ -47,13 +47,16 @@ export class PrismaTournamentRepository implements ITournamentRepository {
         return tournamentsData.map(TournamentMapper.toDomain);
     }
 
-    async findById(id: string): Promise<Tournament | null> {
-        const tournamentData = await this.client.tournament.findUnique({
-            where: {
-                id,
-                status: { not: 'DELETED' },
-            },
+    async findById(id: string, includeDeleted?: boolean): Promise<Tournament | null> {
+        const whereClause: any = { id };
+        if (!includeDeleted) {
+            whereClause.status = { not: 'DELETED' };
+        }
+
+        const tournamentData = await this.client.tournament.findFirst({
+            where: whereClause,
         });
+
         return tournamentData ? TournamentMapper.toDomain(tournamentData) : null;
     }
 }

@@ -40,9 +40,9 @@ export class TournamentService {
   // --------------------------------------------------------------------
   // TOURNAMENT METHODS
   // --------------------------------------------------------------------
-  public async getAll(includeDeleted = false): Promise<TournamentResponseDTO[]> {
+  public async getAll(includeDeleted: boolean = false): Promise<TournamentResponseDTO[]> {
     // 1. Rehydrate all tournaments from the DB
-    const tournaments = await this.tournamentRepository.findAll({ includeDeleted });
+    const tournaments = await this.tournamentRepository.findAll(includeDeleted);
 
     // 2. Return the tournaments data
     return tournaments.map(tournament => TournamentMapper.toResponse(tournament));
@@ -318,6 +318,21 @@ export class TournamentService {
       // 2.2. Tournament does not have registers in the system
       await this.tournamentRepository.delete(id);
     }
+  }
+
+
+  public async restore(id: string): Promise<void> {
+    // 1. Rehydrate the tournament from the DB
+    const tournament = await this.tournamentRepository.findById(id, true);
+    if (!tournament) {
+      throw new TournamentNotFoundException();
+    }
+
+    // 2. Restore the tournament
+    tournament.restore();
+
+    // 3. Persist the changes in the DB
+    await this.tournamentRepository.update(tournament);
   }
 
 

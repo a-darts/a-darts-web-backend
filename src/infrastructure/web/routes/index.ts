@@ -66,6 +66,7 @@ router.get('/tournaments', optionalAuthMiddleware, tournamentController.getAllTo
 router.get('/tournaments/:id', optionalAuthMiddleware, tournamentController.getTournamentById);
 router.post('/tournaments', authMiddleware, isAdmin, tournamentController.createTournament);
 router.delete('/tournaments/:id', authMiddleware, isAdmin, tournamentController.deleteTournament);
+router.post('/tournaments/:id/restore', authMiddleware, isAdmin, tournamentController.restoreTournament);
 router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
 router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
 

@@ -6,6 +6,7 @@ import {
 } from "../exceptions/RegistrationExceptions.js";
 import {
   TournamentAlreadyFinishedException,
+  TournamentNotDeletedException,
   TournamentNotInDraftException,
   TournamentNotInDraftOrPublishedException,
   TournamentNotInProgressException,
@@ -160,6 +161,13 @@ export class Tournament {
       throw new TournamentNotInDraftOrPublishedException();
     }
     this.status = TournamentStatus.DELETED;
+  }
+
+  public restore(): void {
+    if (this.status !== TournamentStatus.DELETED) {
+      throw new TournamentNotDeletedException();
+    }
+    this.status = TournamentStatus.DRAFT;
   }
 
   private isPublished(): boolean {
