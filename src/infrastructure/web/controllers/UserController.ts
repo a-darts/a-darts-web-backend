@@ -1158,8 +1158,8 @@ export class UserController {
 
   /**
    * @swagger
-   * /api/users/{id}/delete:
-   *   post:
+   * /api/users/{id}:
+   *   delete:
    *     summary: Delete user
    *     tags: [Users]
    *     security:

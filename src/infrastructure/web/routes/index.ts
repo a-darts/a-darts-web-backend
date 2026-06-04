@@ -48,7 +48,7 @@ router.put('/users/:id/alias', authMiddleware, isSelfOrAdmin, userController.upd
 
 router.post('/users/:id/block', authMiddleware, isAdmin, userController.blockUser);
 router.post('/users/:id/unblock', authMiddleware, isAdmin, userController.unblockUser);
-router.post('/users/:id/delete', authMiddleware, isAdmin, userController.deleteUser);
+router.delete('/users/:id', authMiddleware, isAdmin, userController.deleteUser);
 router.post('/users/:id/restore', authMiddleware, isAdmin, userController.restoreUser);
 
 
