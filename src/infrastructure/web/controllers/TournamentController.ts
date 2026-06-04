@@ -210,6 +210,14 @@ export class TournamentController {
    *     tags: [Tournaments]
    *     security:
    *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: includeDeleted
+   *         required: false
+   *         description: If true, returns logically deleted tournaments (Admin only)
+   *         schema:
+   *           type: boolean
+   *           example: false
    *     responses:
    *       200:
    *         description: Tournaments fetched successfully
@@ -242,10 +250,13 @@ export class TournamentController {
    */
   async getAllTournaments(req: AuthRequest, res: Response) {
     try {
-      let tournaments = await tournamentService.getAll();
+      const isAdmin = req.user?.role === UserRoles.ADMIN;
+
+      const includeDeleted = req.query.includeDeleted === 'true' && isAdmin;
+
+      let tournaments = await tournamentService.getAll(includeDeleted);
 
       // Filter DRAFT tournaments if not ADMIN
-      const isAdmin = req.user?.role === UserRoles.ADMIN;
       if (!isAdmin) {
         tournaments = tournaments.filter(t => t.status !== TournamentStatus.DRAFT);
       }

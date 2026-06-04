@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { ITournamentRepository } from '../../../domain/ports/repositories/ITournamentRepository.js';
+import { ITournamentRepository, TournamentFilter } from '../../../domain/ports/repositories/ITournamentRepository.js';
 import { Tournament } from '../../../domain/entities/Tournament.js';
 import { TournamentMapper } from '../mappers/TournamentMapper.js';
 import { transactionStorage } from '../TransactionContext.js';
@@ -34,14 +34,25 @@ export class PrismaTournamentRepository implements ITournamentRepository {
         });
     }
 
-    async findAll(): Promise<Tournament[]> {
-        const tournamentsData = await this.client.tournament.findMany();
+    async findAll(filter?: TournamentFilter): Promise<Tournament[]> {
+        const whereClause: any = {};
+        if (!filter?.includeDeleted) {
+            whereClause.status = { not: 'DELETED' };
+        }
+
+        const tournamentsData = await this.client.tournament.findMany({
+            where: whereClause,
+            orderBy: { infoDateTime: 'desc' },
+        });
         return tournamentsData.map(TournamentMapper.toDomain);
     }
 
     async findById(id: string): Promise<Tournament | null> {
         const tournamentData = await this.client.tournament.findUnique({
-            where: { id }
+            where: {
+                id,
+                status: { not: 'DELETED' },
+            },
         });
         return tournamentData ? TournamentMapper.toDomain(tournamentData) : null;
     }

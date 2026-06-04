@@ -40,9 +40,9 @@ export class TournamentService {
   // --------------------------------------------------------------------
   // TOURNAMENT METHODS
   // --------------------------------------------------------------------
-  public async getAll(): Promise<TournamentResponseDTO[]> {
+  public async getAll(includeDeleted = false): Promise<TournamentResponseDTO[]> {
     // 1. Rehydrate all tournaments from the DB
-    const tournaments = await this.tournamentRepository.findAll();
+    const tournaments = await this.tournamentRepository.findAll({ includeDeleted });
 
     // 2. Return the tournaments data
     return tournaments.map(tournament => TournamentMapper.toResponse(tournament));
