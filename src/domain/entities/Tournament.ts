@@ -7,6 +7,7 @@ import {
 import {
   TournamentAlreadyFinishedException,
   TournamentNotInDraftException,
+  TournamentNotInDraftOrPublishedException,
   TournamentNotInProgressException,
   TournamentNotPublishedException,
 } from "../exceptions/TournamentExceptions.js";
@@ -24,6 +25,7 @@ export enum TournamentStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   FINISHED = 'FINISHED',
   CANCELLED = 'CANCELLED',
+  DELETED = 'DELETED',
 }
 
 
@@ -151,6 +153,13 @@ export class Tournament {
 
     this.status = TournamentStatus.CANCELLED;
     this.recordEvent(new TournamentCancelledEvent(this.id));
+  }
+
+  public delete(): void {
+    if (this.status !== TournamentStatus.DRAFT && this.status !== TournamentStatus.PUBLISHED) {
+      throw new TournamentNotInDraftOrPublishedException();
+    }
+    this.status = TournamentStatus.DELETED;
   }
 
   private isPublished(): boolean {

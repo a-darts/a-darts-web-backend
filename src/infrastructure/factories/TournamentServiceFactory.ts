@@ -9,6 +9,7 @@ import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEli
 import { PrismaUnitOfWork } from "../persistence/PrismaUnitOfWork.js";
 import { PrismaPlayingAreaRepository } from "../persistence/repositories/PrismaPlayingAreaRepository.js";
 import { globalEventBus } from "../config/eventBus.js";
+import { PrismaTournamentResultRepository } from "../persistence/repositories/PrismaTournamentResultRepository.js";
 
 
 export default class TournamentServiceFactory {
@@ -20,6 +21,7 @@ export default class TournamentServiceFactory {
             const bracketRepository = new PrismaBracketRepository(prisma);
             const registeredParticipantRepository = new PrismaRegisteredParticipantRepository(prisma);
             const playingAreaRepository = new PrismaPlayingAreaRepository(prisma);
+            const tournamentResultRepository = new PrismaTournamentResultRepository(prisma);
             const matchRepository = new PrismaMatchRepository(prisma);
             const matchGenerator = new SingleEliminationMatchGenerator();
             const unitOfWork = new PrismaUnitOfWork(prisma);
@@ -29,6 +31,7 @@ export default class TournamentServiceFactory {
                 bracketRepository,
                 registeredParticipantRepository,
                 playingAreaRepository,
+                tournamentResultRepository,
                 matchRepository,
                 matchGenerator,
                 globalEventBus,

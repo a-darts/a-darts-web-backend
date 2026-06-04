@@ -11,6 +11,7 @@ import { IMatchRepository } from "../../domain/ports/repositories/IMatchReposito
 import { IPlayingAreaRepository } from "../../domain/ports/repositories/IPlayingAreaRepository.js";
 import { IRegisteredParticipantRepository } from "../../domain/ports/repositories/IRegisteredParticipantRepository.js";
 import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
+import { ITournamentResultRepository } from "../../domain/ports/repositories/ITournamentResultRepository.js";
 import { UnitOfWork } from "../../domain/ports/services/UnitOfWork.js";
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
 import {
@@ -29,6 +30,7 @@ export class TournamentService {
     private readonly bracketRepository: IBracketRepository,
     private readonly registeredParticipantRepository: IRegisteredParticipantRepository,
     private readonly playingAreaRepository: IPlayingAreaRepository,
+    private readonly tournamentResultRepository: ITournamentResultRepository,
     private readonly matchRepository: IMatchRepository,
     private readonly matchGenerator: SingleEliminationMatchGenerator,
     private readonly eventBus: EventBus,
@@ -281,6 +283,41 @@ export class TournamentService {
 
     // 3. Persist the changes in the DB
     await this.tournamentRepository.update(tournament);
+  }
+
+
+  public async delete(id: string): Promise<void> {
+    // 1. Rehydrate the tournament from the DB
+    const tournament = await this.tournamentRepository.findById(id);
+    if (!tournament) {
+      throw new TournamentNotFoundException();
+    }
+
+    // 2. Try to delete the tournament
+    tournament.delete();
+
+    // 3. Check if the tournament has any register
+    const registeredParticipants = await this.registeredParticipantRepository.findAllByTournamentId(id);
+    const hasRegisteredParticipants = registeredParticipants && registeredParticipants.length > 0;
+
+    const matches = await this.matchRepository.findManyByTournamentId(id);
+    const hasMatches = matches && matches.length > 0;
+
+    const hasBracket = await this.bracketRepository.findByTournamentId(id);
+
+    const hasPlayingArea = await this.playingAreaRepository.findByTournamentId(id);
+
+    const tournamentResults = await this.tournamentResultRepository.findAllByTournamentId(id);
+    const hasTournamentResults = tournamentResults && tournamentResults.length > 0;
+
+
+    if (hasRegisteredParticipants || hasMatches || hasBracket || hasPlayingArea || hasTournamentResults) {
+      // 2.1. Tournament has registers in the system
+      await this.tournamentRepository.update(tournament);
+    } else {
+      // 2.2. Tournament does not have registers in the system
+      await this.tournamentRepository.delete(id);
+    }
   }
 
 

@@ -26,6 +26,13 @@ export class TournamentNotPublishedException extends Error {
     }
 }
 
+export class TournamentNotInDraftOrPublishedException extends Error {
+    constructor() {
+        super('Tournament is not in draft or published');
+        this.name = 'TournamentNotInDraftOrPublishedException';
+    }
+}
+
 export class TournamentAlreadyFinishedException extends Error {
     constructor() {
         super('Tournament is already finished');
