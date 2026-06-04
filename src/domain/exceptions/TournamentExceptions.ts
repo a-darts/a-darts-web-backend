@@ -68,13 +68,6 @@ export class TournamentMaxPlayersExceededException extends Error {
     }
 }
 
-export class InvalidTournamentStatusUpdateException extends Error {
-    constructor() {
-        super('Invalid tournament status update');
-        this.name = 'InvalidTournamentStatusUpdateException';
-    }
-}
-
 export class InvalidSeasonStartYearException extends Error {
     constructor() {
         super('Invalid season start year');

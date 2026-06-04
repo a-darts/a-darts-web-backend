@@ -74,10 +74,3 @@ export class MatchNotFoundException extends Error {
         this.name = 'MatchNotFoundException';
     }
 }
-
-export class InvalidMatchStatusUpdateException extends Error {
-    constructor() {
-        super('Invalid match status update');
-        this.name = 'InvalidMatchStatusUpdateException';
-    }
-}
