@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { ITournamentRepository } from '../../../domain/ports/repositories/ITournamentRepository.js';
-import { Tournament } from '../../../domain/entities/Tournament.js';
+import { Tournament, TournamentStatus } from '../../../domain/entities/Tournament.js';
 import { TournamentMapper } from '../mappers/TournamentMapper.js';
 import { transactionStorage } from '../TransactionContext.js';
 
@@ -37,7 +37,7 @@ export class PrismaTournamentRepository implements ITournamentRepository {
     async findAll(includeDeleted?: boolean): Promise<Tournament[]> {
         const whereClause: any = {};
         if (includeDeleted) {
-            whereClause.status = { not: 'DELETED' };
+            whereClause.status = { not: TournamentStatus.DELETED };
         }
 
         const tournamentsData = await this.client.tournament.findMany({
@@ -50,7 +50,7 @@ export class PrismaTournamentRepository implements ITournamentRepository {
     async findById(id: string, includeDeleted?: boolean): Promise<Tournament | null> {
         const whereClause: any = { id };
         if (!includeDeleted) {
-            whereClause.status = { not: 'DELETED' };
+            whereClause.status = { not: TournamentStatus.DELETED };
         }
 
         const tournamentData = await this.client.tournament.findFirst({

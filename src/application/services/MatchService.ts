@@ -148,7 +148,7 @@ export class MatchService {
 
     const newRoomName = `room_board_${newBoardShortId}`;
 
-    if (status === 'IN_PROGRESS') {
+    if (status === MatchStatus.IN_PROGRESS) {
       console.log(`[SetMatchBoardNumber] Match already in progress. Sending match_restored to ${newRoomName}`);
 
       if (historyThrows && historyThrows.length > 0) {

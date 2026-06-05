@@ -75,7 +75,7 @@ export class SocketController {
             }
 
             // 4. If the match is finished, execute the finish match use case and clear the cache
-            if (throwData.status === 'FINISHED') {
+            if (throwData.status === MatchStatus.FINISHED) {
                 await this.matchService.finish(matchId);
                 await this.matchCacheRepository.clearMatch(matchId, boardShortId);
             }

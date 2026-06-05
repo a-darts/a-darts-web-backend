@@ -4,6 +4,7 @@ import pg from 'pg'; // Importamos el driver de Postgres
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'node:crypto'; // Mejor usar la importación nativa
 import * as dotenv from 'dotenv';
+import { UserRoles, UserStatus } from '../src/domain/entities/User.js';
 
 dotenv.config();
 
@@ -31,8 +32,8 @@ async function main() {
             email: adminEmail,
             password: hashedPassword,
             alias: 'SuperAdmin',
-            role: 'ADMIN',
-            status: 'ACTIVE',
+            role: UserRoles.ADMIN,
+            status: UserStatus.ACTIVE,
             registeredAt: new Date(),
         },
     });
