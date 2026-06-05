@@ -1,11 +1,13 @@
-import { Bracket } from '../../../domain/entities/Bracket.js';
-import { RegisteredParticipant } from '../../../domain/entities/Participant.js';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { Bracket, BracketStatus, BracketPosition } from '../../../domain/entities/Bracket.js';
+import { RegisteredParticipant, EmptyParticipant, ByeParticipant } from '../../../domain/entities/Participant.js';
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from '../../../domain/exceptions/ParticipantExceptions.js';
+import { BracketAlreadyFinishedException, BracketInProgressException, BracketNotInDraftException, BracketNotInDraftOrPublisedException, BracketNotInProgressException, BracketNotPublishedException, DuplicateParticipantsException, InvalidPositionsException } from '../../../domain/exceptions/BracketExceptions.js';
 import { BracketSeedingService } from '../../../domain/services/BracketSeedingService.js';
+import { BracketFinishedEvent } from '../../../domain/events/BracketEvents.js';
 
 const seedingService = new BracketSeedingService();
 
-// Helper to create participants
 function createParticipants(n: number): RegisteredParticipant[] {
     const participants = [];
     for (let i = 0; i < n; i++) {
@@ -22,148 +24,209 @@ function createParticipants(n: number): RegisteredParticipant[] {
     return participants;
 }
 
-async function runTests() {
-    console.log('\x1b[36m%s\x1b[0m', '=== BRACKET DOMAIN ENTITY UNIT TESTS ===');
+describe("Bracket Entity", () => {
+    describe("BracketPosition", () => {
+        it("should create a bracket position", () => {
+            const p = RegisteredParticipant.create("1", "1", "Alias", "FED");
+            const pos = BracketPosition.create(p, 1);
+            expect(pos.getParticipant()).toBe(p);
+            expect(pos.getPosition()).toBe(1);
+            expect(pos.isBye()).toBe(false);
+            expect(pos.isEmpty()).toBe(false);
+        });
 
-    const sizes = [2, 4, 8, 16, 32, 64, 128, 256, 512];
-    let totalTests = 0;
-    let passedTests = 0;
+        it("should identify bye and empty", () => {
+            const pBye = ByeParticipant.create();
+            const posBye = BracketPosition.create(pBye, 1);
+            expect(posBye.isBye()).toBe(true);
 
-    for (const size of sizes) {
-        console.log(`\n\x1b[33mTesting Power of 2: ${size}\x1b[0m`);
+            const pEmpty = EmptyParticipant.create();
+            const posEmpty = BracketPosition.create(pEmpty, 1);
+            expect(posEmpty.isEmpty()).toBe(true);
+        });
+    });
 
-        // 1. Full bracket (Exact power of 2)
-        try {
-            totalTests++;
-            const participants = createParticipants(size);
-            const bracket = Bracket.createAutomatically('tournament-1', participants, seedingService);
-            const positions = bracket.getPositions();
-            const byes = positions.filter(p => p.isBye()).length;
+    describe("Bracket Factory Methods", () => {
+        it("should throw if participants count is 0 or 1", () => {
+            expect(() => Bracket.createAutomatically('t1', [], seedingService)).toThrow(RegistratedParticipantsEmptyException);
+            expect(() => Bracket.createAutomatically('t1', createParticipants(1), seedingService)).toThrow(RegistratedParticipantsNotEnoughException);
+        });
 
-            console.log(`  [Full] Participants: ${size} -> Bracket Size: ${positions.length}, Byes: ${byes}`);
+        it("should create automatically with participants", () => {
+            const participants = createParticipants(5);
+            const bracket = Bracket.createAutomatically('t1', participants, seedingService);
+            expect(bracket.getId()).toBeDefined();
+            expect(bracket.getTournamentId()).toBe('t1');
+            expect(bracket.getStatus()).toBe(BracketStatus.DRAFT);
+            expect(bracket.getPositions().length).toBe(8); // next power of 2
+            expect(bracket.getPositions().filter(p => p.isBye()).length).toBe(3);
+        });
 
-            if (positions.length === size && byes === 0) {
-                passedTests++;
-                console.log('  \x1b[32m✓ PASSED\x1b[0m');
-            } else {
-                console.log('  \x1b[31m✗ FAILED\x1b[0m');
-            }
-        } catch (e) {
-            console.log(`  \x1b[31m✗ FAILED (Error): ${e}\x1b[0m`);
-        }
+        it("should create manual empty", () => {
+            const bracket = Bracket.createManualEmpty('t1', 5, seedingService);
+            expect(bracket.getPositions().length).toBe(8);
+            expect(bracket.getPositions().every(p => p.isEmpty())).toBe(true);
+        });
+    });
 
-        // 2. Partial bracket (power of 2 - 1)
-        if (size > 2) {
-            try {
-                totalTests++;
-                const partialCount = size - 1;
-                const participants = createParticipants(partialCount);
-                const bracket = Bracket.createAutomatically('tournament-1', participants, seedingService);
-                const positions = bracket.getPositions();
-                const byes = positions.filter(p => p.isBye()).length;
+    describe("Bracket Domain Methods", () => {
+        it("should assign participant manually", () => {
+            const bracket = Bracket.createManualEmpty('t1', 4, seedingService);
+            const participant = createParticipants(1)[0];
 
-                console.log(`  [Partial] Participants: ${partialCount} -> Bracket Size: ${positions.length}, Byes: ${byes}`);
+            bracket.assignParticipant(1, participant);
+            expect(bracket.getPositions()[0].getParticipant()).toBe(participant);
+        });
 
-                if (positions.length === size && byes === 1) {
-                    passedTests++;
-                    console.log('  \x1b[32m✓ PASSED\x1b[0m');
-                } else {
-                    console.log('  \x1b[31m✗ FAILED\x1b[0m');
-                }
-            } catch (e) {
-                console.log(`  \x1b[31m✗ FAILED (Error): ${e}\x1b[0m`);
-            }
-        }
-    }
+        it("should throw when assigning to non-draft/published", () => {
+            const bracket = Bracket.createManualEmpty('t1', 4, seedingService);
+            bracket.start(); // In progress
+            expect(() => bracket.assignParticipant(1, createParticipants(1)[0])).toThrow(BracketNotInDraftOrPublisedException);
+        });
 
-    // 3. Testing specific Bye positioning (5 participants -> 8 positions, 3 byes)
-    console.log(`\n\x1b[33mTesting Specific Bye Positioning (5 participants)\x1b[0m`);
-    try {
-        totalTests++;
-        const participants = createParticipants(5);
-        const bracket = Bracket.createAutomatically('tournament-1', participants, seedingService);
-        const positions = bracket.getPositions();
+        it("should throw when assigning to invalid position", () => {
+            const bracket = Bracket.createManualEmpty('t1', 4, seedingService);
+            expect(() => bracket.assignParticipant(5, createParticipants(1)[0])).toThrow(InvalidPositionsException);
+        });
 
-        // Expected Bye positions for 8-size bracket with 3 byes:
-        // Seeding order: [0, 7, 3, 4, 1, 6, 2, 5]
-        // With 5 players (0-4) and 3 byes (5-7):
-        // Pos 1: Player 0
-        // Pos 2: Bye (items[7])
-        // Pos 3: Player 3
-        // Pos 4: Player 4
-        // Pos 5: Player 1
-        // Pos 6: Bye (items[6])
-        // Pos 7: Player 2
-        // Pos 8: Bye (items[5])
+        it("should throw when assigning to non-empty position", () => {
+            const bracket = Bracket.createManualEmpty('t1', 4, seedingService);
+            const p = createParticipants(1)[0];
+            bracket.assignParticipant(1, p);
+            expect(() => bracket.assignParticipant(1, p)).toThrow(InvalidPositionsException);
+        });
 
-        const isByeAt = (pos: number) => positions[pos - 1].isBye();
+        it("should setup positions manually", () => {
+            const bracket = Bracket.createManualEmpty('t1', 4, seedingService);
+            const participants = createParticipants(4);
+            const newPositions = [
+                { position: 1, participant: participants[0] },
+                { position: 2, participant: participants[1] },
+                { position: 3, participant: participants[2] },
+                { position: 4, participant: participants[3] }
+            ];
 
-        console.log(`  Positions: ${positions.map(p => p.isBye() ? 'BYE' : 'PLAY').join(', ')}`);
+            bracket.setupPositions(newPositions);
+            expect(bracket.getPositions().length).toBe(4);
+            expect(bracket.getPositions()[0].getParticipant()).toBe(participants[0]);
+        });
 
-        const correctPositions = isByeAt(2) && isByeAt(6) && isByeAt(8);
+        it("should throw setupPositions invalid length", () => {
+            const bracket = Bracket.createManualEmpty('t1', 4, seedingService);
+            expect(() => bracket.setupPositions([])).toThrow(InvalidPositionsException);
+        });
 
-        if (correctPositions) {
-            passedTests++;
-            console.log('  \x1b[32m✓ PASSED (Byes are in positions 2, 6, 8)\x1b[0m');
-        } else {
-            console.log('  \x1b[31m✗ FAILED (Byes in wrong positions)\x1b[0m');
-        }
-    } catch (e) {
-        console.log(`  \x1b[31m✗ FAILED (Error): ${e}\x1b[0m`);
-    }
+        it("should throw setupPositions duplicates", () => {
+            const bracket = Bracket.createManualEmpty('t1', 4, seedingService);
+            const p = createParticipants(1)[0];
+            const newPositions = [
+                { position: 1, participant: p },
+                { position: 2, participant: p },
+                { position: 3, participant: EmptyParticipant.create() },
+                { position: 4, participant: EmptyParticipant.create() }
+            ];
+            expect(() => bracket.setupPositions(newPositions)).toThrow(DuplicateParticipantsException);
+        });
 
-    // 4. Edge cases
-    console.log(`\n\x1b[33mTesting Edge Cases (0 and 1 participants)\x1b[0m`);
+        it("should reshuffle", () => {
+            const bracket = Bracket.createAutomatically('t1', createParticipants(4), seedingService);
+            bracket.reshuffle(seedingService);
+            expect(bracket.getPositions().length).toBe(4);
+        });
 
-    // 0 participants
-    try {
-        totalTests++;
-        Bracket.createAutomatically('tournament-1', [], seedingService);
-        console.log('  [0 participants] \x1b[31m✗ FAILED (Should have thrown)\x1b[0m');
-    } catch (e) {
-        if (e instanceof RegistratedParticipantsEmptyException) {
-            passedTests++;
-            console.log('  [0 participants] \x1b[32m✓ PASSED (Threw correctly)\x1b[0m');
-        } else {
-            console.log(`  [0 participants] \x1b[31m✗ FAILED (Wrong error: ${e})\x1b[0m`);
-        }
-    }
+        it("should throw reshuffle when not draft/published", () => {
+            const bracket = Bracket.createAutomatically('t1', createParticipants(4), seedingService);
+            bracket.start();
+            expect(() => bracket.reshuffle(seedingService)).toThrow(BracketNotInDraftOrPublisedException);
+        });
+    });
 
-    // 1 participant
-    try {
-        totalTests++;
-        Bracket.createAutomatically('tournament-1', createParticipants(1), seedingService);
-        console.log('  [1 participant] \x1b[31m✗ FAILED (Should have thrown)\x1b[0m');
-    } catch (e) {
-        if (e instanceof RegistratedParticipantsNotEnoughException) {
-            passedTests++;
-            console.log('  [1 participant] \x1b[32m✓ PASSED (Threw correctly)\x1b[0m');
-        } else {
-            console.log(`  [1 participant] \x1b[31m✗ FAILED (Wrong error: ${e})\x1b[0m`);
-        }
-    }
+    describe("Bracket Rondas", () => {
+        it("should return correct total rounds", () => {
+            let b = Bracket.createManualEmpty('t1', 4, seedingService); // 4 -> 2 rounds
+            expect(b.getTotalRounds()).toBe(2);
 
-    // 5. Shuffle check
-    console.log(`\n\x1b[33mTesting Shuffle (Randomness)\x1b[0m`);
-    totalTests++;
-    const shuffleParticipants = createParticipants(8);
-    const bracket1 = Bracket.createAutomatically('tournament-1', shuffleParticipants, seedingService);
-    const bracket2 = Bracket.createAutomatically('tournament-1', shuffleParticipants, seedingService);
+            b = Bracket.createManualEmpty('t1', 8, seedingService); // 8 -> 3 rounds
+            expect(b.getTotalRounds()).toBe(3);
 
-    const ids1 = bracket1.getPositions().filter(p => !p.isBye()).map(p => p.getParticipant().getId());
-    const ids2 = bracket2.getPositions().filter(p => !p.isBye()).map(p => p.getParticipant().getId());
+            b = Bracket.createManualEmpty('t1', 16, seedingService); // 16 -> 4 rounds
+            expect(b.getTotalRounds()).toBe(4);
+        });
 
-    console.log('  Order 1:', ids1.join(', '));
-    console.log('  Order 2:', ids2.join(', '));
+        it("should return 0 rounds for 1 participant or empty", () => {
+            const b = Bracket.rehydrate({ id: 'b', status: BracketStatus.DRAFT, tournamentId: 't1', positions: [] });
+            expect(b.getTotalRounds()).toBe(0);
+        });
+    });
 
-    if (JSON.stringify(ids1) !== JSON.stringify(ids2)) {
-        passedTests++;
-        console.log('  \x1b[32m✓ PASSED (Orders are different)\x1b[0m');
-    } else {
-        console.log('  \x1b[33m⚠ WARNING: Orders are identical (could be random luck, but unlikely for 8 items)\x1b[0m');
-    }
+    describe("Status Management", () => {
+        let bracket: Bracket;
+        beforeEach(() => {
+            bracket = Bracket.createAutomatically('t1', createParticipants(4), seedingService);
+        });
 
-    console.log(`\n\x1b[36m=== SUMMARY: ${passedTests}/${totalTests} PASSED ===\x1b[0m\n`);
-}
+        it("should manage publish and unpublish", () => {
+            expect(bracket.isPublished()).toBe(false);
 
-runTests().catch(console.error);
+            bracket.publish();
+            expect(bracket.getStatus()).toBe(BracketStatus.PUBLISHED);
+            expect(bracket.isPublished()).toBe(true);
+
+            expect(() => bracket.publish()).toThrow(BracketNotInDraftException);
+
+            bracket.unpublish();
+            expect(bracket.getStatus()).toBe(BracketStatus.DRAFT);
+
+            expect(() => bracket.unpublish()).toThrow(BracketNotPublishedException);
+        });
+
+        it("should manage start and finish", () => {
+            expect(() => bracket.finish()).toThrow(BracketNotInProgressException);
+
+            bracket.start(); // Works from DRAFT or PUBLISHED
+            expect(bracket.getStatus()).toBe(BracketStatus.IN_PROGRESS);
+
+            bracket.finish();
+            expect(bracket.getStatus()).toBe(BracketStatus.FINISHED);
+            expect(bracket.pullEvents()[0]).toBeInstanceOf(BracketFinishedEvent);
+
+            const b2 = Bracket.createAutomatically('t1', createParticipants(4), seedingService);
+            expect(() => b2.finish()).toThrow(BracketNotInProgressException);
+        });
+
+        it("should manage cancel", () => {
+            bracket.cancel();
+            expect(bracket.getStatus()).toBe(BracketStatus.CANCELLED);
+
+            const b2 = Bracket.createAutomatically('t1', createParticipants(4), seedingService);
+            b2.start();
+            b2.finish();
+            expect(() => b2.cancel()).toThrow(BracketAlreadyFinishedException);
+        });
+
+        it("should manage delete", () => {
+            bracket.delete(); // fine
+
+            const b2 = Bracket.createAutomatically('t1', createParticipants(4), seedingService);
+            b2.start();
+            expect(() => b2.delete()).toThrow(BracketInProgressException);
+            b2.finish();
+            expect(() => b2.delete()).toThrow(BracketAlreadyFinishedException);
+        });
+    });
+
+    describe("Rehydrate", () => {
+        it("should rehydrate bracket", () => {
+            const b = Bracket.rehydrate({
+                id: 'b1',
+                status: BracketStatus.IN_PROGRESS,
+                tournamentId: 't1',
+                positions: []
+            });
+            expect(b.getId()).toBe('b1');
+            expect(b.getStatus()).toBe(BracketStatus.IN_PROGRESS);
+            expect(b.getTournamentId()).toBe('t1');
+            expect(b.getPositions().length).toBe(0);
+        });
+    });
+});
