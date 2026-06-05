@@ -16,10 +16,11 @@ import {
 } from '../../../domain/exceptions/UserExceptions.js';
 import { MailerSendException } from '../../../domain/exceptions/MailerExceptions.js';
 import UserServiceFactory from '../../factories/UserServiceFactory.js';
+import TournamentResultsServiceFactory from '../../factories/TournamentResultsServiceFactory.js';
 
 
 const userService = UserServiceFactory.getInstance();
-
+const tournamentResultsService = TournamentResultsServiceFactory.getInstance();
 
 /**
  * @swagger
@@ -49,7 +50,41 @@ const userService = UserServiceFactory.getInstance();
  *           type: string
  *           format: date-time
  *           example: 2026-05-04T13:10:16.841Z
- *
+ * 
+ *     UserStats:
+ *       type: object
+ *       properties:
+ *         totalTournaments:
+ *           type: integer
+ *           example: 2
+ *         totalMatchesPlayed:
+ *           type: integer
+ *           example: 60
+ *         totalMatchWon:
+ *           type: integer
+ *           example: 42
+ *         totalSetsWon:
+ *           type: integer
+ *           example: 42
+ *         totalLegsWon:
+ *           type: integer
+ *           example: 153
+ *         bestPositions:
+ *           type: array
+ *           description: Top 3 mejores posiciones obtenidas
+ *           items:
+ *             type: object
+ *             properties:
+ *               position:
+ *                 type: integer
+ *                 example: 1
+ *               tournamentId:
+ *                 type: string
+ *                 example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *               tournamentName:
+ *                 type: string
+ *                 example: Campeonato de Aragón Individual Masculino 2026
+ * 
  *     CreateUserRequest:
  *       type: object
  *       required:
@@ -1414,6 +1449,114 @@ export class UserController {
       }
       if (error instanceof UserNotDeletedException) {
         return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
+      console.error('[ERROR]:', error);
+      res.status(500).json(
+        ApiResponseBuilder.error('Internal server error')
+      );
+    }
+  }
+
+
+  /**
+   * @swagger
+   * /api/users/{id}/stats:
+   *   get:
+   *     summary: Get user stats
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: User ID
+   *         schema:
+   *           type: string
+   *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+   *     responses:
+   *       200:
+   *         description: User stats fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: User stats fetched successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/UserStats'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: All fields are required
+   *       404:
+   *         description: Not Found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   oneOf:
+   *                     - example: User not found
+   *       500:
+   *         description: Internal Server Error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Internal server error
+   */
+  async getUserStats(req: AuthRequest, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!id || typeof id !== 'string') {
+        throw new MissingRequiredUserFieldsException();
+      }
+
+      const results = await tournamentResultsService.getStatsByUserId(id);
+
+      res.status(200).json(
+        ApiResponseBuilder.success(
+          results,
+          'User stats fetched successfully',
+        )
+      );
+    } catch (error: any) {
+      if (error instanceof MissingRequiredUserFieldsException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof UserNotFoundException) {
+        return res.status(404).json(
           ApiResponseBuilder.error(error.message)
         );
       }

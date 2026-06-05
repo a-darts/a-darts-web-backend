@@ -19,3 +19,18 @@ export interface ParticipantResultDTO {
     legsWon: number;
     legsLost: number;
 }
+
+export interface UserStatsDTO {
+    totalTournaments: number;
+    totalMatchesPlayed: number;
+    totalMatchesWon: number;
+    totalSetsWon: number;
+    totalLegsWon: number;
+    bestPositions: BestPositionObject[];
+}
+
+export interface BestPositionObject {
+    position: number;
+    tournamentId: string;
+    tournamentName: string;
+}

@@ -402,27 +402,27 @@ export class TournamentService {
 
   public async processRegistrationPeriods(): Promise<void> {
     try {
-      const tournaments = await this.tournamentRepository.findAll();
-      const publishedTournaments = tournaments.filter(t => t.getStatus() === TournamentStatus.PUBLISHED);
+      // const tournaments = await this.tournamentRepository.findAll();
+      // const publishedTournaments = tournaments.filter(t => t.getStatus() === TournamentStatus.PUBLISHED);
 
-      for (const tournament of publishedTournaments) {
-        const registration = tournament.getRegistration();
-        const period = registration.getRegistrationPeriod();
+      // for (const tournament of publishedTournaments) {
+      //   const registration = tournament.getRegistration();
+      //   const period = registration.getRegistrationPeriod();
 
-        // If period is open but registration is closed, open it
-        if (period.isOpen() && registration.isClosed()) {
-          tournament.openRegistration();
-          await this.tournamentRepository.update(tournament);
-          console.log(`[RegistrationScheduler] Opened registration for tournament ${tournament.getId()} (${tournament.getName()})`);
-        }
+      //   // If period is open but registration is closed, open it
+      //   if (period.isOpen() && registration.isClosed()) {
+      //     tournament.openRegistration();
+      //     await this.tournamentRepository.update(tournament);
+      //     console.log(`[RegistrationScheduler] Opened registration for tournament ${tournament.getId()} (${tournament.getName()})`);
+      //   }
 
-        // If period is closed but registration is open, close it
-        if (period.isClosed() && registration.isOpen()) {
-          tournament.closeRegistration();
-          await this.tournamentRepository.update(tournament);
-          console.log(`[RegistrationScheduler] Closed registration for tournament ${tournament.getId()} (${tournament.getName()})`);
-        }
-      }
+      //   // If period is closed but registration is open, close it
+      //   if (period.isClosed() && registration.isOpen()) {
+      //     tournament.closeRegistration();
+      //     await this.tournamentRepository.update(tournament);
+      //     console.log(`[RegistrationScheduler] Closed registration for tournament ${tournament.getId()} (${tournament.getName()})`);
+      //   }
+      // }
     } catch (error) {
       console.error('[RegistrationScheduler] Error processing registration periods:', error);
     }

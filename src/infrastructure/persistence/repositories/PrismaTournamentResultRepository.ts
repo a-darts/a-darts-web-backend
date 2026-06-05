@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { TournamentResult } from '../../../domain/entities/TournamentResult.js';
-import { ITournamentResultRepository, TournamentResultWithPlayerAndUser } from '../../../domain/ports/repositories/ITournamentResultRepository.js';
+import { ITournamentResultRepository, TournamentResultWithPlayerAndUser, TournamentResultWithTournament } from '../../../domain/ports/repositories/ITournamentResultRepository.js';
 import { TournamentResultMapper } from '../mappers/TournamentResultMapper.js';
 import { PlayerMapper } from '../mappers/PlayerMapper.js';
 import { UserMapper } from '../mappers/UserMapper.js';
+import { TournamentMapper } from '../mappers/TournamentMapper.js';
 
 export class PrismaTournamentResultRepository implements ITournamentResultRepository {
     constructor(private readonly prisma: PrismaClient) { }
@@ -57,5 +58,28 @@ export class PrismaTournamentResultRepository implements ITournamentResultReposi
         });
 
         return results.map(data => TournamentResultMapper.toDomain(data));
+    }
+
+    async findAllByPlayerIdsWithTournament(playerIds: string[]): Promise<TournamentResultWithTournament[]> {
+        if (playerIds.length === 0) return [];
+
+        const results = await this.prisma.tournamentResult.findMany({
+            where: {
+                playerId: {
+                    in: playerIds
+                }
+            },
+            include: {
+                tournament: true
+            },
+            orderBy: {
+                tournamentId: 'desc'
+            }
+        });
+
+        return results.map(data => ({
+            result: TournamentResultMapper.toDomain(data),
+            tournament: TournamentMapper.toDomain(data.tournament),
+        }));
     }
 }

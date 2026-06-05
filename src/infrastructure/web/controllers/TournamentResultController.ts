@@ -4,7 +4,7 @@ import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse
 import {
   TournamentNotFoundException,
 } from '../../../domain/exceptions/TournamentExceptions.js';
-import { MissingRequiredUserFieldsException } from '../../../domain/exceptions/UserExceptions.js';
+import { MissingRequiredUserFieldsException, UserNotFoundException } from '../../../domain/exceptions/UserExceptions.js';
 import { TournamentResultNotFoundException } from '../../../domain/exceptions/TournamentResultException.js';
 import TournamentResultsServiceFactory from '../../factories/TournamentResultsServiceFactory.js';
 
@@ -66,7 +66,7 @@ const tournamentResultsService = TournamentResultsServiceFactory.getInstance();
  */
 export class TournamentResultController {
 
-  
+
   /**
    * @swagger
    * /api/tournaments/{id}/results:

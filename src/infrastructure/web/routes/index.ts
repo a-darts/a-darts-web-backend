@@ -51,6 +51,8 @@ router.post('/users/:id/unblock', authMiddleware, isAdmin, userController.unbloc
 router.delete('/users/:id', authMiddleware, isAdmin, userController.deleteUser);
 router.post('/users/:id/restore', authMiddleware, isAdmin, userController.restoreUser);
 
+router.get('/users/:id/stats', authMiddleware, isSelfOrAdmin, userController.getUserStats);
+
 
 // Player routes
 router.get('/players', authMiddleware, playerController.getAllPlayers);
