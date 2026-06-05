@@ -111,6 +111,12 @@ describe("Bracket Entity", () => {
             expect(bracket.getPositions()[0].getParticipant()).toBe(participants[0]);
         });
 
+        it("should throw setupPositions bracket not in draft or published", () => {
+            const bracket = Bracket.createManualEmpty('t1', 4, seedingService);
+            bracket.start();
+            expect(() => bracket.setupPositions([])).toThrow(BracketNotInDraftOrPublisedException);
+        });
+
         it("should throw setupPositions invalid length", () => {
             const bracket = Bracket.createManualEmpty('t1', 4, seedingService);
             expect(() => bracket.setupPositions([])).toThrow(InvalidPositionsException);
@@ -185,6 +191,8 @@ describe("Bracket Entity", () => {
 
             bracket.start(); // Works from DRAFT or PUBLISHED
             expect(bracket.getStatus()).toBe(BracketStatus.IN_PROGRESS);
+
+            expect(() => bracket.start()).toThrow(BracketNotInDraftOrPublisedException);
 
             bracket.finish();
             expect(bracket.getStatus()).toBe(BracketStatus.FINISHED);
