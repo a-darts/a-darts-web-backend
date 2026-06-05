@@ -1,12 +1,12 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: scoreo_db
+    container_name: a-darts_db
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: scoreo_db
+      POSTGRES_DB: a-darts_db
     ports:
       - "5432:5432"
     volumes:
@@ -14,7 +14,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: scoreo_redis
+    container_name: a-darts_redis
     restart: always
     ports:
       - "6379:6379"
