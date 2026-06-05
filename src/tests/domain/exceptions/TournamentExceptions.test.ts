@@ -1,0 +1,43 @@
+import { describe, it, expect } from 'vitest';
+import * as Exceptions from '../../../domain/exceptions/TournamentExceptions';
+
+describe('TournamentExceptions', () => {
+    it('should instantiate all exceptions correctly', () => {
+        const exTournamentNotInDraftException = new Exceptions.TournamentNotInDraftException();
+        expect(exTournamentNotInDraftException).toBeInstanceOf(Error);
+        expect(exTournamentNotInDraftException.name).toBe('TournamentNotInDraftException');
+        const exTournamentRegistrationNotClosedException = new Exceptions.TournamentRegistrationNotClosedException();
+        expect(exTournamentRegistrationNotClosedException).toBeInstanceOf(Error);
+        expect(exTournamentRegistrationNotClosedException.name).toBe('TournamentRegistrationNotClosedException');
+        const exTournamentNotInProgressException = new Exceptions.TournamentNotInProgressException();
+        expect(exTournamentNotInProgressException).toBeInstanceOf(Error);
+        expect(exTournamentNotInProgressException.name).toBe('TournamentNotInProgressException');
+        const exTournamentNotPublishedException = new Exceptions.TournamentNotPublishedException();
+        expect(exTournamentNotPublishedException).toBeInstanceOf(Error);
+        expect(exTournamentNotPublishedException.name).toBe('TournamentNotPublishedException');
+        const exTournamentNotInDraftOrPublishedException = new Exceptions.TournamentNotInDraftOrPublishedException();
+        expect(exTournamentNotInDraftOrPublishedException).toBeInstanceOf(Error);
+        expect(exTournamentNotInDraftOrPublishedException.name).toBe('TournamentNotInDraftOrPublishedException');
+        const exTournamentAlreadyFinishedException = new Exceptions.TournamentAlreadyFinishedException();
+        expect(exTournamentAlreadyFinishedException).toBeInstanceOf(Error);
+        expect(exTournamentAlreadyFinishedException.name).toBe('TournamentAlreadyFinishedException');
+        const exTournamentRegistrationNotOpenException = new Exceptions.TournamentRegistrationNotOpenException();
+        expect(exTournamentRegistrationNotOpenException).toBeInstanceOf(Error);
+        expect(exTournamentRegistrationNotOpenException.name).toBe('TournamentRegistrationNotOpenException');
+        const exTournamentNotFoundException = new Exceptions.TournamentNotFoundException();
+        expect(exTournamentNotFoundException).toBeInstanceOf(Error);
+        expect(exTournamentNotFoundException.name).toBe('TournamentNotFoundException');
+        const exTournamentNotDeletedException = new Exceptions.TournamentNotDeletedException();
+        expect(exTournamentNotDeletedException).toBeInstanceOf(Error);
+        expect(exTournamentNotDeletedException.name).toBe('TournamentNotDeletedException');
+        const exTournamentMaxPlayersExceededException = new Exceptions.TournamentMaxPlayersExceededException();
+        expect(exTournamentMaxPlayersExceededException).toBeInstanceOf(Error);
+        expect(exTournamentMaxPlayersExceededException.name).toBe('TournamentMaxPlayersExceededException');
+        const exInvalidSeasonStartYearException = new Exceptions.InvalidSeasonStartYearException();
+        expect(exInvalidSeasonStartYearException).toBeInstanceOf(Error);
+        expect(exInvalidSeasonStartYearException.name).toBe('InvalidSeasonStartYearException');
+        const exTournamentAlreadyHasBracketException = new Exceptions.TournamentAlreadyHasBracketException();
+        expect(exTournamentAlreadyHasBracketException).toBeInstanceOf(Error);
+        expect(exTournamentAlreadyHasBracketException.name).toBe('TournamentAlreadyHasBracketException');
+    });
+});

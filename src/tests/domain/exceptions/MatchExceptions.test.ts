@@ -1,0 +1,40 @@
+import { describe, it, expect } from 'vitest';
+import * as Exceptions from '../../../domain/exceptions/MatchExceptions';
+
+describe('MatchExceptions', () => {
+    it('should instantiate all exceptions correctly', () => {
+        const exMatchNotReadyException = new Exceptions.MatchNotReadyException();
+        expect(exMatchNotReadyException).toBeInstanceOf(Error);
+        expect(exMatchNotReadyException.name).toBe('MatchNotReadyException');
+        const exMatchNotPendingException = new Exceptions.MatchNotPendingException();
+        expect(exMatchNotPendingException).toBeInstanceOf(Error);
+        expect(exMatchNotPendingException.name).toBe('MatchNotPendingException');
+        const exMatchNotInProgressException = new Exceptions.MatchNotInProgressException();
+        expect(exMatchNotInProgressException).toBeInstanceOf(Error);
+        expect(exMatchNotInProgressException.name).toBe('MatchNotInProgressException');
+        const exMatchNotSuspendedException = new Exceptions.MatchNotSuspendedException();
+        expect(exMatchNotSuspendedException).toBeInstanceOf(Error);
+        expect(exMatchNotSuspendedException.name).toBe('MatchNotSuspendedException');
+        const exMatchAlreadyFinishedException = new Exceptions.MatchAlreadyFinishedException();
+        expect(exMatchAlreadyFinishedException).toBeInstanceOf(Error);
+        expect(exMatchAlreadyFinishedException.name).toBe('MatchAlreadyFinishedException');
+        const exMatchBoardNumberRequiredException = new Exceptions.MatchBoardNumberRequiredException();
+        expect(exMatchBoardNumberRequiredException).toBeInstanceOf(Error);
+        expect(exMatchBoardNumberRequiredException.name).toBe('MatchBoardNumberRequiredException');
+        const exMatchNotAssignedToBoardException = new Exceptions.MatchNotAssignedToBoardException();
+        expect(exMatchNotAssignedToBoardException).toBeInstanceOf(Error);
+        expect(exMatchNotAssignedToBoardException.name).toBe('MatchNotAssignedToBoardException');
+        const exParticipantNotFoundInMatchException = new Exceptions.ParticipantNotFoundInMatchException();
+        expect(exParticipantNotFoundInMatchException).toBeInstanceOf(Error);
+        expect(exParticipantNotFoundInMatchException.name).toBe('ParticipantNotFoundInMatchException');
+        const exParticipantNotRegisteredInTournamentException = new Exceptions.ParticipantNotRegisteredInTournamentException(1);
+        expect(exParticipantNotRegisteredInTournamentException).toBeInstanceOf(Error);
+        expect(exParticipantNotRegisteredInTournamentException.name).toBe('ParticipantNotRegisteredInTournamentException');
+        const exMatchAlreadyExistsException = new Exceptions.MatchAlreadyExistsException();
+        expect(exMatchAlreadyExistsException).toBeInstanceOf(Error);
+        expect(exMatchAlreadyExistsException.name).toBe('MatchAlreadyExistsException');
+        const exMatchNotFoundException = new Exceptions.MatchNotFoundException();
+        expect(exMatchNotFoundException).toBeInstanceOf(Error);
+        expect(exMatchNotFoundException.name).toBe('MatchNotFoundException');
+    });
+});

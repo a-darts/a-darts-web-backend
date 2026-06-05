@@ -1,0 +1,43 @@
+import { describe, it, expect } from 'vitest';
+import * as Exceptions from '../../../domain/exceptions/PlayingAreaExceptions';
+
+describe('PlayingAreaExceptions', () => {
+    it('should instantiate all exceptions correctly', () => {
+        const exPlayingAreaNotFoundException = new Exceptions.PlayingAreaNotFoundException();
+        expect(exPlayingAreaNotFoundException).toBeInstanceOf(Error);
+        expect(exPlayingAreaNotFoundException.name).toBe('PlayingAreaNotFoundException');
+        const exPlayingAreaAlreadyExistsException = new Exceptions.PlayingAreaAlreadyExistsException();
+        expect(exPlayingAreaAlreadyExistsException).toBeInstanceOf(Error);
+        expect(exPlayingAreaAlreadyExistsException.name).toBe('PlayingAreaAlreadyExistsException');
+        const exPlayingAreaHasNoBoardsException = new Exceptions.PlayingAreaHasNoBoardsException();
+        expect(exPlayingAreaHasNoBoardsException).toBeInstanceOf(Error);
+        expect(exPlayingAreaHasNoBoardsException.name).toBe('PlayingAreaHasNoBoardsException');
+        const exBoardOccupiedException = new Exceptions.BoardOccupiedException();
+        expect(exBoardOccupiedException).toBeInstanceOf(Error);
+        expect(exBoardOccupiedException.name).toBe('BoardOccupiedException');
+        const exBoardNotFoundException = new Exceptions.BoardNotFoundException();
+        expect(exBoardNotFoundException).toBeInstanceOf(Error);
+        expect(exBoardNotFoundException.name).toBe('BoardNotFoundException');
+        const exBoardAlreadyOccupiedException = new Exceptions.BoardAlreadyOccupiedException();
+        expect(exBoardAlreadyOccupiedException).toBeInstanceOf(Error);
+        expect(exBoardAlreadyOccupiedException.name).toBe('BoardAlreadyOccupiedException');
+        const exBoardDisabledException = new Exceptions.BoardDisabledException();
+        expect(exBoardDisabledException).toBeInstanceOf(Error);
+        expect(exBoardDisabledException.name).toBe('BoardDisabledException');
+        const exBoardNotOccupiedException = new Exceptions.BoardNotOccupiedException();
+        expect(exBoardNotOccupiedException).toBeInstanceOf(Error);
+        expect(exBoardNotOccupiedException.name).toBe('BoardNotOccupiedException');
+        const exBoardNotAvailableException = new Exceptions.BoardNotAvailableException();
+        expect(exBoardNotAvailableException).toBeInstanceOf(Error);
+        expect(exBoardNotAvailableException.name).toBe('BoardNotAvailableException');
+        const exBoardNotDisabledException = new Exceptions.BoardNotDisabledException();
+        expect(exBoardNotDisabledException).toBeInstanceOf(Error);
+        expect(exBoardNotDisabledException.name).toBe('BoardNotDisabledException');
+        const exMatchAlreadyAssignedToBoardException = new Exceptions.MatchAlreadyAssignedToBoardException();
+        expect(exMatchAlreadyAssignedToBoardException).toBeInstanceOf(Error);
+        expect(exMatchAlreadyAssignedToBoardException.name).toBe('MatchAlreadyAssignedToBoardException');
+        const exBoardPairedWithTabletException = new Exceptions.BoardPairedWithTabletException();
+        expect(exBoardPairedWithTabletException).toBeInstanceOf(Error);
+        expect(exBoardPairedWithTabletException.name).toBe('BoardPairedWithTabletException');
+    });
+});

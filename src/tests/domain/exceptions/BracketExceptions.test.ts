@@ -1,0 +1,40 @@
+import { describe, it, expect } from 'vitest';
+import * as Exceptions from '../../../domain/exceptions/BracketExceptions';
+
+describe('BracketExceptions', () => {
+    it('should instantiate all exceptions correctly', () => {
+        const exBracketNotFoundException = new Exceptions.BracketNotFoundException();
+        expect(exBracketNotFoundException).toBeInstanceOf(Error);
+        expect(exBracketNotFoundException.name).toBe('BracketNotFoundException');
+        const exBracketAlreadyExistsException = new Exceptions.BracketAlreadyExistsException();
+        expect(exBracketAlreadyExistsException).toBeInstanceOf(Error);
+        expect(exBracketAlreadyExistsException.name).toBe('BracketAlreadyExistsException');
+        const exBracketNotInDraftOrPublisedException = new Exceptions.BracketNotInDraftOrPublisedException();
+        expect(exBracketNotInDraftOrPublisedException).toBeInstanceOf(Error);
+        expect(exBracketNotInDraftOrPublisedException.name).toBe('BracketNotInDraftOrPublisedException');
+        const exBracketNotInDraftException = new Exceptions.BracketNotInDraftException();
+        expect(exBracketNotInDraftException).toBeInstanceOf(Error);
+        expect(exBracketNotInDraftException.name).toBe('BracketNotInDraftException');
+        const exBracketNotInProgressException = new Exceptions.BracketNotInProgressException();
+        expect(exBracketNotInProgressException).toBeInstanceOf(Error);
+        expect(exBracketNotInProgressException.name).toBe('BracketNotInProgressException');
+        const exBracketInProgressException = new Exceptions.BracketInProgressException();
+        expect(exBracketInProgressException).toBeInstanceOf(Error);
+        expect(exBracketInProgressException.name).toBe('BracketInProgressException');
+        const exBracketNotPublishedException = new Exceptions.BracketNotPublishedException();
+        expect(exBracketNotPublishedException).toBeInstanceOf(Error);
+        expect(exBracketNotPublishedException.name).toBe('BracketNotPublishedException');
+        const exBracketAlreadyFinishedException = new Exceptions.BracketAlreadyFinishedException();
+        expect(exBracketAlreadyFinishedException).toBeInstanceOf(Error);
+        expect(exBracketAlreadyFinishedException.name).toBe('BracketAlreadyFinishedException');
+        const exInvalidPositionsException = new Exceptions.InvalidPositionsException();
+        expect(exInvalidPositionsException).toBeInstanceOf(Error);
+        expect(exInvalidPositionsException.name).toBe('InvalidPositionsException');
+        const exDuplicateParticipantsException = new Exceptions.DuplicateParticipantsException();
+        expect(exDuplicateParticipantsException).toBeInstanceOf(Error);
+        expect(exDuplicateParticipantsException.name).toBe('DuplicateParticipantsException');
+        const exBracketUnfinishedException = new Exceptions.BracketUnfinishedException();
+        expect(exBracketUnfinishedException).toBeInstanceOf(Error);
+        expect(exBracketUnfinishedException.name).toBe('BracketUnfinishedException');
+    });
+});
