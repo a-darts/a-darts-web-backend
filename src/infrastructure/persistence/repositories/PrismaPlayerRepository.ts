@@ -1,6 +1,6 @@
-import { PlayerStatus, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { IPlayerRepository, PlayerWithUser } from '../../../domain/ports/repositories/IPlayerRepository.js';
-import { Player } from '../../../domain/entities/Player.js';
+import { Player, PlayerStatus } from '../../../domain/entities/Player.js';
 import { PlayerMapper } from '../mappers/PlayerMapper.js';
 import { transactionStorage } from '../TransactionContext.js';
 import { UserMapper } from '../mappers/UserMapper.js';
