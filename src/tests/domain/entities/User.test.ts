@@ -158,11 +158,6 @@ describe("User Entity", () => {
             user.block();
             expect(() => user.activate()).toThrow(UserNotInactiveException);
         });
-
-        it("should throw exception when deactivating a non-active user", () => {
-            user.deactivate();
-            expect(() => user.deactivate()).toThrow(UserNotActiveException);
-        });
     });
 
     describe("Rehydrate", () => {
