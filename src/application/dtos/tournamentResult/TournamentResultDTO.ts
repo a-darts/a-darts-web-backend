@@ -26,11 +26,14 @@ export interface UserStatsDTO {
     totalMatchesWon: number;
     totalSetsWon: number;
     totalLegsWon: number;
-    bestPositions: BestPositionObject[];
+    bestPositions: PositionObject[];
+    allPositions: PositionObject[];
 }
 
-export interface BestPositionObject {
+export interface PositionObject {
     position: number;
     tournamentId: string;
     tournamentName: string;
+    tournamentDate: Date;
+    tournamentFederation: string;
 }

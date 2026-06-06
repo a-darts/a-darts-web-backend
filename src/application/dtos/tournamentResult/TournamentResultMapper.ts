@@ -1,6 +1,6 @@
 import { TournamentResult } from '../../../domain/entities/TournamentResult.js';
 import { TournamentResultWithPlayerAndUser, TournamentResultWithTournament } from '../../../domain/ports/repositories/ITournamentResultRepository.js';
-import { BestPositionObject, ParticipantResultDTO, TournamentResultDTO, UserStatsDTO } from './TournamentResultDTO.js';
+import { PositionObject, ParticipantResultDTO, TournamentResultDTO, UserStatsDTO } from './TournamentResultDTO.js';
 
 export class TournamentResultMapper {
     public static toResponse(results: TournamentResultWithPlayerAndUser[]): TournamentResultDTO {
@@ -36,6 +36,7 @@ export class TournamentResultMapper {
                 totalSetsWon: 0,
                 totalLegsWon: 0,
                 bestPositions: [],
+                allPositions: [],
             };
         }
 
@@ -44,7 +45,7 @@ export class TournamentResultMapper {
         let totalSetsWon = 0;
         let totalLegsWon = 0;
 
-        const positionsWithTournaments: BestPositionObject[] = [];
+        const positionsWithTournaments: PositionObject[] = [];
 
         for (const item of resultsWithTournament) {
             const res = item.result;
@@ -59,12 +60,17 @@ export class TournamentResultMapper {
                 position: res.getFinalPosition(),
                 tournamentId: res.getTournamentId(),
                 tournamentName: tournament.getName(),
+                tournamentDate: tournament.getInfo().getDateTime(),
+                tournamentFederation: tournament.getInfo().getFederation(),
             });
         }
 
-        const orderedPositions = positionsWithTournaments.sort((a, b) => a.position - b.position);
+        const bestPositions = [...positionsWithTournaments]
+            .sort((a, b) => a.position - b.position)
+            .slice(0, 3);
 
-        const bestPositions = orderedPositions.slice(0, 3);
+        const allPositions = [...positionsWithTournaments]
+            .sort((a, b) => b.tournamentDate.getTime() - a.tournamentDate.getTime());
 
         return {
             totalTournaments: resultsWithTournament.length,
@@ -73,6 +79,7 @@ export class TournamentResultMapper {
             totalSetsWon,
             totalLegsWon,
             bestPositions,
+            allPositions,
         };
     }
 }

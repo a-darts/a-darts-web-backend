@@ -73,17 +73,32 @@ const tournamentResultsService = TournamentResultsServiceFactory.getInstance();
  *           type: array
  *           description: Top 3 mejores posiciones obtenidas
  *           items:
- *             type: object
- *             properties:
- *               position:
- *                 type: integer
- *                 example: 1
- *               tournamentId:
- *                 type: string
- *                 example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
- *               tournamentName:
- *                 type: string
- *                 example: Campeonato de Aragón Individual Masculino 2026
+ *             $ref: '#/components/schemas/PositionObject'
+ *         allPositions:
+ *           type: array
+ *           description: Historial completo de posiciones obtenidas
+ *           items:
+ *             $ref: '#/components/schemas/PositionObject'
+ * 
+ *     PositionObject:
+ *       type: object
+ *       properties:
+ *         position:
+ *           type: integer
+ *           example: 1
+ *         tournamentId:
+ *           type: string
+ *           example: f11e4b38-9c58-46a3-9852-d4f7f3a56c42
+ *         tournamentName:
+ *           type: string
+ *           example: Campeonato de Aragón Individual Masculino 2026
+ *         tournamentDate:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-05-04T13:10:16.841Z
+ *         tournamentFederation:
+ *           type: string
+ *           example: ARAGON
  * 
  *     CreateUserRequest:
  *       type: object
