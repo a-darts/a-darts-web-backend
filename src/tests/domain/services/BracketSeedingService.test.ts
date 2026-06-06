@@ -27,8 +27,8 @@ describe('BracketSeedingService', () => {
     });
 
     it('should generate positions for 2 participants', () => {
-        const p1 = RegisteredParticipant.create('t1', 'u1');
-        const p2 = RegisteredParticipant.create('t1', 'u2');
+        const p1 = RegisteredParticipant.create('p1', 't1', 'player 1', 'ARAGON');
+        const p2 = RegisteredParticipant.create('p2', 't1', 'player 2', 'ARAGON');
         const positions = service.generatePositions([p1, p2]);
 
         expect(positions).toHaveLength(2);
@@ -39,9 +39,9 @@ describe('BracketSeedingService', () => {
     });
 
     it('should generate positions with Byes for 3 participants', () => {
-        const p1 = RegisteredParticipant.create('t1', 'u1');
-        const p2 = RegisteredParticipant.create('t1', 'u2');
-        const p3 = RegisteredParticipant.create('t1', 'u3');
+        const p1 = RegisteredParticipant.create('p1', 't1', 'player 1', 'ARAGON');
+        const p2 = RegisteredParticipant.create('p2', 't1', 'player 2', 'ARAGON');
+        const p3 = RegisteredParticipant.create('p3', 't1', 'player 3', 'ARAGON');
         const positions = service.generatePositions([p1, p2, p3]);
 
         expect(positions).toHaveLength(4);

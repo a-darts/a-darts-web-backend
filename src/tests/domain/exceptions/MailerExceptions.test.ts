@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import * as Exceptions from '../../../domain/exceptions/MailerExceptions';
+import * as Exceptions from '../../../domain/exceptions/MailerExceptions.js';
 
 describe('MailerExceptions', () => {
     it('should instantiate all exceptions correctly', () => {

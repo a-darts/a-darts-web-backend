@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import * as Exceptions from '../../../domain/exceptions/TournamentResultException';
+import * as Exceptions from '../../../domain/exceptions/TournamentResultException.js';
 
 describe('TournamentResultException', () => {
     it('should instantiate all exceptions correctly', () => {
