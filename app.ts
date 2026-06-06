@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import router from './src/infrastructure/web/routes/index.js';
 import { specs } from './src/infrastructure/web/swagger.js';
@@ -14,6 +15,8 @@ configureSubscribers(globalEventBus);
 const allowedOrigins = process.env.FRONTEND_URL
     ? process.env.FRONTEND_URL.split(',')
     : ['http://localhost:5173'];
+
+app.use(helmet());
 
 // Middlewares
 app.use(cors({
