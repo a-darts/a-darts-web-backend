@@ -32,7 +32,7 @@ async function startServer() {
         SocketFactory.compose(server);
 
         server.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
+            console.log(`Server is running on ${process.env.BACKEND_URL}`);
             console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
         });
     } catch (error) {
