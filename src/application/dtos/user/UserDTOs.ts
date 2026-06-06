@@ -13,7 +13,6 @@ export interface RegisterUserRequestDTO {
     email: string;
     password: string;
     alias: string;
-    role: UserRoles;
 }
 
 export interface RegisterUserByAdminRequestDTO {
@@ -59,11 +58,11 @@ export interface CreateTemporaryPasswordRequestDTO {
 }
 
 export interface PaginatedUsersResponse {
-  users: UserResponseDTO[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+    users: UserResponseDTO[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
 }

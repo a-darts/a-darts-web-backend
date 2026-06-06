@@ -76,10 +76,9 @@ export class User {
     email: string,
     password: string,
     alias: string,
-    role: UserRoles,
   ): User {
     if (
-      !email || !password || !alias || !role ||
+      !email || !password || !alias ||
       email.trim() === '' || password.trim() === '' || alias.trim() === ''
     ) {
       throw new MissingRequiredUserFieldsException();
@@ -89,7 +88,7 @@ export class User {
       crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
       email,
       alias,
-      role,
+      UserRoles.PLAYER,
       new Date(),
       null,
       UserStatus.ACTIVE,

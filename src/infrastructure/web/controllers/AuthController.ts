@@ -58,7 +58,6 @@ const userService = UserServiceFactory.getInstance();
  *         - email
  *         - password
  *         - alias
- *         - role
  *       properties:
  *         email:
  *           type: string
@@ -69,11 +68,7 @@ const userService = UserServiceFactory.getInstance();
  *         alias:
  *           type: string
  *           example: prueba
- *         role:
- *           type: string
- *           enum: [PLAYER, ADMIN]
- *           example: ADMIN
- * 
+ *
  *     LoginRequest:
  *       type: object
  *       required:

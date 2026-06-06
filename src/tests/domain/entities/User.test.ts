@@ -17,7 +17,7 @@ describe("User Entity", () => {
         });
 
         it("should create self user", () => {
-            const user = User.createSelf("self@test.com", "pass123", "SelfAlias", UserRoles.PLAYER);
+            const user = User.createSelf("self@test.com", "pass123", "SelfAlias");
             expect(user.getEmail()).toBe("self@test.com");
             expect(user.getStatus()).toBe(UserStatus.ACTIVE);
             expect(user.getId()).toBeDefined();
@@ -26,10 +26,10 @@ describe("User Entity", () => {
         });
 
         it("should throw MissingRequiredUserFieldsException for invalid data", () => {
-            expect(() => User.createSelf("", "pass", "Alias", UserRoles.PLAYER)).toThrow(MissingRequiredUserFieldsException);
-            expect(() => User.createSelf("email", "", "Alias", UserRoles.PLAYER)).toThrow(MissingRequiredUserFieldsException);
-            expect(() => User.createSelf("email", "pass", "", UserRoles.PLAYER)).toThrow(MissingRequiredUserFieldsException);
-            expect(() => User.createSelf("email", "pass", "Alias", null as any)).toThrow(MissingRequiredUserFieldsException);
+            expect(() => User.createSelf("", "pass", "Alias")).toThrow(MissingRequiredUserFieldsException);
+            expect(() => User.createSelf("email", "", "Alias")).toThrow(MissingRequiredUserFieldsException);
+            expect(() => User.createSelf("email", "pass", "")).toThrow(MissingRequiredUserFieldsException);
+            expect(() => User.createSelf("email", "pass", "Alias")).toThrow(MissingRequiredUserFieldsException);
 
             expect(() => User.createByAdmin("admin@test.com", "", "Alias", UserRoles.ADMIN)).toThrow(MissingRequiredUserFieldsException);
             expect(() => User.createByAdmin("", "temp", "Alias", UserRoles.ADMIN)).toThrow(MissingRequiredUserFieldsException);
@@ -41,7 +41,7 @@ describe("User Entity", () => {
     describe("Update Methods", () => {
         let user: User;
         beforeEach(() => {
-            user = User.createSelf("test@test.com", "pass123", "Alias", UserRoles.PLAYER);
+            user = User.createSelf("test@test.com", "pass123", "Alias");
         });
 
         it("should update email", () => {
@@ -78,7 +78,7 @@ describe("User Entity", () => {
     describe("Status Management", () => {
         let user: User;
         beforeEach(() => {
-            user = User.createSelf("test@test.com", "pass123", "Alias", UserRoles.PLAYER);
+            user = User.createSelf("test@test.com", "pass123", "Alias");
         });
 
         it("should delete user and anonymize data", () => {

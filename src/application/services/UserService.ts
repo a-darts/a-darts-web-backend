@@ -97,7 +97,6 @@ export class UserService {
       request.email,
       hashedPassword,
       request.alias,
-      request.role
     );
 
     // 4. Persist the user in the DB
