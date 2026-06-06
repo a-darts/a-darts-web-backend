@@ -9,10 +9,15 @@ export const initializeSocketServer = (
     server: HttpServer,
     socketController: SocketController,
 ): Server => {
+    const allowedOrigins = process.env.FRONTEND_URL
+        ? process.env.FRONTEND_URL.split(',')
+        : ['http://localhost:5173'];
+
     io = new Server(server, {
         cors: {
-            origin: '*', // MIRAR: cambiar en producción
-            methods: ['GET', 'POST']
+            origin: allowedOrigins,
+            methods: ['GET', 'POST'],
+            credentials: true
         }
     });
 
