@@ -11,8 +11,16 @@ const app = express();
 
 configureSubscribers(globalEventBus);
 
+const allowedOrigins = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',')
+    : ['http://localhost:5173'];
+
 // Middlewares
-app.use(cors());
+app.use(cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(express.json());
 
 // Swagger Documentation
