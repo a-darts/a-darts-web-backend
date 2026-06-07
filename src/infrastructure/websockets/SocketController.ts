@@ -38,10 +38,12 @@ export class SocketController {
 
                 // 1.1.1. If the match is IN_PROGRESS, send the full history of throws
                 if (status === MatchStatus.IN_PROGRESS) {
+                    console.log(`[SocketServer] Sending match_restored`);
                     socket.emit('match_restored', { matchId, historyThrows });
                 }
                 // 1.1.2. Else, if the match is not IN_PROGRESS, just send the match assignment
                 else {
+                    console.log(`[SocketServer] Sending match_assigned`);
                     socket.emit('match_assigned', { matchId });
                 }
             }
