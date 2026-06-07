@@ -16,6 +16,7 @@ export class SocketController {
         socket.on('score_update', (data) => this.handleScoreUpdate(socket, data));
         socket.on('score_undo', (data) => this.handleScoreUndo(socket, data));
         socket.on('score_edit', (data) => this.handleScoreEdit(io, data));
+        socket.on('swap_starting_player', (data) => this.handleSwapStartingPlayer(socket, data));
 
         socket.on('disconnect', () => {
             console.log(`Client disconnected: ${socket.id}`);
@@ -130,6 +131,22 @@ export class SocketController {
             });
         } catch (error) {
             console.error(`[SocketServer] Error procesando score_edit:`, error);
+        }
+    }
+
+    private async handleSwapStartingPlayer(socket: Socket, data: any): Promise<void> {
+        const { boardShortId, matchId } = data;
+        try {
+            // // 1. Remove the last throw from Redis
+            // await this.matchCacheRepository.swapStartingPlayer(matchId);
+
+            // 3. Broadcast the score undo confirmation along with the remaining throws to all clients in the same board room except the sender
+            const roomName = `room_board_${boardShortId}`;
+            socket.to(roomName).emit('swap_starting_player_confirmed', {
+                matchId,
+            });
+        } catch (error) {
+            console.error(`[SocketServer] Error procesando swap_starting_player:`, error);
         }
     }
 }
