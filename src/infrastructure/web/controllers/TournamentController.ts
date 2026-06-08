@@ -3,6 +3,7 @@ import { AuthRequest } from '../middlewares/authMiddleware.js';
 import { ApiResponseBuilder } from '../../../application/dtos/common/ApiResponse.js';
 import { TournamentStatus } from '../../../domain/entities/Tournament.js';
 import {
+  InvalidTournamentStatusException,
   TournamentAlreadyFinishedException,
   TournamentAlreadyHasBracketException,
   TournamentNotDeletedException,
@@ -221,13 +222,23 @@ export class TournamentController {
    *         name: limit
    *         schema:
    *           type: integer
-   *         description: Maximum number of players to return
+   *         description: Maximum number of tournaments to return
    *       - in: query
    *         name: status
    *         schema:
    *           type: array
    *           enum: [DRAFT, PUBLISHED, IN_PROGRESS, FINISHED, CANCELLED, DELETED]
    *         description: Filter by tournament status
+   *       - in: query
+   *         name: federation
+   *         schema:
+   *           type: string
+   *         description: Filter by federation
+   *       - in: query
+   *         name: mode
+   *         schema:
+   *           type: string
+   *         description: Filter by game mode
    *     responses:
    *       200:
    *         description: Tournaments fetched successfully
@@ -244,6 +255,19 @@ export class TournamentController {
    *                   example: Tournaments fetched successfully
    *                 data:
    *                   $ref: '#/components/schemas/Tournament'
+   *       400:
+   *         description: Bad Request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: error
+   *                 message:
+   *                   type: string
+   *                   example: Invalid tournament status
    *       500:
    *         description: Internal Server Error
    *         content:
@@ -264,6 +288,8 @@ export class TournamentController {
 
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const federation = req.query.federation as string | undefined;
+      const mode = req.query.mode as string | undefined;
 
       if (page !== undefined && (isNaN(page) || page <= 0)) {
         return res.status(400).json(ApiResponseBuilder.error('Invalid page number'));
@@ -274,7 +300,6 @@ export class TournamentController {
 
       let statuses: TournamentStatus[] = [];
       if (req.query.status) {
-        // Convierte "DRAFT,PUBLISHED" en ['DRAFT', 'PUBLISHED']
         const statusQuery = req.query.status as string;
         statuses = statusQuery.split(',') as TournamentStatus[];
 
@@ -282,17 +307,15 @@ export class TournamentController {
         const validStatuses = Object.values(TournamentStatus);
         const hasInvalidStatus = statuses.some(s => !validStatuses.includes(s));
         if (hasInvalidStatus) {
-          return res.status(400).json(ApiResponseBuilder.error('Invalid status filter provided'));
+          throw new InvalidTournamentStatusException();
         }
       }
 
-      // 3. Regla de negocio / Seguridad: Si no es ADMIN, no puede ver DRAFT bajo ningún concepto
+      // Filter DRAFT tournaments if not ADMIN
       if (!isAdmin) {
         if (statuses.length > 0) {
-          // Si pidió explícitamente DRAFT, se lo quitamos
           statuses = statuses.filter(s => s !== TournamentStatus.DRAFT);
         } else {
-          // Si no especificó estados, por defecto le traeremos todos los públicos (no DRAFT)
           statuses = Object.values(TournamentStatus).filter(s => s !== TournamentStatus.DRAFT);
         }
       }
@@ -301,6 +324,8 @@ export class TournamentController {
         page,
         limit,
         statuses.length > 0 ? statuses : undefined,
+        federation,
+        mode,
       );
 
       res.status(200).json(
@@ -310,6 +335,12 @@ export class TournamentController {
         )
       );
     } catch (error: any) {
+      if (error instanceof InvalidTournamentStatusException) {
+        return res.status(400).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')

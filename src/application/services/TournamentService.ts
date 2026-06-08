@@ -45,6 +45,8 @@ export class TournamentService {
     page?: number,
     limit?: number,
     statuses?: TournamentStatus[],
+    federation?: string,
+    mode?: string,
   ): Promise<TournamentResponseDTO[] | PaginatedTournamentResponseDTO> {
     if (page !== undefined && limit !== undefined) {
       const skip = (page - 1) * limit;
@@ -52,8 +54,8 @@ export class TournamentService {
 
       // Ejecutamos en paralelo la búsqueda con límite (skip/take) y el conteo total
       const [tournaments, total] = await Promise.all([
-        this.tournamentRepository.findAll(skip, take, statuses),
-        this.tournamentRepository.count(statuses),
+        this.tournamentRepository.findAll(skip, take, statuses, federation, mode),
+        this.tournamentRepository.count(statuses, federation, mode),
       ]);
 
       return {
@@ -72,6 +74,8 @@ export class TournamentService {
       undefined,
       undefined,
       statuses,
+      federation,
+      mode,
     );
 
     // 2. Return the tournaments data

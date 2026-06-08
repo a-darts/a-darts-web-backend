@@ -81,3 +81,10 @@ export class TournamentAlreadyHasBracketException extends Error {
         this.name = 'TournamentAlreadyHasBracketException';
     }
 }
+
+export class InvalidTournamentStatusException extends Error {
+    constructor() {
+        super('Invalid tournament status');
+        this.name = 'InvalidTournamentStatusException';
+    }
+}

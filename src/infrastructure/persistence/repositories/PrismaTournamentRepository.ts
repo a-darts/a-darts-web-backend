@@ -34,11 +34,20 @@ export class PrismaTournamentRepository implements ITournamentRepository {
         });
     }
 
-    async findAll(skip?: number, take?: number, statuses?: TournamentStatus[]): Promise<Tournament[]> {
+    async findAll(skip?: number, take?: number, statuses?: TournamentStatus[], federation?: string, mode?: string): Promise<Tournament[]> {
+        const whereClause: any = {};
+        if (statuses && statuses.length > 0) {
+            whereClause.status = { in: statuses };
+        }
+        if (federation) {
+            whereClause.infoFederation = federation;
+        }
+        if (mode) {
+            whereClause.infoMode = mode;
+        }
+
         const tournamentsData = await this.client.tournament.findMany({
-            where: statuses && statuses.length > 0
-                ? { status: { in: statuses } }
-                : undefined,
+            where: whereClause,
             skip,
             take,
             orderBy: { infoDateTime: 'desc' },
@@ -47,11 +56,20 @@ export class PrismaTournamentRepository implements ITournamentRepository {
         return tournamentsData.map(TournamentMapper.toDomain);
     }
 
-    async count(statuses?: TournamentStatus[]): Promise<number> {
+    async count(statuses?: TournamentStatus[], federation?: string, mode?: string): Promise<number> {
+        const whereClause: any = {};
+        if (statuses && statuses.length > 0) {
+            whereClause.status = { in: statuses };
+        }
+        if (federation) {
+            whereClause.infoFederation = federation;
+        }
+        if (mode) {
+            whereClause.infoMode = mode;
+        }
+
         return await this.client.tournament.count({
-            where: statuses && statuses.length > 0
-                ? { status: { in: statuses } }
-                : undefined,
+            where: whereClause,
         });
     }
 
