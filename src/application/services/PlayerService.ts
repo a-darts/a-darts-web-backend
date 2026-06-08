@@ -54,7 +54,11 @@ export class PlayerService {
     }
 
     // 1. Rehydrate all players from the DB
-    const players = await this.playerRepository.findAllWithUser(undefined, undefined, status);
+    const players = await this.playerRepository.findAllWithUser(
+      undefined,
+      undefined,
+      status,
+    );
 
     // 2. Return the players data (without password)
     return players.map(player => PlayerMapper.toResponseWithUser(player));

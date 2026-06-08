@@ -213,12 +213,21 @@ export class TournamentController {
    *       - bearerAuth: []
    *     parameters:
    *       - in: query
-   *         name: includeDeleted
-   *         required: false
-   *         description: If true, returns logically deleted tournaments (Admin only)
+   *         name: page
    *         schema:
-   *           type: boolean
-   *           example: false
+   *           type: integer
+   *         description: Page number (1-based)
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *         description: Maximum number of players to return
+   *       - in: query
+   *         name: status
+   *         schema:
+   *           type: array
+   *           enum: [DRAFT, PUBLISHED, IN_PROGRESS, FINISHED, CANCELLED, DELETED]
+   *         description: Filter by tournament status
    *     responses:
    *       200:
    *         description: Tournaments fetched successfully
@@ -253,14 +262,46 @@ export class TournamentController {
     try {
       const isAdmin = req.user?.role === UserRoles.ADMIN;
 
-      const includeDeleted = req.query.includeDeleted === 'true' && isAdmin;
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
 
-      let tournaments = await tournamentService.getAll(includeDeleted);
-
-      // Filter DRAFT tournaments if not ADMIN
-      if (!isAdmin) {
-        tournaments = tournaments.filter(t => t.status !== TournamentStatus.DRAFT);
+      if (page !== undefined && (isNaN(page) || page <= 0)) {
+        return res.status(400).json(ApiResponseBuilder.error('Invalid page number'));
       }
+      if (limit !== undefined && (isNaN(limit) || limit <= 0)) {
+        return res.status(400).json(ApiResponseBuilder.error('Invalid limit number'));
+      }
+
+      let statuses: TournamentStatus[] = [];
+      if (req.query.status) {
+        // Convierte "DRAFT,PUBLISHED" en ['DRAFT', 'PUBLISHED']
+        const statusQuery = req.query.status as string;
+        statuses = statusQuery.split(',') as TournamentStatus[];
+
+        // Validar que todos los estados enviados sean válidos
+        const validStatuses = Object.values(TournamentStatus);
+        const hasInvalidStatus = statuses.some(s => !validStatuses.includes(s));
+        if (hasInvalidStatus) {
+          return res.status(400).json(ApiResponseBuilder.error('Invalid status filter provided'));
+        }
+      }
+
+      // 3. Regla de negocio / Seguridad: Si no es ADMIN, no puede ver DRAFT bajo ningún concepto
+      if (!isAdmin) {
+        if (statuses.length > 0) {
+          // Si pidió explícitamente DRAFT, se lo quitamos
+          statuses = statuses.filter(s => s !== TournamentStatus.DRAFT);
+        } else {
+          // Si no especificó estados, por defecto le traeremos todos los públicos (no DRAFT)
+          statuses = Object.values(TournamentStatus).filter(s => s !== TournamentStatus.DRAFT);
+        }
+      }
+
+      const tournaments = await tournamentService.getAll(
+        page,
+        limit,
+        statuses.length > 0 ? statuses : undefined,
+      );
 
       res.status(200).json(
         ApiResponseBuilder.success(

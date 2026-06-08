@@ -16,6 +16,7 @@ import { UnitOfWork } from "../../domain/ports/services/UnitOfWork.js";
 import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEliminationMatchGenerator.js";
 import {
   CreateTournamentRequestDTO,
+  PaginatedTournamentResponseDTO,
   TournamentResponseDTO,
   UpdateTournamentInfoRequestDTO,
   UpdateTournamentNameRequestDTO,
@@ -40,9 +41,38 @@ export class TournamentService {
   // --------------------------------------------------------------------
   // TOURNAMENT METHODS
   // --------------------------------------------------------------------
-  public async getAll(includeDeleted: boolean = false): Promise<TournamentResponseDTO[]> {
+  public async getAll(
+    page?: number,
+    limit?: number,
+    statuses?: TournamentStatus[],
+  ): Promise<TournamentResponseDTO[] | PaginatedTournamentResponseDTO> {
+    if (page !== undefined && limit !== undefined) {
+      const skip = (page - 1) * limit;
+      const take = limit;
+
+      // Ejecutamos en paralelo la búsqueda con límite (skip/take) y el conteo total
+      const [tournaments, total] = await Promise.all([
+        this.tournamentRepository.findAll(skip, take, statuses),
+        this.tournamentRepository.count(statuses),
+      ]);
+
+      return {
+        tournaments: tournaments.map(tournament => TournamentMapper.toResponse(tournament)),
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    }
+
     // 1. Rehydrate all tournaments from the DB
-    const tournaments = await this.tournamentRepository.findAll(includeDeleted);
+    const tournaments = await this.tournamentRepository.findAll(
+      undefined,
+      undefined,
+      statuses,
+    );
 
     // 2. Return the tournaments data
     return tournaments.map(tournament => TournamentMapper.toResponse(tournament));
@@ -323,7 +353,7 @@ export class TournamentService {
 
   public async restore(id: string): Promise<void> {
     // 1. Rehydrate the tournament from the DB
-    const tournament = await this.tournamentRepository.findById(id, true);
+    const tournament = await this.tournamentRepository.findById(id);
     if (!tournament) {
       throw new TournamentNotFoundException();
     }

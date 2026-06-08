@@ -34,27 +34,30 @@ export class PrismaTournamentRepository implements ITournamentRepository {
         });
     }
 
-    async findAll(includeDeleted?: boolean): Promise<Tournament[]> {
-        const whereClause: any = {};
-        if (includeDeleted) {
-            whereClause.status = { not: TournamentStatus.DELETED };
-        }
-
+    async findAll(skip?: number, take?: number, statuses?: TournamentStatus[]): Promise<Tournament[]> {
         const tournamentsData = await this.client.tournament.findMany({
-            where: whereClause,
+            where: statuses && statuses.length > 0
+                ? { status: { in: statuses } }
+                : undefined,
+            skip,
+            take,
             orderBy: { infoDateTime: 'desc' },
         });
+
         return tournamentsData.map(TournamentMapper.toDomain);
     }
 
-    async findById(id: string, includeDeleted?: boolean): Promise<Tournament | null> {
-        const whereClause: any = { id };
-        if (!includeDeleted) {
-            whereClause.status = { not: TournamentStatus.DELETED };
-        }
+    async count(statuses?: TournamentStatus[]): Promise<number> {
+        return await this.client.tournament.count({
+            where: statuses && statuses.length > 0
+                ? { status: { in: statuses } }
+                : undefined,
+        });
+    }
 
+    async findById(id: string): Promise<Tournament | null> {
         const tournamentData = await this.client.tournament.findFirst({
-            where: whereClause,
+            where: { id },
         });
 
         return tournamentData ? TournamentMapper.toDomain(tournamentData) : null;

@@ -14,6 +14,17 @@ export interface TournamentResponseDTO {
     registration: RegistrationDTO;
 }
 
+export interface PaginatedTournamentResponseDTO {
+    tournaments: TournamentResponseDTO[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
+}
+
+
 interface TournamentInfoDTO {
     place: string;
     dateTime: Date;
