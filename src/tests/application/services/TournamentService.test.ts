@@ -84,7 +84,7 @@ describe('TournamentService', () => {
       eventBusMock,
       unitOfWorkMock
     );
-    
+
     vi.clearAllMocks();
   });
 
@@ -144,7 +144,7 @@ describe('TournamentService', () => {
       expect((result as any)[0].id).toBe('tournament-id');
     });
 
-    it('should return paginated tournaments when page and limit are provided', async () => {
+    it('should return tournaments with pagination', async () => {
       const mockT = createMockTournament();
       tournamentRepositoryMock.findAll.mockResolvedValue([mockT]);
       tournamentRepositoryMock.count.mockResolvedValue(1);
@@ -210,7 +210,7 @@ describe('TournamentService', () => {
       expect(tournamentRepositoryMock.update).toHaveBeenCalledWith(mockT);
     });
 
-    it('should throw if not found', async () => {
+    it('should throw TournamentNotFoundException if not found', async () => {
       tournamentRepositoryMock.findById.mockResolvedValue(null);
       await expect(tournamentService.updateName({ id: 't-id', newName: 'name' })).rejects.toThrow(TournamentNotFoundException);
     });

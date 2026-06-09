@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserService } from '../../../application/services/UserService.js';
 import { User, UserStatus } from '../../../domain/entities/User.js';
-import { Role } from '../../../domain/entities/User.js';
 import {
   EmailAlreadyInUseException,
   InvalidCredentialsException,
