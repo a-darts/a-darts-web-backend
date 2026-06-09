@@ -1,32 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
 import { AuthRequest } from '../../../../infrastructure/web/middlewares/authMiddleware.js';
-
-const mockService = vi.hoisted(() => ({
-  getAll: vi.fn(),
-  getById: vi.fn(),
-  create: vi.fn(),
-  delete: vi.fn(),
-  restore: vi.fn(),
-  unpublish: vi.fn(),
-  publish: vi.fn(),
-  cancel: vi.fn(),
-  start: vi.fn(),
-  updateInfo: vi.fn(),
-  updateName: vi.fn(),
-  openRegistration: vi.fn(),
-  closeRegistration: vi.fn(),
-  updateRegistrationPeriod: vi.fn(),
-  enableCheckIn: vi.fn(),
-  disableCheckIn: vi.fn(),
-}));
-
-vi.mock('../../../../infrastructure/factories/TournamentServiceFactory.js', () => ({
-  default: {
-    getInstance: vi.fn(() => mockService),
-  },
-}));
-
 import { TournamentController } from '../../../../infrastructure/web/controllers/TournamentController.js';
 import { MissingRequiredUserFieldsException } from '../../../../domain/exceptions/UserExceptions.js';
 import {
@@ -55,6 +29,33 @@ import {
 } from '../../../../domain/exceptions/BracketExceptions.js';
 import { UserRoles } from '../../../../domain/entities/User.js';
 import { TournamentStatus } from '../../../../domain/entities/Tournament.js';
+
+
+const mockService = vi.hoisted(() => ({
+  getAll: vi.fn(),
+  getById: vi.fn(),
+  create: vi.fn(),
+  delete: vi.fn(),
+  restore: vi.fn(),
+  unpublish: vi.fn(),
+  publish: vi.fn(),
+  cancel: vi.fn(),
+  start: vi.fn(),
+  updateInfo: vi.fn(),
+  updateName: vi.fn(),
+  openRegistration: vi.fn(),
+  closeRegistration: vi.fn(),
+  updateRegistrationPeriod: vi.fn(),
+  enableCheckIn: vi.fn(),
+  disableCheckIn: vi.fn(),
+}));
+
+vi.mock('../../../../infrastructure/factories/TournamentServiceFactory.js', () => ({
+  default: {
+    getInstance: vi.fn(() => mockService),
+  },
+}));
+
 
 describe('TournamentController', () => {
   let controller: TournamentController;

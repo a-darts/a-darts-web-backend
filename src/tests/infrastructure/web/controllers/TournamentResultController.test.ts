@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
+import { TournamentResultController } from '../../../../infrastructure/web/controllers/TournamentResultController.js';
+import { MissingRequiredUserFieldsException } from '../../../../domain/exceptions/UserExceptions.js';
+import { TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
+import { TournamentResultNotFoundException } from '../../../../domain/exceptions/TournamentResultException.js';
+
 
 const mockService = vi.hoisted(() => ({
   getByTournamentId: vi.fn(),
@@ -12,10 +17,6 @@ vi.mock('../../../../infrastructure/factories/TournamentResultsServiceFactory.js
   },
 }));
 
-import { TournamentResultController } from '../../../../infrastructure/web/controllers/TournamentResultController.js';
-import { MissingRequiredUserFieldsException } from '../../../../domain/exceptions/UserExceptions.js';
-import { TournamentNotFoundException } from '../../../../domain/exceptions/TournamentExceptions.js';
-import { TournamentResultNotFoundException } from '../../../../domain/exceptions/TournamentResultException.js';
 
 describe('TournamentResultController', () => {
   let controller: TournamentResultController;
