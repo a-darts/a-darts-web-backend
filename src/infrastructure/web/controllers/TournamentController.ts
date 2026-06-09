@@ -1629,6 +1629,11 @@ export class TournamentController {
           ApiResponseBuilder.error(error.message)
         );
       }
+      if (error instanceof TournamentNotInDraftException) {
+        return res.status(409).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
       console.error('[ERROR]:', error);
       res.status(500).json(
         ApiResponseBuilder.error('Internal server error')
@@ -1769,6 +1774,11 @@ export class TournamentController {
       }
       if (error instanceof TournamentNotFoundException) {
         return res.status(404).json(
+          ApiResponseBuilder.error(error.message)
+        );
+      }
+      if (error instanceof TournamentNotInDraftException) {
+        return res.status(409).json(
           ApiResponseBuilder.error(error.message)
         );
       }
