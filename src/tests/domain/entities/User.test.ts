@@ -29,7 +29,6 @@ describe("User Entity", () => {
             expect(() => User.createSelf("", "pass", "Alias")).toThrow(MissingRequiredUserFieldsException);
             expect(() => User.createSelf("email", "", "Alias")).toThrow(MissingRequiredUserFieldsException);
             expect(() => User.createSelf("email", "pass", "")).toThrow(MissingRequiredUserFieldsException);
-            expect(() => User.createSelf("email", "pass", "Alias")).toThrow(MissingRequiredUserFieldsException);
 
             expect(() => User.createByAdmin("admin@test.com", "", "Alias", UserRoles.ADMIN)).toThrow(MissingRequiredUserFieldsException);
             expect(() => User.createByAdmin("", "temp", "Alias", UserRoles.ADMIN)).toThrow(MissingRequiredUserFieldsException);

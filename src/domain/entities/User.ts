@@ -54,7 +54,7 @@ export class User {
     role: UserRoles,
   ): User {
     if (
-      !email || !alias || !temporaryPassword || !role ||
+      !email || !temporaryPassword || !alias || !role ||
       email.trim() === '' || temporaryPassword.trim() === '' || alias.trim() === ''
     ) {
       throw new MissingRequiredUserFieldsException();
