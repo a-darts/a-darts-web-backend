@@ -1,5 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
+import { BracketController } from '../../../../infrastructure/web/controllers/BracketController.js';
+import { MissingRequiredUserFieldsException } from '../../../../domain/exceptions/UserExceptions.js';
+import {
+  TournamentNotFoundException,
+  TournamentAlreadyHasBracketException,
+  TournamentNotPublishedException
+} from '../../../../domain/exceptions/TournamentExceptions.js';
+import {
+  RegistratedParticipantsEmptyException,
+} from '../../../../domain/exceptions/ParticipantExceptions.js';
+import {
+  BracketNotFoundException,
+  BracketNotInDraftOrPublisedException,
+  BracketNotInDraftException,
+  BracketNotPublishedException,
+  BracketInProgressException,
+} from '../../../../domain/exceptions/BracketExceptions.js';
+import { AuthRequest } from '../../../../infrastructure/web/middlewares/authMiddleware.js';
+import { UserRoles } from '../../../../domain/entities/User.js';
+import { BracketStatus } from '../../../../domain/entities/Bracket.js';
+
 
 const mockService = vi.hoisted(() => ({
   createAutomatically: vi.fn(),
@@ -18,30 +39,6 @@ vi.mock('../../../../infrastructure/factories/BracketServiceFactory.js', () => (
   },
 }));
 
-import { BracketController } from '../../../../infrastructure/web/controllers/BracketController.js';
-import { MissingRequiredUserFieldsException } from '../../../../domain/exceptions/UserExceptions.js';
-import { 
-  TournamentNotFoundException, 
-  TournamentAlreadyHasBracketException, 
-  TournamentNotPublishedException 
-} from '../../../../domain/exceptions/TournamentExceptions.js';
-import { 
-  RegistratedParticipantsEmptyException, 
-  RegisteredParticipantNotFoundException 
-} from '../../../../domain/exceptions/ParticipantExceptions.js';
-import {
-  InvalidPositionsException,
-  BracketNotFoundException,
-  BracketNotInDraftOrPublisedException,
-  DuplicateParticipantsException,
-  BracketNotInDraftException,
-  BracketNotPublishedException,
-  BracketInProgressException,
-  BracketAlreadyFinishedException
-} from '../../../../domain/exceptions/BracketExceptions.js';
-import { AuthRequest } from '../../../../infrastructure/web/middlewares/authMiddleware.js';
-import { UserRoles } from '../../../../domain/entities/User.js';
-import { BracketStatus } from '../../../../domain/entities/Bracket.js';
 
 describe('BracketController', () => {
   let controller: BracketController;
@@ -170,7 +167,7 @@ describe('BracketController', () => {
 
     it('should return 500 on generic error', async () => {
       mockRequest = { params: { id: 't-id' } };
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
       mockService.createManually.mockRejectedValue(new Error('Unknown error'));
 
       await controller.createBracketManually(mockRequest as Request, mockResponse as Response);
@@ -231,9 +228,9 @@ describe('BracketController', () => {
 
   describe('setupPositions', () => {
     it('should return 200 when positions are assigned', async () => {
-      mockRequest = { 
-        params: { id: 'bracket-id' }, 
-        body: { newPositions: [{ position: 1, participantId: 'p1' }] } 
+      mockRequest = {
+        params: { id: 'bracket-id' },
+        body: { newPositions: [{ position: 1, participantId: 'p1' }] }
       };
 
       await controller.setupPositions(mockRequest as AuthRequest, mockResponse as Response);
