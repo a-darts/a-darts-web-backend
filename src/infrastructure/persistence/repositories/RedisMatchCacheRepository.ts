@@ -163,3 +163,5 @@ export class RedisMatchCacheRepository implements IMatchCacheRepository {
         return await redis.get(key);
     }
 }
+
+export { redis as redisClient };

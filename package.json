@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@testcontainers/postgresql": "^12.0.1",
+    "@testcontainers/redis": "^12.0.1",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
