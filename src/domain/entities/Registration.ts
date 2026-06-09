@@ -153,6 +153,10 @@ export class RegistrationPeriod {
     // --------------------------------------------------------------------
     // HELPER METHODS
     // --------------------------------------------------------------------
+    public hasSchedule(): boolean {
+        return this.startsAt !== null || this.endsAt !== null;
+    }
+
     public isOpen(): boolean {
         const now = new Date();
         const afterStart = this.startsAt ? now >= this.startsAt : true;
@@ -161,9 +165,7 @@ export class RegistrationPeriod {
     }
 
     public isClosed(): boolean {
-        const now = new Date();
-        const beforeEnd = this.endsAt ? now > this.endsAt : false;
-        return beforeEnd;
+        return !this.isOpen();
     }
 
 
