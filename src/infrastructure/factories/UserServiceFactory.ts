@@ -2,8 +2,8 @@ import { UserService } from '../../application/services/UserService.js';
 import { prisma } from "../persistence/prismaClient.js";
 import { PrismaUserRepository } from '../persistence/repositories/PrismaUserRepository.js';
 import { BcryptPasswordHasher } from '../security/BcryptPasswordHasher.js';
-import { NodemailerMailer } from '../mailer/NodemailerMailer.js';
-// import { ResendMailer } from '../mailer/ResendMailer.js';
+// import { NodemailerMailer } from '../mailer/NodemailerMailer.js';
+import { ResendMailer } from '../mailer/ResendMailer.js';
 
 export default class UserServiceFactory {
     private static instance: UserService | null = null;
@@ -12,8 +12,8 @@ export default class UserServiceFactory {
         if (!this.instance) {
             const userRepository = new PrismaUserRepository(prisma);
             const passwordHasher = new BcryptPasswordHasher();
-            const mailer = new NodemailerMailer();
-            // const mailer = new ResendMailer();
+            // const mailer = new NodemailerMailer();
+            const mailer = new ResendMailer();
 
             this.instance = new UserService(
                 userRepository,

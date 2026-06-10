@@ -6,17 +6,16 @@ export class ResendMailer implements IMailer {
     private resend: Resend;
 
     constructor() {
-        // Inicializamos el SDK oficial de Resend usando tu API Key del .env
         this.resend = new Resend(process.env.RESEND_API_KEY);
     }
 
     public async sendTemporaryPassword(to: string, alias: string, temporaryPassword: string): Promise<void> {
-        try {
-            await this.resend.emails.send({
-                from: 'A-Darts App <no-reply@send.a-darts.com>',
-                to: to,
-                subject: '¡Te han invitado a A-Darts! Tu contraseña temporal',
-                html: `
+        console.log(`[ResendMailer] Sending temporary password to ${to}`);
+        const { data, error } = await this.resend.emails.send({
+            from: 'A-Darts App <no-reply@a-darts.com>',
+            to: to,
+            subject: '¡Te han invitado a A-Darts! Tu contraseña temporal',
+            html: `
                     <div style="background-color: #f3f4f6; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                         <div style="max-width: 550px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #e5e7eb;">
                             
@@ -67,20 +66,19 @@ export class ResendMailer implements IMailer {
                         </div>
                     </div>
                 `,
-            });
-        } catch (error) {
-            console.error('Error enviando correo de bienvenida con Resend:', error);
-            throw new MailerSendException();
-        }
+        });
+
+        console.error('Error enviando correo de bienvenida con Resend:', error);
+        throw new MailerSendException();
     }
 
     public async sendForgotPasswordRecovery(to: string, alias: string, temporaryPassword: string): Promise<void> {
-        try {
-            await this.resend.emails.send({
-                from: 'A-Darts App <soporte@send.a-darts.com>',
-                to: to,
-                subject: 'A-Darts: Recuperación de contraseña',
-                html: `
+        console.log(`[ResendMailer] Sending temporary password when forgotten to ${to}`);
+        const { data, error } = await this.resend.emails.send({
+            from: 'A-Darts App <no-reply@a-darts.com>',
+            to: to,
+            subject: 'A-Darts: Recuperación de contraseña',
+            html: `
                     <div style="background-color: #f3f4f6; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                         <div style="max-width: 550px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #e5e7eb;">
                             
@@ -131,8 +129,9 @@ export class ResendMailer implements IMailer {
                         </div>
                     </div>
                 `,
-            });
-        } catch (error) {
+        });
+
+        if (error) {
             console.error('Error enviando recuperación con Resend:', error);
             throw new MailerSendException();
         }
