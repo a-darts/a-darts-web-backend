@@ -68,8 +68,10 @@ export class ResendMailer implements IMailer {
                 `,
         });
 
-        console.error('Error enviando correo de bienvenida con Resend:', error);
-        throw new MailerSendException();
+        if (error) {
+            console.error('Error enviando correo de bienvenida con Resend:', error);
+            throw new MailerSendException();
+        }
     }
 
     public async sendForgotPasswordRecovery(to: string, alias: string, temporaryPassword: string): Promise<void> {
