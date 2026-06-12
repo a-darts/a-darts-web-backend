@@ -35,18 +35,46 @@ export class PrismaPlayerRepository implements IPlayerRepository {
         });
     }
 
-    async findAll(skip?: number, take?: number, status: PlayerStatus = PlayerStatus.ACTIVE): Promise<Player[]> {
+    async findAll(skip?: number, take?: number, search?: string, status: PlayerStatus = PlayerStatus.ACTIVE, federation?: string, seasonStartYear?: number): Promise<Player[]> {
+        const where: any = { status };
+        if (federation) {
+            where.federation = federation;
+        }
+        if (seasonStartYear !== undefined) {
+            where.seasonStartYear = seasonStartYear;
+        }
+        if (search) {
+            where.OR = [
+                { registrationNumber: { contains: search, mode: 'insensitive' } },
+                { user: { alias: { contains: search, mode: 'insensitive' } } }
+            ]
+        }
+
         const playersData = await this.client.player.findMany({
-            where: { status },
+            where,
             skip,
             take,
         });
         return playersData.map(PlayerMapper.toDomain);
     }
 
-    async findAllWithUser(skip?: number, take?: number, status: PlayerStatus = PlayerStatus.ACTIVE): Promise<PlayerWithUser[]> {
+    async findAllWithUser(skip?: number, take?: number, search?: string, status: PlayerStatus = PlayerStatus.ACTIVE, federation?: string, seasonStartYear?: number): Promise<PlayerWithUser[]> {
+        const where: any = { status };
+        if (federation) {
+            where.federation = federation;
+        }
+        if (seasonStartYear !== undefined) {
+            where.seasonStartYear = seasonStartYear;
+        }
+        if (search) {
+            where.OR = [
+                { registrationNumber: { contains: search, mode: 'insensitive' } },
+                { user: { alias: { contains: search, mode: 'insensitive' } } }
+            ]
+        }
+
         const playersData = await this.client.player.findMany({
-            where: { status },
+            where,
             skip,
             take,
             include: {
@@ -59,9 +87,23 @@ export class PrismaPlayerRepository implements IPlayerRepository {
         }));
     }
 
-    async count(status: PlayerStatus = PlayerStatus.ACTIVE): Promise<number> {
+    async count(search?: string, status: PlayerStatus = PlayerStatus.ACTIVE, federation?: string, seasonStartYear?: number): Promise<number> {
+        const where: any = { status };
+        if (federation) {
+            where.federation = federation;
+        }
+        if (seasonStartYear !== undefined) {
+            where.seasonStartYear = seasonStartYear;
+        }
+        if (search) {
+            where.OR = [
+                { registrationNumber: { contains: search, mode: 'insensitive' } },
+                { user: { alias: { contains: search, mode: 'insensitive' } } }
+            ]
+        }
+
         return this.client.player.count({
-            where: { status },
+            where,
         });
     }
 

@@ -108,12 +108,27 @@ export class PlayerController {
    *           type: integer
    *         description: Maximum number of players to return
    *       - in: query
+   *         name: search
+   *         schema:
+   *           type: string
+   *           description: Search by player alias or registration number
+   *       - in: query
    *         name: status
    *         schema:
    *           type: string
    *           enum: [ACTIVE, DELETED]
    *           default: ACTIVE
    *         description: Filter by player status (ACTIVE or DELETED)
+   *       - in: query
+   *         name: federation
+   *         schema:
+   *           type: string
+   *           description: Filter by federation code
+   *       - in: query
+   *         name: seasonStartYear
+   *         schema:
+   *           type: integer
+   *           description: Filter by season start year
    *     responses:
    *       200:
    *         description: Players fetched successfully
@@ -181,10 +196,13 @@ export class PlayerController {
     try {
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const search = req.query.search as string || undefined;
       let status = req.query.status as PlayerStatus;
       if (!status) {
         status = PlayerStatus.ACTIVE;
       }
+      const federation = req.query.federation as string || undefined;
+      const seasonStartYear = req.query.seasonStartYear ? parseInt(req.query.seasonStartYear as string, 10) : undefined;
 
       if (page !== undefined && (isNaN(page) || page <= 0)) {
         return res.status(400).json(ApiResponseBuilder.error('Invalid page number'));
@@ -195,8 +213,11 @@ export class PlayerController {
       if (status !== PlayerStatus.ACTIVE && status !== PlayerStatus.DELETED) {
         return res.status(400).json(ApiResponseBuilder.error('Invalid status filter'));
       }
+      if (seasonStartYear !== undefined && isNaN(seasonStartYear)) {
+        return res.status(400).json(ApiResponseBuilder.error('Invalid seasonStartYear number'));
+      }
 
-      const players = await playerService.getAll(page, limit, status);
+      const players = await playerService.getAll(page, limit, search, status, federation, seasonStartYear);
       res.status(200).json(
         ApiResponseBuilder.success(players, 'Players fetched successfully')
       );

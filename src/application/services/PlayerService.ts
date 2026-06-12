@@ -31,15 +31,18 @@ export class PlayerService {
   public async getAll(
     page?: number,
     limit?: number,
+    search?: string,
     status: PlayerStatus = PlayerStatus.ACTIVE,
+    federation?: string,
+    seasonStartYear?: number,
   ): Promise<PlayerWithUserResponseDTO[] | PaginatedPlayersWithUserResponse> {
     if (page !== undefined && limit !== undefined) {
       const skip = (page - 1) * limit;
       const take = limit;
 
       const [players, total] = await Promise.all([
-        this.playerRepository.findAllWithUser(skip, take, status),
-        this.playerRepository.count(status),
+        this.playerRepository.findAllWithUser(skip, take, search, status, federation, seasonStartYear),
+        this.playerRepository.count(search, status, federation, seasonStartYear),
       ]);
 
       return {
@@ -57,7 +60,10 @@ export class PlayerService {
     const players = await this.playerRepository.findAllWithUser(
       undefined,
       undefined,
+      search,
       status,
+      federation,
+      seasonStartYear,
     );
 
     // 2. Return the players data (without password)
