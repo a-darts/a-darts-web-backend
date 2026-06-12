@@ -1,4 +1,4 @@
-import { User, UserStatus } from '../../domain/entities/User.js';
+import { User, UserRoles, UserStatus } from '../../domain/entities/User.js';
 import {
   EmailAlreadyInUseException,
   InvalidCredentialsException,
@@ -53,7 +53,7 @@ export class UserService {
   public async getAll(
     page?: number,
     limit?: number,
-    filters?: { search?: string; status?: string; role?: string },
+    filters?: { search?: string; status?: UserStatus; role?: UserRoles },
   ): Promise<UserResponseDTO[] | PaginatedUsersResponse> {
     if (page !== undefined && limit !== undefined) {
       const skip = (page - 1) * limit;

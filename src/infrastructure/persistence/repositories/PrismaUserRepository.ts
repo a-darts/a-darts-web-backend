@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { IUserRepository } from '../../../domain/ports/repositories/IUserRepository.js';
-import { User } from '../../../domain/entities/User.js';
+import { User, UserRoles, UserStatus } from '../../../domain/entities/User.js';
 import { UserMapper } from '../mappers/UserMapper.js';
 import { transactionStorage } from '../TransactionContext.js';
 
@@ -34,7 +34,7 @@ export class PrismaUserRepository implements IUserRepository {
         });
     }
 
-    async findAll(skip?: number, take?: number, filters?: { search?: string; status?: string; role?: string }): Promise<User[]> {
+    async findAll(skip?: number, take?: number, filters?: { search?: string; status?: UserStatus; role?: UserRoles }): Promise<User[]> {
         const where: any = {};
         if (filters?.status) {
             where.status = filters.status;
@@ -57,7 +57,7 @@ export class PrismaUserRepository implements IUserRepository {
         return usersData.map(UserMapper.toDomain);
     }
 
-    async count(filters?: { search?: string; status?: string; role?: string }): Promise<number> {
+    async count(filters?: { search?: string; status?: UserStatus; role?: UserRoles }): Promise<number> {
         const where: any = {};
         if (filters?.status) {
             where.status = filters.status;
