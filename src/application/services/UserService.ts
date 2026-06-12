@@ -50,14 +50,18 @@ export class UserService {
   }
 
 
-  public async getAll(page?: number, limit?: number): Promise<UserResponseDTO[] | PaginatedUsersResponse> {
+  public async getAll(
+    page?: number,
+    limit?: number,
+    filters?: { search?: string; status?: string; role?: string },
+  ): Promise<UserResponseDTO[] | PaginatedUsersResponse> {
     if (page !== undefined && limit !== undefined) {
       const skip = (page - 1) * limit;
       const take = limit;
 
       const [users, total] = await Promise.all([
-        this.userRepository.findAll(skip, take),
-        this.userRepository.count()
+        this.userRepository.findAll(skip, take, filters),
+        this.userRepository.count(filters),
       ]);
 
       return {
@@ -72,7 +76,7 @@ export class UserService {
     }
 
     // 1. Rehydrate the user from the DB
-    const users = await this.userRepository.findAll();
+    const users = await this.userRepository.findAll(undefined, undefined, filters);
     if (!users) {
       return [];
     }

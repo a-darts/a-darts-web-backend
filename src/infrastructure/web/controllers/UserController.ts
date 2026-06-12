@@ -172,6 +172,24 @@ export class UserController {
    *         schema:
    *           type: integer
    *         description: Maximum number of users to return
+   *       - in: query
+   *         name: search
+   *         schema:
+   *           type: string
+   *           description: Search by user alias or email
+   *       - in: query
+   *         name: status
+   *         schema:
+   *           type: string
+   *           enum: [ACTIVE, INACTIVE, BLOCKED, DELETED]
+   *           description: Filter by user status
+   *       - in: query
+   *         name: role
+   *         schema:
+   *           type: string
+   *           enum: [PLAYER, ADMIN]
+   *           default: PLAYER
+   *           description: Filter by user role
    *     responses:
    *       200:
    *         description: Users fetched successfully
@@ -239,6 +257,9 @@ export class UserController {
     try {
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const search = req.query.search as string || undefined;
+      const status = req.query.status as string || undefined;
+      const role = req.query.role as string || undefined;
 
       if (page !== undefined && (isNaN(page) || page <= 0)) {
         return res.status(400).json(ApiResponseBuilder.error('Invalid page number'));
@@ -247,7 +268,11 @@ export class UserController {
         return res.status(400).json(ApiResponseBuilder.error('Invalid limit number'));
       }
 
-      const users = await userService.getAll(page, limit);
+      const users = await userService.getAll(
+        page,
+        limit,
+        { search, status, role },
+      );
       res.status(200).json(
         ApiResponseBuilder.success(
           users,

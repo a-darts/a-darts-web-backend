@@ -34,16 +34,47 @@ export class PrismaUserRepository implements IUserRepository {
         });
     }
 
-    async findAll(skip?: number, take?: number): Promise<User[]> {
+    async findAll(skip?: number, take?: number, filters?: { search?: string; status?: string; role?: string }): Promise<User[]> {
+        const where: any = {};
+        if (filters?.status) {
+            where.status = filters.status;
+        }
+        if (filters?.role) {
+            where.role = filters.role;
+        }
+        if (filters?.search) {
+            where.OR = [
+                { alias: { contains: filters.search, mode: 'insensitive' } },
+                { email: { contains: filters.search, mode: 'insensitive' } },
+            ];
+        }
+
         const usersData = await this.client.user.findMany({
+            where,
             skip,
             take,
         });
         return usersData.map(UserMapper.toDomain);
     }
 
-    async count(): Promise<number> {
-        return this.client.user.count();
+    async count(filters?: { search?: string; status?: string; role?: string }): Promise<number> {
+        const where: any = {};
+        if (filters?.status) {
+            where.status = filters.status;
+        }
+        if (filters?.role) {
+            where.role = filters.role;
+        }
+        if (filters?.search) {
+            where.OR = [
+                { alias: { contains: filters.search, mode: 'insensitive' } },
+                { email: { contains: filters.search, mode: 'insensitive' } },
+            ];
+        }
+
+        return this.client.user.count({
+            where,
+        });
     }
 
     async findByEmail(email: string): Promise<User | null> {
