@@ -64,7 +64,7 @@ describe('PlayerController', () => {
 
       await controller.getAllPlayers(mockRequest as AuthRequest, mockResponse as Response);
 
-      expect(mockService.getAll).toHaveBeenCalledWith(1, 10, PlayerStatus.ACTIVE);
+      expect(mockService.getAll).toHaveBeenCalledWith(1, 10, undefined, PlayerStatus.ACTIVE, undefined, undefined);
       expect(mockStatus).toHaveBeenCalledWith(200);
       expect(mockJson).toHaveBeenCalledWith({
         status: 'success',

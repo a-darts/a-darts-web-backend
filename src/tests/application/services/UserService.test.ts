@@ -105,7 +105,7 @@ describe('UserService', () => {
 
       const result = await userService.getAll();
 
-      expect(userRepositoryMock.findAll).toHaveBeenCalledWith();
+      expect(userRepositoryMock.findAll).toHaveBeenCalledWith(undefined, undefined, undefined);
       expect(result).toHaveLength(1);
     });
 
@@ -116,7 +116,7 @@ describe('UserService', () => {
 
       const result = await userService.getAll(1, 10);
 
-      expect(userRepositoryMock.findAll).toHaveBeenCalledWith(0, 10);
+      expect(userRepositoryMock.findAll).toHaveBeenCalledWith(0, 10, undefined);
       expect((result as any).users).toHaveLength(1);
       expect((result as any).pagination.total).toBe(1);
     });

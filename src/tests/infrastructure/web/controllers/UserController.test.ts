@@ -77,7 +77,7 @@ describe('UserController', () => {
 
       await controller.getAllUsers(mockRequest as Request, mockResponse as Response);
 
-      expect(mockUserService.getAll).toHaveBeenCalledWith(1, 10);
+      expect(mockUserService.getAll).toHaveBeenCalledWith(1, 10, { search: undefined, status: undefined, role: undefined });
       expect(mockStatus).toHaveBeenCalledWith(200);
       expect(mockJson).toHaveBeenCalledWith({
         status: 'success',

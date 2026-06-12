@@ -17,6 +17,7 @@ import {
 import { MailerSendException } from '../../../domain/exceptions/MailerExceptions.js';
 import UserServiceFactory from '../../factories/UserServiceFactory.js';
 import TournamentResultsServiceFactory from '../../factories/TournamentResultsServiceFactory.js';
+import { UserRoles, UserStatus } from '../../../domain/entities/User.js';
 
 
 const userService = UserServiceFactory.getInstance();
@@ -271,7 +272,11 @@ export class UserController {
       const users = await userService.getAll(
         page,
         limit,
-        { search, status, role },
+        {
+          search,
+          status: status as UserStatus,
+          role: role as UserRoles,
+        },
       );
       res.status(200).json(
         ApiResponseBuilder.success(

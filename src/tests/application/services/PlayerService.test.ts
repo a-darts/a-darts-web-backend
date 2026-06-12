@@ -89,7 +89,7 @@ describe('PlayerService', () => {
 
       const result = await playerService.getAll();
 
-      expect(playerRepositoryMock.findAllWithUser).toHaveBeenCalledWith(undefined, undefined, PlayerStatus.ACTIVE);
+      expect(playerRepositoryMock.findAllWithUser).toHaveBeenCalledWith(undefined, undefined, undefined, PlayerStatus.ACTIVE, undefined, undefined);
       expect(result).toHaveLength(1);
     });
 
@@ -100,7 +100,7 @@ describe('PlayerService', () => {
 
       const result = await playerService.getAll(1, 10);
 
-      expect(playerRepositoryMock.findAllWithUser).toHaveBeenCalledWith(0, 10, PlayerStatus.ACTIVE);
+      expect(playerRepositoryMock.findAllWithUser).toHaveBeenCalledWith(0, 10, undefined, PlayerStatus.ACTIVE, undefined, undefined);
       expect((result as any).players).toHaveLength(1);
       expect((result as any).pagination.total).toBe(1);
     });
