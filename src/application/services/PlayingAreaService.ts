@@ -4,7 +4,6 @@ import { TournamentNotFoundException } from "../../domain/exceptions/TournamentE
 import { IMatchCacheRepository } from "../../domain/ports/repositories/IMatchCacheRepository.js";
 import { IPlayingAreaRepository } from "../../domain/ports/repositories/IPlayingAreaRepository.js";
 import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
-import { getSocketServer } from "../../infrastructure/websockets/SocketServer.js";
 import { CreatePlayingAreaRequestDTO, DisablePlayingAreaBoardRequestDTO, EnablePlayingAreaBoardRequestDTO, PlayingAreaResponseDTO, ReleasePlayingAreaBoardRequestDTO } from "../dtos/playingArea/PlayingAreaDTOs.js";
 import { PlayingAreaMapper } from "../dtos/playingArea/PlayingAreaMapper.js";
 
