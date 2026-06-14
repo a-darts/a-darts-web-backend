@@ -60,7 +60,7 @@ describe("Socket Integration Tests - Darts System Full Coverage", () => {
                     transports: ['websocket'],
                     forceNew: true
                 });
-                clientSocket.on("connect", resolve); // Solo conecta, no emite el join de forma oculta
+                clientSocket.on("connect", resolve);
             });
         });
     });
@@ -76,9 +76,11 @@ describe("Socket Integration Tests - Darts System Full Coverage", () => {
         clientSocket.removeAllListeners();
     });
 
-    // ==========================================
-    // 1. PRUEBA DE CONEXIÓN Y UNIÓN A SALA (Mantenida y protegida)
-    // ==========================================
+
+    // --------------------------------------------------------------------
+    // 1. PRUEBA DE CONEXIÓN Y UNIÓN A SALA
+    // --------------------------------------------------------------------
+
     it("debe activar la sesión en la caché y unirse a la sala al emitir 'join_board'", () => {
         return new Promise<void>((resolve, reject) => {
             mockMatchCacheRepository.setBoardActiveSession.mockResolvedValue(undefined);
@@ -102,9 +104,10 @@ describe("Socket Integration Tests - Darts System Full Coverage", () => {
         });
     });
 
-    // ==========================================
-    // 2. TESTS DE SUCESOS DEL EVENT BUS (Requieren que el test anterior haya creado la sala)
-    // ==========================================
+
+    // --------------------------------------------------------------------
+    // 2. TESTS DE EVENTOS DEL EVENT BUS
+    // --------------------------------------------------------------------
 
     it("debe retransmitir 'match_suspended' al recibir un MatchSuspendedEvent", () => {
         return new Promise<void>((resolve) => {
@@ -159,10 +162,6 @@ describe("Socket Integration Tests - Darts System Full Coverage", () => {
             globalEventBus.publish([new MatchStartedEvent(testMatchId, testBoardShortId)]);
         });
     });
-
-    // ==========================================
-    // 3. TESTS COMPLEJOS: MatchAssignedToBoardEvent
-    // ==========================================
 
     it("MatchAssigned: debe emitir 'match_assigned' si el partido NO ha comenzado", () => {
         return new Promise<void>((resolve) => {
