@@ -18,6 +18,8 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    command: >
+      redis-server --appendonly yes --save "60 10000" --save "300 100" --save "900 1" --maxmemory 512mb --maxmemory-policy noeviction
     volumes:
       - redis_data:/data
 

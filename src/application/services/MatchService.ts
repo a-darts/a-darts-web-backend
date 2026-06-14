@@ -28,7 +28,8 @@ import {
 } from "../dtos/match/MatchDTOs.js";
 import { MatchMapper } from "../dtos/match/MatchMapper.js";
 import { MatchStatus } from '../../domain/entities/Match.js';
-import { MatchCancelledEvent, MatchResumedEvent, MatchSuspendedEvent } from '../../domain/events/MatchEvents.js';
+import { MatchAssignedToBoardEvent, MatchCancelledEvent, MatchResumedEvent, MatchSuspendedEvent, MatchUnassignedFromBoardEvent } from '../../domain/events/MatchEvents.js';
+import { IDomainEvent } from '../../domain/events/IDomainEvent.js';
 
 
 export class MatchService {
@@ -129,45 +130,17 @@ export class MatchService {
     // 5. Persist the changes in the DB
     await this.playingAreaRepository.update(playingArea);
 
-    // 6. Notify the old board about the unassignment
+    // 6. Publish events in the eventBus
+    let allEvents: IDomainEvent[] = [
+      new MatchAssignedToBoardEvent(request.id, newBoard.getShortId()),
+    ];
     if (oldBoard) {
-      const oldBoardShortId = oldBoard.getShortId();
-      await this.matchCacheRepository.clearBoardActiveMatch(oldBoardShortId);
-
-      console.log(`[ReleasePlayingAreaBoard] Match unassigned from board. Sending match_unassigned to room_board_${oldBoardShortId}`);
-      const oldRoomName = `room_board_${oldBoardShortId}`;
-      getSocketServer().to(oldRoomName).emit('match_unassigned', { matchId: request.id });
+      allEvents = [
+        ...allEvents,
+        new MatchUnassignedFromBoardEvent(request.id, oldBoard.getShortId()),
+      ];
     }
-
-    // 7. Notify the board about the new match assignment
-    const newBoardShortId = newBoard.getShortId();
-    await this.matchCacheRepository.setActiveMatchForBoard(newBoardShortId, request.id);
-
-    const status = await this.matchCacheRepository.getMatchStatus(request.id);
-    const historyThrows = await this.matchCacheRepository.getThrows(request.id);
-
-    const newRoomName = `room_board_${newBoardShortId}`;
-
-    if (status === MatchStatus.IN_PROGRESS) {
-      console.log(`[SetMatchBoardNumber] Match already in progress. Sending match_restored to ${newRoomName}`);
-
-      if (historyThrows && historyThrows.length > 0) {
-        // Enviamos match_restored a toda la sala para que la tablet se auto-configure en caliente
-        getSocketServer().to(newRoomName).emit('match_restored', {
-          matchId: request.id,
-          historyThrows: historyThrows
-        });
-      } else {
-        getSocketServer().to(newRoomName).emit('match_started_confirmed', {
-          matchId: request.id,
-          historyThrows: historyThrows
-        });
-      }
-    } else {
-      // Enviamos match_assigned a toda la sala
-      console.log(`[SetMatchBoardNumber] Match assigned to board. Sending match_assigned to ${newRoomName}`);
-      getSocketServer().to(newRoomName).emit('match_assigned', { matchId: request.id });
-    }
+    this.eventBus.publish(allEvents);
   }
 
 
