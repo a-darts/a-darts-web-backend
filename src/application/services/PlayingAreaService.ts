@@ -1,6 +1,7 @@
 import { PlayingArea } from "../../domain/entities/PlayingArea.js";
 import { BoardPairedWithTabletException, PlayingAreaAlreadyExistsException, PlayingAreaNotFoundException } from "../../domain/exceptions/PlayingAreaExceptions.js";
 import { TournamentNotFoundException } from "../../domain/exceptions/TournamentExceptions.js";
+import { IMatchCacheRepository } from "../../domain/ports/repositories/IMatchCacheRepository.js";
 import { IPlayingAreaRepository } from "../../domain/ports/repositories/IPlayingAreaRepository.js";
 import { ITournamentRepository } from "../../domain/ports/repositories/ITournamentRepository.js";
 import { getSocketServer } from "../../infrastructure/websockets/SocketServer.js";
@@ -12,6 +13,7 @@ export class PlayingAreaService {
   constructor(
     private readonly playingAreaRepository: IPlayingAreaRepository,
     private readonly tournamentRepository: ITournamentRepository,
+    private readonly matchCacheRepository: IMatchCacheRepository,
   ) { }
 
 
@@ -87,26 +89,12 @@ export class PlayingAreaService {
 
     const lastBoard = boards[boards.length - 1];
 
-    try {
-      const io = getSocketServer();
-      const roomName = `room_board_${lastBoard.getId()}`;
-      const room = io.sockets.adapter.rooms.get(roomName);
-
-      if (room && room.size > 0) {
-        throw new BoardPairedWithTabletException();
-      }
-    } catch (e: any) {
-      if (e.message.includes('has not been initialized')) {
-        // Ignore if socket is not running (e.g., in tests)
-      } else {
-        throw e;
-      }
+    const hasTabletConnected = await this.matchCacheRepository.hasBoardActiveSession(lastBoard.getId());
+    if (hasTabletConnected) {
+      throw new BoardPairedWithTabletException();
     }
 
-    // 2. Remove the last board from the playing area
     playingArea.removeLastBoard();
-
-    // 3. Persist the changes in the DB
     await this.playingAreaRepository.update(playingArea);
   }
 

@@ -10,4 +10,6 @@ export interface IMatchCacheRepository {
     rebuildHistory(matchId: string, newHistory: any[]): Promise<void>;
     setMatchStatus(matchId: string, status: string): Promise<void>;
     getMatchStatus(matchId: string): Promise<string | null>;
+    setBoardActiveSession(boardId: string, isActive: boolean): Promise<void>;
+    hasBoardActiveSession(boardId: string): Promise<boolean>;
 }

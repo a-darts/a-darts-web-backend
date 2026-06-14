@@ -19,8 +19,24 @@ export class SocketController {
         socket.on('swap_starting_player', (data) => this.handleSwapStartingPlayer(socket, data));
 
         socket.on('disconnect', () => {
-            console.log(`Client disconnected: ${socket.id}`);
+            this.handleDisconnection(socket, io);
         });
+    }
+
+    public async handleDisconnection(socket: Socket, io: Server): Promise<void> {
+        console.log(`Client disconnected: ${socket.id}`);
+
+        for (const roomName of socket.rooms) {
+            if (roomName.startsWith('room_board_')) {
+                const boardShortId = roomName.replace('room_board_', '');
+                const room = io.sockets.adapter.rooms.get(roomName);
+
+                if (!room || room.size <= 1) {
+                    await this.matchCacheRepository.setBoardActiveSession(boardShortId, false);
+                    console.log(`[SocketServer] Room ${roomName} is empty. Active session disabled.`);
+                }
+            }
+        }
     }
 
     private async handleJoinBoard(socket: Socket, boardShortId: string): Promise<void> {
@@ -29,6 +45,8 @@ export class SocketController {
         console.log(`[SocketServer] Client ${socket.id} successfully joined ${roomName}`);
 
         try {
+            await this.matchCacheRepository.setBoardActiveSession(boardShortId, true);
+
             // 1. Check if there's an active match for the board
             const matchId = await this.matchCacheRepository.getActiveMatchForBoard(boardShortId);
             if (matchId) {

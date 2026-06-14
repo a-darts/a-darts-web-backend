@@ -162,6 +162,33 @@ export class RedisMatchCacheRepository implements IMatchCacheRepository {
         const key = `match:${matchId}:status`;
         return await redis.get(key);
     }
+
+    /**
+     * Registra o elimina si hay una tablet conectada a la diana de forma activa
+     */
+    public async setBoardActiveSession(boardId: string, isActive: boolean): Promise<void> {
+        const key = `board:${boardId}:session`;
+
+        if (isActive) {
+            // Guardamos un "1" para indicar sesión activa
+            await redis.set(key, '1');
+            // Damos 12 horas máximo de TTL por si el socket se muere de forma violenta 
+            // y no se llega a ejecutar el borrado en el disconnect.
+            await redis.expire(key, 60 * 60 * 12);
+        } else {
+            // Si ya no hay tablets en la sala, eliminamos la llave por completo
+            await redis.del(key);
+        }
+    }
+
+    /**
+     * Comprueba si hay una tablet con una sesión de websocket activa en la diana
+     */
+    public async hasBoardActiveSession(boardId: string): Promise<boolean> {
+        const key = `board:${boardId}:session`;
+        const exists = await redis.exists(key);
+        return exists === 1;
+    }
 }
 
 export { redis as redisClient };
