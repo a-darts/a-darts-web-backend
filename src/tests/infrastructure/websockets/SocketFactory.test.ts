@@ -42,7 +42,7 @@ vi.mock("../../../infrastructure/factories/MatchServiceFactory.js", () => {
     };
 });
 
-describe("Socket Integration Tests - Darts System Full Coverage", () => {
+describe("SocketFactory - Integration Tests", () => {
     let ioServer: Server;
     let httpServer: HttpServer;
     let clientSocket: ClientSocket;
