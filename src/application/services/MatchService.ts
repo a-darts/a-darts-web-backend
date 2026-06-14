@@ -18,8 +18,6 @@ import { SingleEliminationMatchGenerator } from "../../domain/services/SingleEli
 import { UnitOfWork } from "../../domain/ports/services/UnitOfWork.js";
 import { EventBus } from "../../domain/events/EventBus.js";
 
-import { getSocketServer } from '../../infrastructure/websockets/SocketServer.js';
-
 import {
   MatchResponseDTO,
   UpdateMatchScoreRequestDTO,
@@ -28,7 +26,7 @@ import {
 } from "../dtos/match/MatchDTOs.js";
 import { MatchMapper } from "../dtos/match/MatchMapper.js";
 import { MatchStatus } from '../../domain/entities/Match.js';
-import { MatchAssignedToBoardEvent, MatchCancelledEvent, MatchResumedEvent, MatchSuspendedEvent, MatchUnassignedFromBoardEvent } from '../../domain/events/MatchEvents.js';
+import { MatchAssignedToBoardEvent, MatchCancelledEvent, MatchResumedEvent, MatchStartedEvent, MatchSuspendedEvent, MatchUnassignedFromBoardEvent } from '../../domain/events/MatchEvents.js';
 import { IDomainEvent } from '../../domain/events/IDomainEvent.js';
 
 
@@ -238,8 +236,9 @@ export class MatchService {
     }
 
     // 3. Check if the match is assigned to a board
+    let board: Board;
     try {
-      playingArea.findBoardByMatchId(id);
+      board = playingArea.findBoardByMatchId(id);
     } catch (error) {
       throw new MatchNotAssignedToBoardException();
     }
@@ -250,19 +249,10 @@ export class MatchService {
     // 5. Persist the changes in the DB
     await this.matchRepository.update(match);
 
-    // 6. Notify the board via socket
-    try {
-      const boardShortId = await playingArea.findBoardByMatchId(id).getShortId();
-      console.log(`[OccupyPlayingAreaBoard] Sending match_assigned to room_board_${boardShortId} with matchId: ${id}`);
-      const roomName = `room_board_${boardShortId}`;
-      console.log(`[StartMatch] Sending match_started_confirmed to ${roomName} with matchId: ${id}`);
-      getSocketServer().to(roomName).emit('match_started_confirmed', { matchId: id });
-    } catch (error) {
-      console.log("Error while fetching the match board in the playing area");
-    }
-
-    // 7. Save the match status in Redis
-    await this.matchCacheRepository.setMatchStatus(id, MatchStatus.IN_PROGRESS);
+    // 6. Publish events in the eventBus
+    await this.eventBus.publish([
+      new MatchStartedEvent(id, board.getShortId()),
+    ]);
   }
 
 

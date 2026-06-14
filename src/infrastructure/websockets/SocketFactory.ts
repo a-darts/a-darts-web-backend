@@ -3,7 +3,7 @@ import { globalEventBus } from '../config/eventBus.js';
 import { SocketController } from './SocketController.js';
 import { initializeSocketServer } from './SocketServer.js';
 import { Server } from 'socket.io';
-import { MatchAssignedToBoardEvent, MatchCancelledEvent, MatchResumedEvent, MatchSuspendedEvent, MatchUnassignedFromBoardEvent } from '../../domain/events/MatchEvents.js';
+import { MatchAssignedToBoardEvent, MatchCancelledEvent, MatchResumedEvent, MatchStartedEvent, MatchSuspendedEvent, MatchUnassignedFromBoardEvent } from '../../domain/events/MatchEvents.js';
 import { RedisMatchCacheRepository } from '../persistence/repositories/RedisMatchCacheRepository.js';
 import MatchServiceFactory from '../factories/MatchServiceFactory.js';
 import { MatchStatus } from '../../domain/entities/Match.js';
@@ -44,6 +44,17 @@ export class SocketFactory {
                 io.to(`room_board_${event.boardShortId}`).emit('match_cancelled', {
                     matchId: event.matchId,
                 });
+            }
+        });
+
+        globalEventBus.subscribe(MatchStartedEvent, async (event) => {
+            if (event.boardShortId) {
+                console.log(`[MatchStartedEvent] Match started. Sending match_started_confirmed to room_board_${event.boardShortId}`);
+                io.to(`room_board_${event.boardShortId}`).emit('match_started_confirmed', {
+                    matchId: event.matchId,
+                });
+
+                await matchCacheRepository.setMatchStatus(event.matchId, MatchStatus.IN_PROGRESS);
             }
         });
 
@@ -93,8 +104,6 @@ export class SocketFactory {
                 }
             }
         });
-
-        // MIRAR: falta MatchStartedEvent
 
         return io;
     }
