@@ -34,6 +34,7 @@ describe('PlayingAreaService', () => {
   let playingAreaService: PlayingAreaService;
   let playingAreaRepositoryMock: any;
   let tournamentRepositoryMock: any;
+  let matchCacheRepositoryMock: any;
 
   beforeEach(() => {
     playingAreaRepositoryMock = {
@@ -45,10 +46,14 @@ describe('PlayingAreaService', () => {
     tournamentRepositoryMock = {
       findById: vi.fn(),
     };
+    matchCacheRepositoryMock = {
+      hasBoardActiveSession: vi.fn(),
+    };
 
     playingAreaService = new PlayingAreaService(
       playingAreaRepositoryMock,
-      tournamentRepositoryMock
+      tournamentRepositoryMock,
+      matchCacheRepositoryMock,
     );
 
     vi.clearAllMocks();
@@ -135,14 +140,45 @@ describe('PlayingAreaService', () => {
   });
 
   describe('removeLastBoard', () => {
-    it('should remove last board if no boards', async () => {
-      const mockPlayingArea = createMockPlayingArea();
+    it('should remove last board early and not persist if no boards are present in the playing area', async () => {
+      const mockPlayingArea = createMockPlayingArea({
+        getBoards: vi.fn().mockReturnValue([])
+      });
       playingAreaRepositoryMock.findById.mockResolvedValue(mockPlayingArea);
 
       await playingAreaService.removeLastBoard('playing-area-id');
 
       expect(mockPlayingArea.removeLastBoard).toHaveBeenCalled();
-      expect(playingAreaRepositoryMock.update).not.toHaveBeenCalled(); // Returns early in implementation
+      expect(playingAreaRepositoryMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should remove last board successfully if there are boards and no active tablet session is active', async () => {
+      const mockBoard = { getId: vi.fn().mockReturnValue('board-1') };
+      const mockPlayingArea = createMockPlayingArea({
+        getBoards: vi.fn().mockReturnValue([mockBoard])
+      });
+      playingAreaRepositoryMock.findById.mockResolvedValue(mockPlayingArea);
+      matchCacheRepositoryMock.hasBoardActiveSession.mockResolvedValue(false); // Simula que la tablet no está emparejada
+
+      await playingAreaService.removeLastBoard('playing-area-id');
+
+      expect(matchCacheRepositoryMock.hasBoardActiveSession).toHaveBeenCalledWith('board-1');
+      expect(mockPlayingArea.removeLastBoard).toHaveBeenCalled();
+      expect(playingAreaRepositoryMock.update).toHaveBeenCalledWith(mockPlayingArea);
+    });
+
+    it('should throw BoardPairedWithTabletException if the last board has an active session in cache', async () => {
+      const mockBoard = { getId: vi.fn().mockReturnValue('board-1') };
+      const mockPlayingArea = createMockPlayingArea({
+        getBoards: vi.fn().mockReturnValue([mockBoard])
+      });
+      playingAreaRepositoryMock.findById.mockResolvedValue(mockPlayingArea);
+      matchCacheRepositoryMock.hasBoardActiveSession.mockResolvedValue(true);
+
+      await expect(playingAreaService.removeLastBoard('playing-area-id')).rejects.toThrow(BoardPairedWithTabletException);
+
+      expect(mockPlayingArea.removeLastBoard).not.toHaveBeenCalled();
+      expect(playingAreaRepositoryMock.update).not.toHaveBeenCalled();
     });
 
     it('should throw PlayingAreaNotFoundException if not found', async () => {

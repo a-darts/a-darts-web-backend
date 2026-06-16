@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { BracketSeedingService } from '../../../../src/domain/services/BracketSeedingService.js';
 import { RegisteredParticipant, ByeParticipant } from '../../../../src/domain/entities/Participant.js';
 import { RegistratedParticipantsEmptyException, RegistratedParticipantsNotEnoughException } from '../../../../src/domain/exceptions/ParticipantExceptions.js';
+import { BracketPosition } from '../../../domain/entities/Bracket.js';
 
 describe('BracketSeedingService', () => {
     let service: BracketSeedingService;
@@ -26,26 +27,67 @@ describe('BracketSeedingService', () => {
         expect(service.calculateBracketSize(9)).toBe(16);
     });
 
-    it('should generate positions for 2 participants', () => {
-        const p1 = RegisteredParticipant.create('p1', 't1', 'player 1', 'ARAGON');
-        const p2 = RegisteredParticipant.create('p2', 't1', 'player 2', 'ARAGON');
-        const positions = service.generatePositions([p1, p2]);
+    const testCases = [
+        [2, 2, 0],
+        [3, 4, 1],
+        [4, 4, 0],
+        [5, 8, 3],
+        [6, 8, 2],
+        [7, 8, 1],
+        [8, 8, 0],
+        [9, 16, 7],
+        [10, 16, 6],
+        [11, 16, 5],
+        [12, 16, 4],
+        [13, 16, 3],
+        [14, 16, 2],
+        [15, 16, 1]
+    ];
 
-        expect(positions).toHaveLength(2);
-        expect(positions[0].getParticipant()).toBeInstanceOf(RegisteredParticipant);
-        expect(positions[1].getParticipant()).toBeInstanceOf(RegisteredParticipant);
-        expect(positions[0].getPosition()).toBe(1);
-        expect(positions[1].getPosition()).toBe(2);
-    });
+    describe.each(testCases)(
+        'Layout generation for %i participants',
+        (playersCount, expectedSize, expectedByes) => {
 
-    it('should generate positions with Byes for 3 participants', () => {
-        const p1 = RegisteredParticipant.create('p1', 't1', 'player 1', 'ARAGON');
-        const p2 = RegisteredParticipant.create('p2', 't1', 'player 2', 'ARAGON');
-        const p3 = RegisteredParticipant.create('p3', 't1', 'player 3', 'ARAGON');
-        const positions = service.generatePositions([p1, p2, p3]);
+            it(`should generate a total of ${expectedSize} positions with ${expectedByes} Byes`, () => {
+                const participants = createBulkParticipants(playersCount);
+                const positions = service.generatePositions(participants);
 
-        expect(positions).toHaveLength(4);
-        const byes = positions.filter(p => p.getParticipant() instanceof ByeParticipant);
-        expect(byes).toHaveLength(1);
-    });
+                // Validamos tamaño total del cuadrante resultante
+                expect(positions).toHaveLength(expectedSize);
+
+                // Filtramos y contamos tipos de participantes asignados
+                const reals = positions.filter(p => p.getParticipant() instanceof RegisteredParticipant);
+                const byes = positions.filter(p => p.getParticipant() instanceof ByeParticipant);
+
+                expect(reals).toHaveLength(playersCount);
+                expect(byes).toHaveLength(expectedByes);
+
+                // Verificamos que las posiciones indexadas sean del 1 al N secuencialmente
+                positions.forEach((pos, idx) => {
+                    expect(pos.getPosition()).toBe(idx + 1);
+                });
+
+                // Imprimimos la estructura actual en la consola
+                printBracketLayout(positions, playersCount, expectedByes);
+            });
+        }
+    );
+
+    const createBulkParticipants = (count: number): RegisteredParticipant[] => {
+        return Array.from({ length: count }, (_, i) =>
+            RegisteredParticipant.create(`p${i + 1}`, 't1', `player ${i + 1}`, 'ARAGON')
+        );
+    };
+
+    const printBracketLayout = (positions: BracketPosition[], playersCount: number, byesCount: number): void => {
+        console.log(`\n--- ${playersCount} PLAYERS (${byesCount} BYE) ---`);
+        positions.forEach(pos => {
+            const participant = pos.getParticipant();
+            if (participant instanceof RegisteredParticipant) {
+                console.log(participant.getAlias() || `player`);
+            } else if (participant instanceof ByeParticipant) {
+                console.log('bye');
+            }
+        });
+    };
 });
