@@ -4,6 +4,7 @@ import { Tournament, TournamentStatus } from '../../../domain/entities/Tournamen
 import { BracketNotFoundException, BracketUnfinishedException } from '../../../domain/exceptions/BracketExceptions.js';
 import { TournamentAlreadyHasBracketException, TournamentNotFoundException } from '../../../domain/exceptions/TournamentExceptions.js';
 import { MatchStatus } from '../../../domain/entities/Match.js';
+import { Season } from '../../../domain/entities/Season.js';
 
 vi.mock('../../../application/dtos/tournament/TournamentMapper.js', () => ({
   TournamentMapper: {
@@ -217,7 +218,7 @@ describe('TournamentService', () => {
 
       await tournamentService.updateNameAndSeason({ id: 'tournament-id', newSeasonStartYear: 2029 });
 
-      expect(mockT.updateSeason).toHaveBeenCalledWith(2029);
+      expect(mockT.updateSeason).toHaveBeenCalledWith(new Season(2029));
       expect(tournamentRepositoryMock.update).toHaveBeenCalledWith(mockT);
     });
 
