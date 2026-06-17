@@ -19,7 +19,7 @@ import {
   PaginatedTournamentResponseDTO,
   TournamentResponseDTO,
   UpdateTournamentInfoRequestDTO,
-  UpdateTournamentNameRequestDTO,
+  UpdateTournamentNameAndSeasonRequestDTO,
   UpdateTournamentRegistrationPeriodRequestDTO,
 } from "../dtos/tournament/TournamentDTOs.js";
 import { TournamentMapper } from "../dtos/tournament/TournamentMapper.js";
@@ -126,15 +126,20 @@ export class TournamentService {
   }
 
 
-  public async updateName(request: UpdateTournamentNameRequestDTO): Promise<void> {
+  public async updateNameAndSeason(request: UpdateTournamentNameAndSeasonRequestDTO): Promise<void> {
     // 1. Rehydrate the tournament from the DB
     const tournament = await this.tournamentRepository.findById(request.id);
     if (!tournament) {
       throw new TournamentNotFoundException();
     }
 
-    // 2. Update the name in the tournament object
-    tournament.updateName(request.newName);
+    // 2. Update the name and the season in the tournament object
+    if (request.newName !== undefined) {
+      tournament.updateName(request.newName);
+    }
+    if (request.newSeasonStartYear !== undefined) {
+      tournament.updateSeason(new Season(request.newSeasonStartYear));
+    }
 
     // 3. Persist the changes in the DB
     await this.tournamentRepository.update(tournament);

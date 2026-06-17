@@ -176,14 +176,15 @@ const tournamentService = TournamentServiceFactory.getInstance();
  *         newInfo:
  *           $ref: '#/components/schemas/TournamentInfo'
  * 
- *     UpdateTournamentNameRequest:
+ *     UpdateTournamentRequest:
  *       type: object
- *       required:
- *         - newName
  *       properties:
  *         newName:
  *           type: string
  *           example: Nuevo nombre del campeonato
+ *         newSeasonStartYear:
+ *           type: number
+ *           example: 2026
  * 
  *     UpdateTournamentRegistrationPeriodRequest:
  *       type: object
@@ -1644,9 +1645,9 @@ export class TournamentController {
 
   /**
    * @swagger
-   * /api/tournaments/{id}/name:
+   * /api/tournaments/{id}:
    *   put:
-   *     summary: Update tournament name
+   *     summary: Update tournament name and season
    *     tags: [Tournaments]
    *     security:
    *       - bearerAuth: []
@@ -1663,10 +1664,10 @@ export class TournamentController {
    *       content:
    *         application/json:
    *           schema:
-   *             $ref: '#/components/schemas/UpdateTournamentNameRequest'
+   *             $ref: '#/components/schemas/UpdateTournamentRequest'
    *     responses:
    *       200:
-   *         description: Name updated successfully
+   *         description: Tournament updated successfully
    *         content:
    *           application/json:
    *             schema:
@@ -1677,7 +1678,7 @@ export class TournamentController {
    *                   example: success
    *                 message:
    *                   type: string
-   *                   example: Name updated successfully
+   *                   example: Tournament updated successfully
    *                 data:
    *                   type: string
    *                   example: null
@@ -1747,24 +1748,25 @@ export class TournamentController {
    *                   type: string
    *                   example: Internal server error
    */
-  async updateTournamentName(req: AuthRequest, res: Response) {
+  async updateTournamentNameAndSeason(req: AuthRequest, res: Response) {
     try {
       const id = req.params.id;
       if (!id || typeof id !== 'string') {
         throw new MissingRequiredUserFieldsException();
       }
 
-      const { newName } = req.body;
-      if (!newName) {
+      const { newName, newSeasonStartYear } = req.body;
+      if (!newName && !newSeasonStartYear) {
         throw new MissingRequiredUserFieldsException();
       }
 
-      await tournamentService.updateName({
+      await tournamentService.updateNameAndSeason({
         id: id,
         newName: newName,
+        newSeasonStartYear: newSeasonStartYear,
       });
       res.status(200).json(
-        ApiResponseBuilder.success(null, 'Name updated successfully')
+        ApiResponseBuilder.success(null, 'Tournament updated successfully')
       );
     } catch (error: any) {
       if (error instanceof MissingRequiredUserFieldsException) {

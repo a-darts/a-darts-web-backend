@@ -70,7 +70,7 @@ router.post('/tournaments', authMiddleware, isAdmin, tournamentController.create
 router.delete('/tournaments/:id', authMiddleware, isAdmin, tournamentController.deleteTournament);
 router.post('/tournaments/:id/restore', authMiddleware, isAdmin, tournamentController.restoreTournament);
 router.put('/tournaments/:id/info', authMiddleware, isAdmin, tournamentController.updateTournamentInfo);
-router.put('/tournaments/:id/name', authMiddleware, isAdmin, tournamentController.updateTournamentName);
+router.put('/tournaments/:id', authMiddleware, isAdmin, tournamentController.updateTournamentNameAndSeason);
 
 router.post('/tournaments/:id/unpublish', authMiddleware, isAdmin, tournamentController.unpublishTournament);
 router.post('/tournaments/:id/publish', authMiddleware, isAdmin, tournamentController.publishTournament);

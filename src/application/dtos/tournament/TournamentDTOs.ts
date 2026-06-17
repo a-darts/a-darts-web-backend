@@ -63,9 +63,10 @@ export interface UpdateTournamentInfoRequestDTO {
     newInfo: TournamentInfoDTO;
 }
 
-export interface UpdateTournamentNameRequestDTO {
+export interface UpdateTournamentNameAndSeasonRequestDTO {
     id: string;
-    newName: string;
+    newName?: string;
+    newSeasonStartYear?: number;
 }
 
 export interface UpdateTournamentRegistrationPeriodRequestDTO {
