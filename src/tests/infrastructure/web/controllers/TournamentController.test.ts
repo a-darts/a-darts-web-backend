@@ -42,7 +42,7 @@ const mockService = vi.hoisted(() => ({
   cancel: vi.fn(),
   start: vi.fn(),
   updateInfo: vi.fn(),
-  updateName: vi.fn(),
+  updateNameAndSeason: vi.fn(),
   openRegistration: vi.fn(),
   closeRegistration: vi.fn(),
   updateRegistrationPeriod: vi.fn(),
@@ -327,31 +327,38 @@ describe('TournamentController', () => {
     });
   });
 
-  describe('updateTournamentName', () => {
+  describe('updateTournamentNameAndSeason', () => {
     it('should return 200 when name updated', async () => {
       mockRequest = { params: { id: 't1' }, body: { newName: 'N1' } };
-      await controller.updateTournamentName(mockRequest as AuthRequest, mockResponse as Response);
-      expect(mockService.updateName).toHaveBeenCalledWith({ id: 't1', newName: 'N1' });
+      await controller.updateTournamentNameAndSeason(mockRequest as AuthRequest, mockResponse as Response);
+      expect(mockService.updateNameAndSeason).toHaveBeenCalledWith({ id: 't1', newName: 'N1' });
       expect(mockStatus).toHaveBeenCalledWith(200);
     });
 
-    it('should return 400 when missing name', async () => {
+    it('should return 200 when season updated', async () => {
+      mockRequest = { params: { id: 't1' }, body: { newSeasonStartYear: 2029 } };
+      await controller.updateTournamentNameAndSeason(mockRequest as AuthRequest, mockResponse as Response);
+      expect(mockService.updateNameAndSeason).toHaveBeenCalledWith({ id: 't1', newSeasonStartYear: 2029 });
+      expect(mockStatus).toHaveBeenCalledWith(200);
+    });
+
+    it('should return 400 when missing name and season', async () => {
       mockRequest = { params: { id: 't1' }, body: {} };
-      await controller.updateTournamentName(mockRequest as AuthRequest, mockResponse as Response);
+      await controller.updateTournamentNameAndSeason(mockRequest as AuthRequest, mockResponse as Response);
       expect(mockStatus).toHaveBeenCalledWith(400);
     });
 
     it('should return 404 when tournament not found', async () => {
       mockRequest = { params: { id: 't1' }, body: { newName: 'N1' } };
-      mockService.updateName.mockRejectedValue(new TournamentNotFoundException());
-      await controller.updateTournamentName(mockRequest as AuthRequest, mockResponse as Response);
+      mockService.updateNameAndSeason.mockRejectedValue(new TournamentNotFoundException());
+      await controller.updateTournamentNameAndSeason(mockRequest as AuthRequest, mockResponse as Response);
       expect(mockStatus).toHaveBeenCalledWith(404);
     });
 
     it('should return 409 when tournament not in draft', async () => {
       mockRequest = { params: { id: 't1' }, body: { newName: 'N1' } };
-      mockService.updateName.mockRejectedValue(new TournamentNotInDraftException());
-      await controller.updateTournamentName(mockRequest as AuthRequest, mockResponse as Response);
+      mockService.updateNameAndSeason.mockRejectedValue(new TournamentNotInDraftException());
+      await controller.updateTournamentNameAndSeason(mockRequest as AuthRequest, mockResponse as Response);
       expect(mockStatus).toHaveBeenCalledWith(409);
     });
   });

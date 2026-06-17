@@ -94,6 +94,7 @@ describe('TournamentService', () => {
       getName: vi.fn().mockReturnValue('Tournament Name'),
       getStatus: vi.fn().mockReturnValue(TournamentStatus.DRAFT),
       updateName: vi.fn(),
+      updateSeason: vi.fn(),
       start: vi.fn(),
       cancel: vi.fn(),
       publish: vi.fn(),
@@ -199,20 +200,30 @@ describe('TournamentService', () => {
     });
   });
 
-  describe('updateName', () => {
+  describe('updateNameAndSeason', () => {
     it('should update name and persist', async () => {
       const mockT = createMockTournament();
       tournamentRepositoryMock.findById.mockResolvedValue(mockT);
 
-      await tournamentService.updateName({ id: 'tournament-id', newName: 'New Name' });
+      await tournamentService.updateNameAndSeason({ id: 'tournament-id', newName: 'New Name' });
 
       expect(mockT.updateName).toHaveBeenCalledWith('New Name');
       expect(tournamentRepositoryMock.update).toHaveBeenCalledWith(mockT);
     });
 
+    it('should update season and persist', async () => {
+      const mockT = createMockTournament();
+      tournamentRepositoryMock.findById.mockResolvedValue(mockT);
+
+      await tournamentService.updateNameAndSeason({ id: 'tournament-id', newSeasonStartYear: 2029 });
+
+      expect(mockT.updateSeason).toHaveBeenCalledWith(2029);
+      expect(tournamentRepositoryMock.update).toHaveBeenCalledWith(mockT);
+    });
+
     it('should throw TournamentNotFoundException if not found', async () => {
       tournamentRepositoryMock.findById.mockResolvedValue(null);
-      await expect(tournamentService.updateName({ id: 't-id', newName: 'name' })).rejects.toThrow(TournamentNotFoundException);
+      await expect(tournamentService.updateNameAndSeason({ id: 't-id', newName: 'name' })).rejects.toThrow(TournamentNotFoundException);
     });
   });
 
