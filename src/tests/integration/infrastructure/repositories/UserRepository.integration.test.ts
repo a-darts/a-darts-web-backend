@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaUserRepository } from '../../../../infrastructure/persistence/repositories/PrismaUserRepository.js';
 import { startIntegrationTestDB, stopIntegrationTestDB, clearDatabase, prisma } from '../../setup.js';
-import { User, UserRoles } from '../../../../domain/entities/User.js';
+import { User, UserRoles, UserStatus } from '../../../../domain/entities/User.js';
 
 describe('UserRepository Integration Tests', () => {
   let userRepository: PrismaUserRepository;
@@ -83,5 +83,35 @@ describe('UserRepository Integration Tests', () => {
 
     const count = await userRepository.count();
     expect(count).toBe(2);
+  });
+  it('should correctly count users with filters', async () => {
+    await userRepository.create(User.createByAdmin('1@t.com', 'p', 'a', UserRoles.PLAYER));
+    await userRepository.create(User.createByAdmin('2@t.com', 'p', 'b', UserRoles.ADMIN));
+
+    const countAll = await userRepository.count();
+    expect(countAll).toBeGreaterThanOrEqual(2);
+
+    const countPlayer = await userRepository.count({ role: UserRoles.PLAYER });
+    expect(countPlayer).toBeGreaterThanOrEqual(1);
+
+    const countSearch = await userRepository.count({ search: '1@t.com' });
+    expect(countSearch).toBeGreaterThanOrEqual(1);
+
+    const countStatus = await userRepository.count({ status: UserStatus.ACTIVE });
+    expect(countStatus).toBeGreaterThanOrEqual(0);
+  });
+
+  it('should successfully find multiple users by their IDs', async () => {
+    const user1 = User.createByAdmin('m1@test.com', 'pwd1', 'alias1', UserRoles.PLAYER);
+    const user2 = User.createByAdmin('m2@test.com', 'pwd2', 'alias2', UserRoles.ADMIN);
+
+    await userRepository.create(user1);
+    await userRepository.create(user2);
+
+    const users = await userRepository.findManyByIds([user1.getId(), user2.getId()]);
+    expect(users).toHaveLength(2);
+    const ids = users.map(u => u.getId());
+    expect(ids).toContain(user1.getId());
+    expect(ids).toContain(user2.getId());
   });
 });

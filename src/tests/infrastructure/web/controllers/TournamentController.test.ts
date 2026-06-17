@@ -485,5 +485,17 @@ describe('TournamentController', () => {
       await controller.disableCheckIn(mockRequest as AuthRequest, mockResponse as Response);
       expect(mockStatus).toHaveBeenCalledWith(409);
     });
+    it('should return 400 when id is missing', async () => {
+      mockRequest = { params: {} };
+      await controller.disableCheckIn(mockRequest as AuthRequest, mockResponse as Response);
+      expect(mockStatus).toHaveBeenCalledWith(400);
+    });
+
+    it('should return 500 on internal server error', async () => {
+      mockRequest = { params: { id: 't1' } };
+      mockService.disableCheckIn.mockRejectedValue(new Error('Unknown error'));
+      await controller.disableCheckIn(mockRequest as AuthRequest, mockResponse as Response);
+      expect(mockStatus).toHaveBeenCalledWith(500);
+    });
   });
 });

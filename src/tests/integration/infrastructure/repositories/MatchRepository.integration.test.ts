@@ -46,7 +46,7 @@ describe('MatchRepository Integration Tests', () => {
 
   beforeEach(async () => {
     await clearDatabase();
-    
+
     // Users
     testUser1 = User.createByAdmin('p1@test.com', 'pwd123', 'p1', UserRoles.PLAYER);
     testUser2 = User.createByAdmin('p2@test.com', 'pwd123', 'p2', UserRoles.PLAYER);
@@ -77,15 +77,15 @@ describe('MatchRepository Integration Tests', () => {
 
   it('should successfully create and retrieve a match', async () => {
     const match = Match.create(
-        testTournament.getId(),
-        testParticipant1.getId(),
-        testParticipant2.getId(),
-        ParticipantTypes.REGISTERED,
-        ParticipantTypes.REGISTERED,
-        1,
-        1
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      1,
+      1
     );
-    
+
     await matchRepository.create(match);
     const retrieved = await matchRepository.findById(match.getId());
 
@@ -100,17 +100,17 @@ describe('MatchRepository Integration Tests', () => {
 
   it('should retrieve a match with participants', async () => {
     const match = Match.create(
-        testTournament.getId(),
-        testParticipant1.getId(),
-        testParticipant2.getId(),
-        ParticipantTypes.REGISTERED,
-        ParticipantTypes.REGISTERED,
-        1,
-        1
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      1,
+      1
     );
-    
+
     await matchRepository.create(match);
-    
+
     const retrievedWithParts = await matchRepository.findByIdWithParticipants(match.getId());
     expect(retrievedWithParts).not.toBeNull();
     expect(retrievedWithParts?.match.getId()).toBe(match.getId());
@@ -120,13 +120,13 @@ describe('MatchRepository Integration Tests', () => {
 
   it('should retrieve matches by tournament ID', async () => {
     const match = Match.create(
-        testTournament.getId(),
-        testParticipant1.getId(),
-        testParticipant2.getId(),
-        ParticipantTypes.REGISTERED,
-        ParticipantTypes.REGISTERED,
-        1,
-        1
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      1,
+      1
     );
     await matchRepository.create(match);
 
@@ -137,13 +137,13 @@ describe('MatchRepository Integration Tests', () => {
 
   it('should successfully update a match (start and set score)', async () => {
     const match = Match.create(
-        testTournament.getId(),
-        testParticipant1.getId(),
-        testParticipant2.getId(),
-        ParticipantTypes.REGISTERED,
-        ParticipantTypes.REGISTERED,
-        1,
-        1
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      1,
+      1
     );
     await matchRepository.create(match);
 
@@ -159,13 +159,13 @@ describe('MatchRepository Integration Tests', () => {
 
   it('should successfully delete a match', async () => {
     const match = Match.create(
-        testTournament.getId(),
-        testParticipant1.getId(),
-        testParticipant2.getId(),
-        ParticipantTypes.REGISTERED,
-        ParticipantTypes.REGISTERED,
-        1,
-        1
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      1,
+      1
     );
     await matchRepository.create(match);
 
@@ -173,5 +173,88 @@ describe('MatchRepository Integration Tests', () => {
 
     const retrieved = await matchRepository.findById(match.getId());
     expect(retrieved).toBeNull();
+  });
+
+  it('should findAll matches', async () => {
+    const match = Match.create(
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      1,
+      2
+    );
+    await matchRepository.create(match);
+    const allMatches = await matchRepository.findAll();
+    expect(allMatches.length).toBeGreaterThan(0);
+  });
+
+  it('should findManyByIds matches', async () => {
+    const match = Match.create(
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      1,
+      3
+    );
+    await matchRepository.create(match);
+    const matches = await matchRepository.findManyByIds([match.getId()]);
+    expect(matches.length).toBe(1);
+    expect(matches[0].getId()).toBe(match.getId());
+  });
+
+  it('should findByParticipantsIdsAndTournamentId', async () => {
+    const match = Match.create(
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      1,
+      4
+    );
+    await matchRepository.create(match);
+    const retrieved = await matchRepository.findByParticipantsIdsAndTournamentId(
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      testTournament.getId()
+    );
+    expect(retrieved).not.toBeNull();
+    expect(retrieved?.getId()).toBe(match.getId());
+  });
+
+  it('should findManyByTournamentIdWithParticipants', async () => {
+    const match = Match.create(
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      1,
+      5
+    );
+    await matchRepository.create(match);
+    const matches = await matchRepository.findManyByTournamentIdWithParticipants(testTournament.getId());
+    expect(matches.length).toBeGreaterThan(0);
+    expect(matches[0].participant1).toBeDefined();
+  });
+
+  it('should findByTournamentRoundAndMatchIndex', async () => {
+    const match = Match.create(
+      testTournament.getId(),
+      testParticipant1.getId(),
+      testParticipant2.getId(),
+      ParticipantTypes.REGISTERED,
+      ParticipantTypes.REGISTERED,
+      2,
+      6
+    );
+    await matchRepository.create(match);
+    const retrieved = await matchRepository.findByTournamentRoundAndMatchIndex(testTournament.getId(), 2, 6);
+    expect(retrieved).not.toBeNull();
+    expect(retrieved?.getId()).toBe(match.getId());
   });
 });

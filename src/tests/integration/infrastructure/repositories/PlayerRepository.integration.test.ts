@@ -92,4 +92,91 @@ describe('PlayerRepository Integration Tests', () => {
     expect(retrievedPlayer?.getStatus()).toBe(PlayerStatus.DELETED);
     expect(retrievedPlayer?.getDeletedAt()).not.toBeNull();
   });
+
+  it('should hard delete a player', async () => {
+    const season = new Season(2023);
+    const player = Player.create(testUser.getId(), 'REG-HARD-DEL', 'FED-Z', season);
+    await playerRepository.create(player);
+    await playerRepository.delete(player.getId());
+    const retrieved = await playerRepository.findById(player.getId());
+    expect(retrieved).toBeNull();
+  });
+
+  it('should findAll players with filters', async () => {
+    const season = new Season(2030);
+    const player1 = Player.create(testUser.getId(), 'REG-FA1', 'FED-FA', season);
+    await playerRepository.create(player1);
+    
+    // Create another user and player
+    const user2 = User.createByAdmin('u2@t.com', 'pwd123', 'alias2', UserRoles.PLAYER);
+    await userRepository.create(user2);
+    const player2 = Player.create(user2.getId(), 'REG-FA2', 'FED-FA2', season);
+    await playerRepository.create(player2);
+
+    const players = await playerRepository.findAll(0, 10, 'alias2', PlayerStatus.ACTIVE, 'FED-FA2', 2030);
+    expect(players.length).toBe(1);
+    expect(players[0].getId()).toBe(player2.getId());
+  });
+
+  it('should findAllWithUser players with filters', async () => {
+    const season = new Season(2030);
+    const player1 = Player.create(testUser.getId(), 'REG-FAW1', 'FED-FA', season);
+    await playerRepository.create(player1);
+
+    const playersWithUser = await playerRepository.findAllWithUser(0, 10, 'playerAlias');
+    expect(playersWithUser.length).toBeGreaterThan(0);
+    expect(playersWithUser[0].user).toBeDefined();
+    expect(playersWithUser[0].user.getAlias()).toBe('playerAlias');
+  });
+
+  it('should count players with filters', async () => {
+    const season = new Season(2031);
+    const player1 = Player.create(testUser.getId(), 'REG-CNT1', 'FED-CNT', season);
+    await playerRepository.create(player1);
+
+    const count = await playerRepository.count('playerAlias', PlayerStatus.ACTIVE, 'FED-CNT', 2031);
+    expect(count).toBeGreaterThan(0);
+  });
+
+  it('should findByIdWithUser', async () => {
+    const season = new Season(2032);
+    const player = Player.create(testUser.getId(), 'REG-IDU', 'FED-IDU', season);
+    await playerRepository.create(player);
+
+    const retrieved = await playerRepository.findByIdWithUser(player.getId());
+    expect(retrieved).not.toBeNull();
+    expect(retrieved?.user.getId()).toBe(testUser.getId());
+  });
+
+  it('should findManyByIds', async () => {
+    const season = new Season(2033);
+    const player1 = Player.create(testUser.getId(), 'REG-M1', 'FED-M', season);
+    await playerRepository.create(player1);
+
+    const retrieved = await playerRepository.findManyByIds([player1.getId()]);
+    expect(retrieved.length).toBe(1);
+    expect(retrieved[0].getId()).toBe(player1.getId());
+  });
+
+  it('should findAllByUserId', async () => {
+    const season1 = new Season(2034);
+    const season2 = new Season(2035);
+    const player1 = Player.create(testUser.getId(), 'REG-U1', 'FED-U', season1);
+    const player2 = Player.create(testUser.getId(), 'REG-U2', 'FED-U', season2);
+    await playerRepository.create(player1);
+    await playerRepository.create(player2);
+
+    const retrieved = await playerRepository.findAllByUserId(testUser.getId());
+    expect(retrieved.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('should findAllBySeasonWithUser', async () => {
+    const season = new Season(2036);
+    const player1 = Player.create(testUser.getId(), 'REG-SW1', 'FED-SW', season);
+    await playerRepository.create(player1);
+
+    const retrieved = await playerRepository.findAllBySeasonWithUser(2036);
+    expect(retrieved.length).toBeGreaterThanOrEqual(1);
+    expect(retrieved[0].user).toBeDefined();
+  });
 });
