@@ -8,7 +8,7 @@ export class BracketSeedingService {
             throw new RegistratedParticipantsEmptyException();
         }
         if (count < 2) {
-            throw new RegistratedParticipantsNotEnoughException(2, count);
+            throw new RegistratedParticipantsNotEnoughException();
         }
     }
 
@@ -23,18 +23,16 @@ export class BracketSeedingService {
 
     /**
      * Dado un array de participantes reales, devuelve BracketPositions
-     * barajadas (Fisher-Yates) con Byes intercalados usando Standard
-     * Tournament Seeding.
+     * barajadas (Fisher-Yates) con Byes intercalados según algoritmo
      */
     public generatePositions(participants: IParticipant[]): BracketPosition[] {
         this.validateCount(participants.length);
 
         const size = this.calculateBracketSize(participants.length);
         const shuffled = this.shuffle([...participants]);
-        const slotted = this.fillWithByes(shuffled, size);
-        const ordered = this.applySeedingOrder(slotted, size);
+        const slotted = this.fillWithByesOrdered(shuffled, size);
 
-        return ordered.map((participant, idx) =>
+        return slotted.map((participant, idx) =>
             BracketPosition.create(participant, idx + 1)
         );
     }
@@ -51,19 +49,38 @@ export class BracketSeedingService {
         return items;
     }
 
-    private fillWithByes(participants: IParticipant[], targetSize: number): IParticipant[] {
-        const byes = targetSize - participants.length;
-        return [
-            ...participants,
-            ...Array.from({ length: byes }, () => ByeParticipant.create()),
-        ];
+    private fillWithByesOrdered(participants: IParticipant[], size: number): IParticipant[] {
+        const byeCount = size - participants.length;
+        const allByePositions = this.byesOrder(size);
+        const byePositions = new Set(allByePositions.slice(0, byeCount));
+
+        const slots: IParticipant[] = new Array(size);
+
+        for (const pos of byePositions) {
+            slots[pos] = ByeParticipant.create();
+        }
+
+        let pi = 0;
+        for (let i = 0; i < size; i++) {
+            if (!byePositions.has(i)) {
+                slots[i] = participants[pi++];
+            }
+        }
+
+        return slots;
     }
 
-    private applySeedingOrder(slots: IParticipant[], size: number): IParticipant[] {
-        let order = [0];
-        while (order.length < size) {
-            order = order.flatMap(i => [i, order.length * 2 - 1 - i]);
+    private byesOrder(n: number): number[] {
+        if (n == 2) {
+            return [0];
         }
-        return order.map(i => slots[i]);
+
+        const prev = this.byesOrder(n / 2);
+        const result: number[] = [];
+        for (const s of prev) {
+            result.push(s);
+            result.push(n - 2 - s);
+        }
+        return result;
     }
 }

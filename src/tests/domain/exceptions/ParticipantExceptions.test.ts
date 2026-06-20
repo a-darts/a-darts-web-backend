@@ -22,7 +22,7 @@ describe('ParticipantExceptions', () => {
         const exRegistratedParticipantsEmptyException = new RegistratedParticipantsEmptyException();
         expect(exRegistratedParticipantsEmptyException).toBeInstanceOf(Error);
         expect(exRegistratedParticipantsEmptyException.name).toBe('RegistratedParticipantsEmptyException');
-        const exRegistratedParticipantsNotEnoughException = new RegistratedParticipantsNotEnoughException(2, 1);
+        const exRegistratedParticipantsNotEnoughException = new RegistratedParticipantsNotEnoughException();
         expect(exRegistratedParticipantsNotEnoughException).toBeInstanceOf(Error);
         expect(exRegistratedParticipantsNotEnoughException.name).toBe('RegistratedParticipantsNotEnoughException');
         const exRegistratedParticipantsTypesException = new RegistratedParticipantsTypesException();
