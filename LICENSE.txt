@@ -1,0 +1,7 @@
+Copyright (c) 2026 Ariana Porroche
+
+All rights reserved.
+
+This repository is published exclusively for academic evaluation and reference.
+
+No permission is granted to use, reproduce, modify, distribute, sublicense, or create derivative works from this software without prior written consent of the author.
